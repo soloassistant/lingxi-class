@@ -931,6 +931,17 @@
       <p class="auth-tip" id="voice-note"></p>
       <p class="auth-tip">切换语言会同时改变老师的**讲课语言**和**声音**——只换声音会让内容与语音对不上。
         当前这节课立即生效，课件仍是生成时的语言；想让课件也换语言，请重新生成课程。</p>
+
+      <!-- ★ 实测语音（2026-09-28）
+           为什么放在这里而不是只放课堂里：进课堂要过「登录 + 手机号」两道门，
+           而"听不到声音"的人很可能正卡在门外 —— 把诊断工具锁在他进不去的地方等于没有。
+           这一条不需要登录、不需要进课堂，点一下就会真念一句并问你听到没有。 -->
+      <div class="voice-tts-test">
+        <button class="tts-check-entry" id="btn-voice-tts-test" type="button">🔇 听不到老师的声音？点这里实测一下</button>
+        <span class="voice-tts-title" id="voice-tts-title" hidden></span>
+        <span class="voice-tts-why" id="voice-tts-why"></span>
+        <div class="tts-notice-result" id="voice-tts-result" hidden></div>
+      </div>
     </div>
     <div class="modal-foot">
       <button class="btn" id="btn-checkup-open">🩺 运行自检</button>

@@ -2106,6 +2106,11 @@ small { font-size: 12px; }
 .tts-check-entry:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft, rgba(91,92,230,0.06)); }
 html[data-theme="eye"] .tts-check-entry:hover { color: #B45309; border-color: #C86A2E; }
 
+/* 声音设置面板里的实测区（不需要登录/进课堂） */
+.voice-tts-test { margin-top: 12px; }
+.voice-tts-title { display: block; font-size: 14px; font-weight: 600; margin: 10px 0 4px; }
+.voice-tts-why { display: block; font-size: 13px; color: var(--muted); line-height: 1.6; }
+
 /* 提示区右侧的动作按钮组（自检 + 再试一次） */
 .tts-notice-acts { flex: 0 0 auto; align-self: center; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
 

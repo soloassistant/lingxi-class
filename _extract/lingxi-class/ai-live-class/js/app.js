@@ -2941,9 +2941,16 @@ function ttsHealth() {
   }
 
   /* 在提示区里问一句"你听到了吗"，等用户点。只有他知道答案。 */
+  /* ★ 自检要能在**两个地方**跑：
+       · 课堂里（"没听到老师的声音？"入口）—— 结果渲染在字幕下面那条提示区
+       · 声音设置面板里（不需要登录、不需要进课堂）—— 结果渲染在面板内
+     为什么必须支持后者：进课堂要过**登录 + 手机号**两道门，而"没声音"的人
+     很可能正卡在门外 —— 把诊断工具锁在他进不去的地方，等于没有。 */
+  let ttsCheckHost = null;
+
   function askHeard() {
     return new Promise((resolve) => {
-      const box = $('#tts-notice-result');
+      const box = (ttsCheckHost && ttsCheckHost.box) || $('#tts-notice-result');
       if (!box) { resolve(null); return; }
       box.hidden = false;
       box.innerHTML = '';
@@ -2965,6 +2972,7 @@ function ttsHealth() {
       btns.appendChild(no);
       box.appendChild(q);
       box.appendChild(btns);
+      try { box.scrollIntoView({ block: 'nearest' }); } catch (_) {}
     });
   }
 
@@ -2981,18 +2989,41 @@ function ttsHealth() {
       .map((k) => FACTS_LABEL[k] + '：' + f[k]).join('\n');
   }
 
-  /* 自检主流程：先读环境 → 再实测一句 → 再问用户听到没有 → 给结论 */
-  async function runTTSSelfCheck() {
-    showTTSNotice('checking');
-    const title = $('#tts-notice-title');
-    const why = $('#tts-notice-why');
-    const box = $('#tts-notice-result');
-    const acts = document.querySelector('.tts-notice-acts');
-    if (title) title.textContent = '语音自检中…';
+  /* 自检主流程：先读环境 → 再实测一句 → 再问用户听到没有 → 给结论
+     fromModal=true 时渲染在声音设置面板里（不需要登录/进课堂），否则渲染在课堂提示区。 */
+  async function runTTSSelfCheck(fromModal) {
+    /* 先把"结果渲染到哪儿"定下来，后面几个函数都用它 */
+    ttsCheckHost = fromModal
+      ? {
+        box: $('#voice-tts-result'), title: $('#voice-tts-title'),
+        why: $('#voice-tts-why'), ico: null, acts: null, fromModal: true,
+      }
+      : {
+        box: $('#tts-notice-result'), title: $('#tts-notice-title'),
+        why: $('#tts-notice-why'), ico: $('#tts-notice-ico'),
+        acts: document.querySelector('.tts-notice-acts'), fromModal: false,
+      };
+
+    /* 课堂那条提示：只在课堂入口触发时才去动它（从设置面板进来时不该影响课堂 UI） */
+    if (!fromModal) showTTSNotice('checking');
+    const title = ttsCheckHost.title;
+    const why = ttsCheckHost.why;
+    const box = ttsCheckHost.box;
+    const acts = ttsCheckHost.acts;
+    if (title) {
+      /* 设置面板里的标题是固定的小标题，不自作主张改它；课堂提示区才改 */
+      if (!fromModal) title.textContent = '语音自检中…';
+    }
     if (why) why.textContent = '会念一句给你听，大约 3 秒。请先把系统音量调到一半以上。';
-    if (box) { box.hidden = true; box.innerHTML = ''; }
+    if (box) { box.hidden = false; box.innerHTML = ''; }
+    if (box) {
+      const t = document.createElement('div');
+      t.className = 'tcr-q';
+      t.textContent = '正在念一句给你听，请留意有没有声音…';
+      box.appendChild(t);
+    }
     if (acts) acts.style.display = 'none';       // 自检期间先把按钮收起来，避免误点
-    try { track('tts_selfcheck_start', {}); } catch (_) {}
+    try { track('tts_selfcheck_start', { fromModal: !!fromModal }); } catch (_) {}
 
     const facts = ttsFacts();
     const probe = await probeUtterance('灵犀老师语音自检，一二三四五。', 3000);
@@ -3014,9 +3045,10 @@ function ttsHealth() {
 
   /* 结论矩阵：代码知道"引擎接不接受"，用户知道"有没有声音"，两两组合四种情况 */
   function renderSelfCheck(facts, probe, heard) {
-    const box = $('#tts-notice-result');
-    const title = $('#tts-notice-title');
-    const why = $('#tts-notice-why');
+    const host = ttsCheckHost || {};
+    const box = host.box || $('#tts-notice-result');
+    const title = host.title;
+    const why = host.why;
     if (!box) return;
     box.hidden = false;
     box.innerHTML = '';
@@ -3061,17 +3093,21 @@ function ttsHealth() {
       ok = true;
       head = '语音是好的 —— 刚才这句你听到了。';
       todo = ['如果课上还是没声，点「再试一次」，并把本条提示截图发给我'];
-      /* 用户亲口确认听到了 → "没声音？"入口从此不再出现（不再骚扰） */
-      hideTTSCheckEntry();
+      /* 用户亲口确认听到了 → 课堂里那个"没声音？"入口从此不再出现（不再骚扰）。
+         从设置面板进来时不碰课堂 UI。 */
+      if (!(host && host.fromModal)) hideTTSCheckEntry();
     } else {
       head = '引擎接受了朗读，但没能确认你是否听到。';
       todo = ['点「再试一次」听一句；仍没声就再来一次自检'];
     }
 
-    if (title) title.textContent = ok ? '语音正常 ✅' : '语音自检结果';
-    if (why) why.textContent = '';
-    const ico = $('#tts-notice-ico');
-    if (ico) ico.textContent = ok ? '🔊' : '🔇';
+    /* 课堂提示区的标题/图标由我们掌管；设置面板里那个是固定的小标题，不改它 */
+    if (!(host && host.fromModal)) {
+      if (title) title.textContent = ok ? '语音正常 ✅' : '语音自检结果';
+      if (why) why.textContent = '';
+      const ico = host && host.ico ? host.ico : $('#tts-notice-ico');
+      if (ico) ico.textContent = ok ? '🔊' : '🔇';
+    }
 
     const h = document.createElement('div');
     h.className = ok ? 'tcr-ok' : 'tcr-q';
@@ -3138,6 +3174,31 @@ function ttsHealth() {
      声音恢复正常后自己隐藏。这样无论登录与否，用户都能直接看到发生了什么。 */
   let ttsNoticeReason = '';
 
+  /* ★ 自检入口的**事件绑定**必须放在页面初始化（init）里，不能放在 showTTSNotice 里。
+     踩过的坑（2026-09-28，E2E 抓到）：我一开始把"声音设置面板里那个实测按钮"的绑定
+     写在 showTTSNotice 里 —— 而 showTTSNotice **只在"语音出问题时"才会被调用**。
+     于是语音正常（或还没出问题）时，那个按钮是个**点了没反应的死按钮**：
+     入口看得见、点下去什么都不发生 —— 正是用户报的"看不到 / 点了没用"那一类。
+     放在 init 里还有一个好处：它**不需要登录**，而进课堂要过登录 + 手机号两道门，
+     正卡在门外的人依然能用到自检（这才是它存在的意义）。 */
+  function bindTTSCheckButtons() {
+    const check = $('#tts-notice-check');
+    if (check && !check._bound) {
+      check._bound = true;
+      check.addEventListener('click', () => { runTTSSelfCheck(); });
+    }
+    const vcheck = $('#btn-voice-tts-test');
+    if (vcheck && !vcheck._bound) {
+      vcheck._bound = true;
+      vcheck.addEventListener('click', () => {
+        vcheck.hidden = true;                       // 结果出来后收起入口，避免重复点
+        const t = $('#voice-tts-title');
+        if (t) { t.hidden = false; t.textContent = '语音实测结果'; }
+        runTTSSelfCheck(true);
+      });
+    }
+  }
+
   function ttsNoticeTip(reason) {
     const tips = {
       unsupported: '这个浏览器不支持网页语音朗读（换 Chrome 或 Edge 就有声音）。老师会继续用字幕讲课。',
@@ -3173,12 +3234,8 @@ function ttsHealth() {
         retryPendingSpeech();
       });
     }
-    /* 「语音自检」：把"没声音"变成一个确定的结论（含"引擎说念了但你没听到"这一格） */
-    const check = $('#tts-notice-check');
-    if (check && !check._bound) {
-      check._bound = true;
-      check.addEventListener('click', () => { runTTSSelfCheck(); });
-    }
+    /* 两个自检入口的事件绑定统一在 init 里的 bindTTSCheckButtons() 做 ——
+       放在这里会让按钮在"还没出问题"时是死的（详见 bindTTSCheckButtons 的注释）。 */
     const x = $('#tts-notice-close');
     if (x && !x._bound) {
       x._bound = true;
@@ -11548,6 +11605,8 @@ function init() {
   safeInit('initAvatarVideoEntry', initAvatarVideoEntry);
   safeInit('initAvatarVideo', initAvatarVideo);
   safeInit('initTTS', initTTS);
+  /* 语音自检入口的绑定：必须在 init（不依赖登录），不能等 showTTSNotice —— 见其注释 */
+  safeInit('bindTTSCheckButtons', bindTTSCheckButtons);
   safeInit('restoreTTSPref', restoreTTSPref);
   safeInit('restoreGuidePref', restoreGuidePref);
   // 账号与长期记忆：异步恢复会话，失败不影响页面

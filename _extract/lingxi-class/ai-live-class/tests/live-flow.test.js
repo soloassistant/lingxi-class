@@ -2248,6 +2248,42 @@ setTimeout(async () => {
       /确认不了你的设备有没有出声/.test(seg);
   })());
 
+  console.log('\n=== 44. 自检必须"不进课堂也能用" ===');
+  /* ★ 由来：用户反馈「没看到（自检入口）」+「一定要登陆才可以使用」。
+     查代码发现 startLive() 有两道门：requireModel()（要登录）与 ensurePhone('进入课堂')
+     （手机号登记）。**自检入口原本只在课堂里** —— 等于把诊断工具锁在用户进不去的地方。
+     而"听不到声音"的人，很可能正卡在门外。所以必须在不需要登录的地方也有入口。 */
+  t('SC14 声音设置面板里有实测入口（该面板不需要登录/进课堂）',
+    /id="btn-voice-tts-test"/.test(htmlCheck) && /id="voice-tts-result"/.test(htmlCheck));
+  t('SC15 点它会把结果渲染在面板内（不是课堂里那个容器）',
+    /\$\('#btn-voice-tts-test'\)/.test(srcTR) && /runTTSSelfCheck\(true\)/.test(srcTR));
+  t('SC16 自检支持两种落点（课堂提示区 / 设置面板）', (() => {
+    const i = srcTR.indexOf('async function runTTSSelfCheck');
+    const seg = srcTR.slice(i, i + 900);
+    return /ttsCheckHost = fromModal/.test(seg) && /#voice-tts-result/.test(seg) && /#tts-notice-result/.test(seg);
+  })());
+  t('SC17 从面板进来时不篡改课堂 UI（标题/图标/"没声音"入口都不碰）', (() => {
+    const i = srcTR.indexOf('function renderSelfCheck');
+    const seg = srcTR.slice(i, i + 3000);
+    return /if \(!\(host && host\.fromModal\)\)/.test(seg) &&
+      /if \(!\(host && host\.fromModal\)\) hideTTSCheckEntry\(\);/.test(seg);
+  })());
+  t('SC18 逐个确认那两道门确实存在（这是"看不到入口"的根因，别被以后改掉）',
+    /if \(!\(await requireModel\(\)\)\)/.test(srcTR) && /if \(!ensurePhone\('进入课堂'\)\)/.test(srcTR));
+  /* ★ E2E 抓到的真 bug：两个自检按钮的绑定原本写在 showTTSNotice 里，
+     而它**只在"语音出问题时"才被调用** —— 于是语音正常时那是个**点了没反应的死按钮**。
+     绑定必须在 init（不依赖登录、不依赖是否出问题）。 */
+  t('SC19 自检按钮在 init 里绑定，不依赖"是否已出问题"',
+    /function bindTTSCheckButtons\(\)/.test(srcTR) &&
+    /safeInit\('bindTTSCheckButtons', bindTTSCheckButtons\)/.test(srcTR));
+  t('SC20 showTTSNotice 里不再绑定这两个按钮（否则又会变成死按钮）', (() => {
+    const i = srcTR.indexOf('function showTTSNotice');
+    const seg = srcTR.slice(i, i + 2600);
+    return !/\$\('#btn-voice-tts-test'\)/.test(seg) && !/\$\('#tts-notice-check'\)/.test(seg);
+  })());
+  t('SC21 绑定写在 init 里的理由有注释（免得被"顺手"挪回 showTTSNotice）',
+    /踩过的坑（2026-09-28，E2E 抓到）/.test(srcTR) && /点了没反应的死按钮/.test(srcTR));
+
   console.log('\n=== 14. 结束课堂清理 ===');
   try { window.endLiveSilent(); t('endLiveSilent 无异常', true); }
   catch (e) { t('endLiveSilent 无异常', false, e.message); }
