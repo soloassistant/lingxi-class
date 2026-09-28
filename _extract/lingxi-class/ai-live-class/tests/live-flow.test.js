@@ -2238,6 +2238,15 @@ setTimeout(async () => {
   })());
   t('SC12 成功发声有累计计数（用于区分"从没念过"与"念了但没听到"）',
     /TTS\._startedTotal = \(TTS\._startedTotal \|\| 0\) \+ 1/.test(srcTR));
+  /* 两个自检不能各说各话：既有的 9 项自检（声音设置 → 运行自检）是**纯静态**判断，
+     会显示"可用，共 N 个语音（含中文）"全绿，而用户可能什么都听不到。
+     所以它必须把用户指向课堂里那个"真念一句 + 问你听到没有"的实测自检。 */
+  t('SC13 既有自检的语音项如实说明"它只能确认引擎可用"，并指向实测自检', (() => {
+    const i = srcTR.indexOf("add('tts', '语音朗读', true, '可用，共 '");
+    const seg = srcTR.slice(i, i + 700);
+    return /点「🔇 没听到老师的声音？点这里自检」做一次实测/.test(seg) &&
+      /确认不了你的设备有没有出声/.test(seg);
+  })());
 
   console.log('\n=== 14. 结束课堂清理 ===');
   try { window.endLiveSilent(); t('endLiveSilent 无异常', true); }

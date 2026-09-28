@@ -19,22 +19,36 @@
 
 ```bash
 cd _extract/lingxi-class/ai-live-class
-# 纯静态站点，任意静态服务器即可
+npm start                      # 用仓库自带的零依赖静态服务器（tools/serve.js，默认 3000 端口）
+# 或任意静态服务器：
 python3 -m http.server 8080
 ```
 
 - 入口：`index.html`
 - 源码：`js/app.js`（单文件，约 1.2 万行）、`css/style.css`
-- 测试：`tests/run-all.js`（**1796 项断言**，覆盖课堂流程 / 语音 / 记忆 / 合规 / 题库 / 进度备份等）
+- 测试：`tests/run-all.js`（**1809 项断言**，覆盖课堂流程 / 语音 / 记忆 / 合规 / 题库 / 进度备份等）
 - 后端：WorkBuddy 云服务（数据库 / 认证 / 文件存储 / LLM）
-- 依赖：`vendor/` 内自带，无 npm 依赖
+- 运行时依赖：`vendor/` 内自带，**无 npm 运行时依赖**（`package.json` 只为跑测试与 `npm start`）
 
 跑测试：
 
 ```bash
 cd _extract/lingxi-class/ai-live-class
-NODE_PATH=<node_modules 路径> node tests/run-all.js
+npm ci && npm test            # 需要 Node 20+；唯一开发依赖是 jsdom
 ```
+
+### ⚠️ 部署时必须显式指定 `language: "static"`
+
+本站是**纯静态单页应用**（没有 `/api/*`），但仓库根目录有 `package.json`（为了 CI 与 `npm start`）。
+发布工具会**自动探测项目形态**，看到清单文件就把本站当成 Node 服务 —— 后果是连域名一起变：
+
+| 探测结果 | 部署类型 | 域名 |
+|---|---|---|
+| 静态站 | `web-page` | `https://<domainPrefix>.app.workbuddy.host/` |
+| Node 服务 | `http-service` | `https://<sandboxId>.app.workbuddy.host/` |
+
+**所以每次发布都要显式传 `language: "static"`（并带 `entryHtml: "index.html"`），不要依赖自动探测** ——
+否则域名会被换掉，而旧链接会直接变成「链接已失效」（已经发生过一次，见 git 历史里的说明）。
 
 ## 微信小程序
 
