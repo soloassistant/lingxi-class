@@ -1,0 +1,95 @@
+<view class="container">
+  <!-- 答题模式 -->
+  <block wx:if="{{!submitted}}">
+    <view class="quiz-progress">
+      <text class="progress-text">{{current + 1}} / {{questions.length}}</text>
+      <view class="progress-bar">
+        <view class="progress-inner" style="width: {{(current + 1) / questions.length * 100}}%;"></view>
+      </view>
+    </view>
+
+    <view class="question-card" wx:if="{{questions.length}}">
+      <view class="q-course">{{questions[current].courseName}}</view>
+      <view class="q-title">{{questions[current].question}}</view>
+      <view class="q-options">
+        <view
+          class="q-option {{answers[current] === index ? 'selected' : ''}}"
+          wx:for="{{questions[current].options}}"
+          wx:for-item="opt"
+          wx:for-index="index"
+          wx:key="*this"
+          data-idx="{{current}}"
+          data-opt="{{index}}"
+          bindtap="select"
+        >{{opt}}</view>
+      </view>
+    </view>
+
+    <view class="btn-row">
+      <button class="btn-prev" bindtap="prev" disabled="{{current === 0}}">上一题</button>
+      <button class="btn-next" bindtap="next" wx:if="{{current < questions.length - 1}}">下一题</button>
+      <button class="btn-submit" bindtap="submit" wx:if="{{current === questions.length - 1}}">提交测评</button>
+    </view>
+  </block>
+
+  <!-- 结果模式 -->
+  <block wx:else>
+    <view class="result-card">
+      <view class="result-score">{{score}}</view>
+      <view class="result-label">测评得分</view>
+      <view class="result-sub">答对 {{correctCount}} / {{questions.length}} 题 · 正确率 {{score}}%</view>
+      <view class="result-level level-{{level}}">当前等级：{{level}} · {{levelName}}</view>
+    </view>
+
+    <!-- 诊断报告：能力雷达 -->
+    <view class="diag-card" wx:if="{{report}}">
+      <view class="diag-title">📊 能力诊断</view>
+      <view class="diag-radar">
+        <view class="diag-row" wx:for="{{report.radar}}" wx:for-item="dim" wx:key="courseId">
+          <view class="diag-name">{{dim.courseName}}</view>
+          <view class="diag-bar">
+            <view class="diag-inner {{dim.accuracy < 70 ? 'low' : ''}}" style="width: {{dim.accuracy}}%;"></view>
+          </view>
+          <view class="diag-pct {{dim.accuracy < 70 ? 'low' : ''}}">{{dim.accuracy}}%</view>
+        </view>
+      </view>
+      <view class="diag-suggest">建议投入：{{report.suggestHours}}</view>
+    </view>
+
+    <!-- AI 诊断点评 -->
+    <view class="diag-card" wx:if="{{aiComment || aiCommentLoading}}">
+      <view class="diag-title">🤖 AI 诊断点评</view>
+      <view class="diag-comment" wx:if="{{aiComment}}">{{aiComment}}</view>
+      <view class="diag-comment loading" wx:if="{{aiCommentLoading}}">正在生成个性化建议…</view>
+    </view>
+
+    <!-- 专属学习方案 -->
+    <view class="diag-card" wx:if="{{recommendPlan.length}}">
+      <view class="diag-title">🎯 为你定制的学习路径</view>
+      <view class="plan-item" wx:for="{{recommendPlan}}" wx:for-item="p" wx:key="id" data-id="{{p.id}}" bindtap="goTeach">
+        <view class="plan-dot {{p.isWeak ? 'weak' : ''}}"></view>
+        <view class="plan-main">
+          <view class="plan-title">{{p.title}}<text wx:if="{{p.isWeak}}" class="plan-weak-tag">待补强</text></view>
+          <view class="plan-course">{{p.courseName}}</view>
+        </view>
+        <view class="plan-go">→</view>
+      </view>
+    </view>
+
+    <view class="result-title" wx:if="{{wrongList.length}}">待巩固（{{wrongList.length}} 题）</view>
+    <view class="wrong-item" wx:for="{{wrongList}}" wx:key="id">
+      <view class="wrong-q">{{item.question}}</view>
+      <view class="wrong-meta">你的答案：{{item.options[item.userAnswer]}} · 正确答案：{{item.options[item.answerIndex]}}</view>
+      <view class="wrong-exp">{{item.explanation}}</view>
+      <view class="wrong-link" data-id="{{item.id}}" bindtap="goTeach">去学习 →</view>
+    </view>
+
+    <view class="result-title" wx:if="{{!wrongList.length}}">🎉 全部答对，太棒了！</view>
+
+    <view class="btn-row">
+      <button class="btn-restart" bindtap="restart">再测一次</button>
+      <button class="btn-wrongbook" bindtap="goWrongbook">去错题本</button>
+    </view>
+    <button class="btn-share" open-type="share">📣 分享我的成绩</button>
+  </block>
+</view>

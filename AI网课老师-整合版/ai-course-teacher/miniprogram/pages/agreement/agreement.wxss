@@ -1,0 +1,2 @@
+.container { padding: 32rpx; box-sizing: border-box; min-height: 100vh; background: #fff; }
+.agreement-content { font-size: 28rpx; line-height: 1.8; color: #333; }

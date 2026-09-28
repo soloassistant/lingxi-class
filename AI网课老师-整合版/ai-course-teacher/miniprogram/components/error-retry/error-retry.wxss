@@ -1,0 +1,27 @@
+.err-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60rpx 40rpx;
+}
+.err-icon { font-size: 72rpx; margin-bottom: 20rpx; }
+.err-msg {
+  font-size: 28rpx;
+  color: #b0b6c4;
+  text-align: center;
+  line-height: 1.6;
+  margin-bottom: 28rpx;
+}
+.err-btn {
+  background: rgba(0, 229, 255, 0.1);
+  color: #00e5ff;
+  border: 2rpx solid #00e5ff;
+  border-radius: 40rpx;
+  font-weight: 600;
+  height: 68rpx;
+  line-height: 68rpx;
+  font-size: 26rpx;
+  padding: 0 40rpx;
+  margin: 0;
+}

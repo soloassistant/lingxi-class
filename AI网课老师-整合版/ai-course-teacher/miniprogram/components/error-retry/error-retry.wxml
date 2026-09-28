@@ -1,0 +1,5 @@
+<view class="err-wrap">
+  <view class="err-icon">⚠️</view>
+  <view class="err-msg">{{msg}}</view>
+  <button wx:if="{{showRetry}}" class="err-btn" bindtap="onRetry">重试</button>
+</view>

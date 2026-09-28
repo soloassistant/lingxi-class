@@ -1,0 +1,20 @@
+.modal-mask {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.75); z-index: 9999;
+  display: flex; align-items: center; justify-content: center; padding: 40rpx;
+}
+.modal {
+  width: 100%; max-height: 85vh; background: #fff; border-radius: 24rpx;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.modal-title { font-size: 34rpx; font-weight: 700; text-align: center; padding: 40rpx 40rpx 12rpx; }
+.modal-sub { font-size: 24rpx; color: #999; text-align: center; padding: 0 40rpx 20rpx; }
+.modal-body { flex: 1; padding: 0 40rpx; max-height: 60vh; }
+.section-title { font-size: 26rpx; font-weight: 600; color: #4f6ef2; margin: 24rpx 0 12rpx; }
+.data-item { font-size: 24rpx; color: #333; line-height: 1.8; }
+.data-item.no { color: #999; }
+.agreement-row { font-size: 24rpx; text-align: center; margin: 32rpx 0 8rpx; }
+.agreement-row text { color: #4f6ef2; }
+.modal-footer { display: flex; gap: 16rpx; padding: 24rpx 40rpx 40rpx; }
+.btn-agree { flex: 1; background: #4f6ef2; color: #fff; border-radius: 44rpx; font-size: 28rpx; }
+.btn-disagree { flex: 1; background: #f0f0f0; color: #666; border-radius: 44rpx; font-size: 28rpx; }

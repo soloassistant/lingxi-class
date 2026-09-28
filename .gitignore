@@ -1,0 +1,35 @@
+# ── 派生产物 / 临时文件（不进仓库）─────────────────────────────
+# 我的验证与审计脚手架：探针脚本、截图、日志（约 6.6M / 598 个文件）
+/_extract/_authtest/
+
+# 生成的课件 pptx（约 2.9M）
+/_extract/lingxi-class/ai-live-class/_quality/
+
+# 走查截图（约 15M）
+/走查截图/
+
+# 提取/改名用的临时脚本与日志
+/_extract/*.py
+/_extract/_*.txt
+/_extract/_merged_README.md
+
+# 压缩包
+*.zip
+
+# ── 重复副本（各留一份，避免同一份代码两处漂移）─────────────────
+# 网页版的旧副本：比 _extract/lingxi-class/ai-live-class 旧很多（app.js 271K vs 587K）
+/AI网课老师-整合版/lingxi-class/
+# 小程序的旧副本：与 AI网课老师-整合版/ai-course-teacher 重复
+/_extract/ai-course-teacher/
+
+# ── 本地状态 / 依赖 ──────────────────────────────────────────
+/.workbuddy/
+node_modules/
+.DS_Store
+Thumbs.db
+*.log
+
+# ── 工具产物 / 垃圾 ──────────────────────────────────────────
+# WorkBuddy 的发布元数据：含本机绝对路径（C:\Users\...），且不是产品代码
+*.genie
+/_test.txt

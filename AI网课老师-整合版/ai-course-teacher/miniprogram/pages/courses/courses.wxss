@@ -1,0 +1,155 @@
+.system-header {
+  display: flex;
+  align-items: baseline;
+  margin-bottom: 8rpx;
+}
+.system-name {
+  font-size: 34rpx;
+  font-weight: 700;
+}
+.system-board {
+  font-size: 22rpx;
+  color: #7a7f8a;
+  margin-left: 16rpx;
+}
+.course-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx 8rpx;
+  border-bottom: 1rpx solid #2a2e3a;
+}
+.course-item:last-child {
+  border-bottom: none;
+}
+.course-name {
+  font-size: 28rpx;
+}
+.course-level {
+  font-size: 22rpx;
+  color: #00e5ff;
+  margin-top: 4rpx;
+}
+.course-arrow {
+  color: #7a7f8a;
+  font-size: 32rpx;
+}
+
+.ai-course-item {
+  background: rgba(0, 229, 255, 0.04);
+  border-radius: 12rpx;
+  margin-bottom: 8rpx;
+}
+
+.ai-chapters {
+  padding: 0 8rpx 16rpx;
+}
+
+.ai-chapter {
+  padding: 12rpx 16rpx;
+  background: #0f1117;
+  border-radius: 10rpx;
+  margin-bottom: 8rpx;
+}
+
+.ai-chapter-title {
+  display: block;
+  font-size: 26rpx;
+  color: #e8eaf0;
+  font-weight: 600;
+}
+
+.ai-chapter-items {
+  display: block;
+  font-size: 22rpx;
+  color: #7a7f8a;
+  margin-top: 4rpx;
+}
+
+.ai-chapter-empty {
+  font-size: 22rpx;
+  color: #7a7f8a;
+  padding: 8rpx 16rpx;
+}
+
+.gen-bar {
+  margin-bottom: 24rpx;
+}
+
+.btn-gen {
+  background: #00e5ff;
+  color: #0f1117;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.gen-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.gen-dialog {
+  width: 640rpx;
+  background: #1a1d27;
+  border-radius: 20rpx;
+  padding: 32rpx;
+  box-sizing: border-box;
+}
+
+.gen-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #e8eaf0;
+  margin-bottom: 12rpx;
+}
+
+.gen-tip {
+  font-size: 24rpx;
+  color: #7a7f8a;
+  margin-bottom: 20rpx;
+  line-height: 1.6;
+}
+
+.gen-input {
+  width: 100%;
+  height: 80rpx;
+  background: #0f1117;
+  border: 2rpx solid #2a2e3a;
+  border-radius: 12rpx;
+  padding: 0 24rpx;
+  box-sizing: border-box;
+  color: #e8eaf0;
+  font-size: 28rpx;
+}
+
+.gen-btns {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 24rpx;
+}
+
+.gen-cancel {
+  flex: 1;
+  background: #2a2e3a;
+  color: #b0b6c4;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+}
+
+.gen-submit {
+  flex: 1;
+  background: #00e5ff;
+  color: #0f1117;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+}

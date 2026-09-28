@@ -1,0 +1,60 @@
+== 1. 重复 ID ==
+  真重复: (无)
+  NOTE #p-assistant-mic 静态占位 + JS 动态同名（渲染需整体替换容器，勿改成 append）
+  NOTE #p-assistant-state 静态占位 + JS 动态同名（渲染需整体替换容器，勿改成 append）
+  NOTE #p-me-mic 静态占位 + JS 动态同名（渲染需整体替换容器，勿改成 append）
+  NOTE #p-teacher-mic 静态占位 + JS 动态同名（渲染需整体替换容器，勿改成 append）
+  NOTE #p-teacher-state 静态占位 + JS 动态同名（渲染需整体替换容器，勿改成 append）
+  index.html 静态 id=290，JS 模板 id=22
+== 2. JS 引用但 HTML 与模板里都不存在的 id（真 bug）==
+  (无)
+  JS 引用 id 数=266
+== 3. HTML 里定义、JS 里完全未出现（疑似死代码；CSS/无障碍专用 id 属正常）==
+  DEAD? #auth-pane-otp
+  DEAD? #auth-pane-password
+  DEAD? #auth-pane-phone
+  DEAD? #auth-pane-signup
+  DEAD? #bank-filter
+  DEAD? #gen-result
+  DEAD? #hg1
+  DEAD? #lg-brand
+  DEAD? #lg-splash
+  DEAD? #main-content
+  DEAD? #meet-stage
+  DEAD? #meet-strip
+  DEAD? #own-paper
+  DEAD? #p-me-name
+  DEAD? #pane-chat
+  DEAD? #pane-people
+  DEAD? #replay-hint
+  DEAD? #share-owner
+  DEAD? #splash-tip
+  DEAD? #tile-teacher
+  DEAD? #view-bank
+  DEAD? #view-courses
+  DEAD? #view-memory
+  DEAD? #view-papers
+  仅经 HTML 属性引用（ARIA 关联等，1 个）、仅 CSS 使用等共 39 个，均属正常
+== 4. CSS 变量 ==
+  未定义引用: (无)
+  已定义未使用=0
+== 5. 导航项 / 视图一致性 ==
+  nav=home -> OK
+  nav=generate -> OK
+  nav=live -> OK
+  nav=courses -> OK
+  nav=papers -> OK
+  nav=bank -> OK
+  nav=memory -> OK
+== 6. 重复的 function 声明 ==
+  (无)
+  function 声明总数=385
+== 7. 规模 ==
+  app.js 446138 字符 / 11144 行
+  index.html 49913 字符 / 1088 行
+  style.css 119521 字符 / 2617 行
+== 8. 可疑模式（需人工判断，非自动判定失败）==
+  console.log 残留: 0
+  TODO/FIXME: 0
+  innerHTML 赋值（逐个核对 esc()）: 100
+  空 catch: 132

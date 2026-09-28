@@ -1,0 +1,9 @@
+{
+  "name": "getDrafts",
+  "version": "1.0.0",
+  "description": "审核后台：列出待审核草稿",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

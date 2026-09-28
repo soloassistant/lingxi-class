@@ -1,0 +1,41 @@
+<view class="container">
+  <!-- 发布框 -->
+  <view class="card compose-card">
+    <textarea class="compose-input" placeholder="分享你的学习瞬间…"
+              placeholder-class="compose-placeholder" value="{{composeText}}" bindinput="onInput"
+              maxlength="500" auto-height></textarea>
+    <view class="compose-footer">
+      <view class="compose-count">{{composeText.length}}/500</view>
+      <button class="btn-post" bindtap="submitPost" disabled="{{posting}}">
+        {{posting ? '发布中…' : '发布'}}
+      </button>
+    </view>
+  </view>
+
+  <!-- 动态列表 -->
+  <block wx:for="{{posts}}" wx:key="id">
+    <view class="card post-card">
+      <view class="post-header">
+        <view class="avatar" style="background: {{item.avatarColor}};">
+          {{item.nickname[0]}}
+        </view>
+        <view class="post-meta">
+          <view class="post-nick">{{item.nickname}}</view>
+          <view class="post-time">{{item.time}}</view>
+        </view>
+      </view>
+
+      <view class="post-content">{{item.content}}</view>
+
+      <view class="post-footer">
+        <view class="like-btn {{item.liked ? 'liked' : ''}}" data-id="{{item.id}}" bindtap="like">
+          👍 {{item.likes || 0}}
+        </view>
+        <view class="report-btn" data-id="{{item.id}}" bindtap="report">⚠️ 举报</view>
+        <view class="ai-tag">AI 老师在线答疑中</view>
+      </view>
+    </view>
+  </block>
+
+  <view class="load-more" wx:if="{{posts.length > 0}}" bindtap="loadPosts">加载更多</view>
+</view>

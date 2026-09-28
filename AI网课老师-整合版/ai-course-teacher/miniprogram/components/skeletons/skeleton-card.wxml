@@ -1,0 +1,8 @@
+<view class="sk-wrap">
+  <view
+    class="sk-row {{rounded ? 'sk-round' : ''}}"
+    wx:for="{{rows}}"
+    wx:key="*this"
+    style="height: {{rowHeight}}rpx; margin-bottom: {{rowGap}}rpx;"
+  ></view>
+</view>

@@ -1,0 +1,36 @@
+<view class="container">
+  <view class="card summary">
+    <text class="summary-title">今日作业</text>
+    <text class="summary-count">{{assignments.length}} 项</text>
+  </view>
+
+  <block wx:for="{{assignments}}" wx:key="id">
+    <view class="card">
+      <view class="hw-header">
+        <text class="hw-course">{{item.courseName}}</text>
+        <text class="hw-type">{{item.type}}</text>
+      </view>
+      <view class="hw-title">{{item.itemTitle}}</view>
+      <view class="hw-desc">{{item.desc}}</view>
+
+      <!-- 答题区 -->
+      <view class="hw-question" wx:if="{{item.quiz.question}}">{{item.quiz.question}}</view>
+      <view class="hw-options" wx:if="{{item.quiz.options && !submittedMap[item.id]}}">
+        <view
+          class="hw-option {{selectedMap[item.id] === index ? 'selected' : ''}}"
+          wx:for="{{item.quiz.options}}"
+          wx:for-item="opt"
+          wx:for-index="index"
+          wx:key="*this"
+          data-id="{{item.id}}"
+          data-index="{{index}}"
+          bindtap="selectOption"
+        >{{opt}}</view>
+      </view>
+
+      <button class="btn-submit" wx:if="{{!submittedMap[item.id]}}"
+              data-id="{{item.id}}" bindtap="submit">提交作业</button>
+      <view class="hw-done" wx:else>✅ 已提交，可查看讲评</view>
+    </view>
+  </block>
+</view>

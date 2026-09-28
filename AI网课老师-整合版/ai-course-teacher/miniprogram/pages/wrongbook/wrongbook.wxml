@@ -1,0 +1,68 @@
+<view class="container">
+  <block wx:if="{{wrongs.length}}">
+    <view class="wrong-card" wx:for="{{wrongs}}" wx:key="_id">
+      <view class="wrong-title" data-id="{{item.itemId}}" bindtap="toggleExpand">
+        <text>{{item.courseName || item.itemId}}</text>
+        <text class="wrong-tag" wx:if="{{item.due}}">待复习</text>
+        <text class="wrong-count">{{item.wrongCount}} 次</text>
+      </view>
+
+      <view wx:if="{{expandId === item.itemId}}">
+        <view class="wrong-question">{{item.question}}</view>
+
+        <view class="wrong-options">
+          <view
+            class="wrong-option {{selectedMap[item.itemId] === index ? 'selected' : ''}}"
+            wx:for="{{item.options}}"
+            wx:for-item="opt"
+            wx:for-index="index"
+            wx:key="*this"
+            data-id="{{item.itemId}}"
+            data-index="{{index}}"
+            bindtap="chooseAnswer"
+          >{{opt}}</view>
+        </view>
+
+        <view
+          class="wrong-result {{resultMap[item.itemId] ? 'right' : 'wrong'}}"
+          wx:if="{{resultMap[item.itemId] !== undefined}}"
+        >
+          {{resultMap[item.itemId] ? '回答正确' : '回答错误'}}
+          <view class="wrong-explanation">解析：{{item.explanation}}</view>
+        </view>
+
+        <button class="wrong-learn" data-course="{{item.courseId}}" bindtap="goLearn">去学习</button>
+
+        <!-- AI 变式题（举一反三） -->
+        <button class="wrong-variation" data-id="{{item.itemId}}" bindtap="genVariation" wx:if="{{!variationMap[item.itemId]}}">
+          {{variationLoading[item.itemId] ? '生成中…' : '✨ 生成同类题'}}
+        </button>
+        <view class="variation-block" wx:if="{{variationMap[item.itemId]}}">
+          <view class="variation-title">📝 同类题练习</view>
+          <view class="variation-question">{{variationMap[item.itemId].question}}</view>
+          <view class="variation-options">
+            <view
+              class="variation-option {{variationSelected[item.itemId] === index ? 'selected' : ''}}"
+              wx:for="{{variationMap[item.itemId].options}}"
+              wx:for-item="opt"
+              wx:for-index="index"
+              wx:key="*this"
+              data-id="{{item.itemId}}"
+              data-index="{{index}}"
+              bindtap="selectVariation"
+            >{{opt}}</view>
+          </view>
+          <view
+            class="variation-result {{variationResult[item.itemId] ? 'right' : 'wrong'}}"
+            wx:if="{{variationResult[item.itemId] !== undefined}}"
+          >
+            {{variationResult[item.itemId] ? '回答正确' : '回答错误'}}
+            <view class="variation-explanation" wx:if="{{!variationResult[item.itemId]}}">解析：{{variationMap[item.itemId].explanation}}</view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <view wx:else class="empty">暂无错题</view>
+</view>

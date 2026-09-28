@@ -1,0 +1,35 @@
+<view class="container">
+  <view class="search-bar">
+    <input
+      class="search-input"
+      placeholder="搜索课程知识点，或向 AI 提问"
+      value="{{kw}}"
+      bindinput="onInput"
+      confirm-type="search"
+      bindconfirm="doSearch"
+    />
+    <button class="search-btn" bindtap="doSearch">搜索</button>
+  </view>
+
+  <!-- AI 回答 -->
+  <view class="ai-loading" wx:if="{{aiLoading}}">AI 思考中…</view>
+  <view class="ai-card" wx:if="{{aiAnswer}}">
+    <view class="ai-card-head">🤖 AI 回答</view>
+    <text class="ai-card-text" selectable>{{aiAnswer}}</text>
+  </view>
+
+  <!-- 本地结果 -->
+  <block wx:if="{{localResults.length}}">
+    <view class="local-title">本地课程匹配</view>
+    <view class="local-item" wx:for="{{localResults}}" wx:key="id" data-id="{{item.id}}" bindtap="goItem">
+      <text class="local-item-title">{{item.title}}</text>
+      <text class="local-item-course">{{item.courseId}}</text>
+    </view>
+  </block>
+
+  <!-- 空状态 -->
+  <view
+    class="empty"
+    wx:if="{{hasSearched && !localResults.length && !aiAnswer && !aiLoading}}"
+  >本地无结果，已为你 AI 解答</view>
+</view>

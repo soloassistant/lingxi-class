@@ -1,0 +1,141 @@
+<view class="page {{darkMode ? 'dark' : ''}}" style="font-size: {{fontScale}};">
+  <view class="teach-head">
+    <view class="teach-title-row">
+      <text class="teach-title">{{item.title}}</text>
+      <ai-badge text="AI 生成 · 仅供参考"></ai-badge>
+    </view>
+    <view class="teach-meta">{{item.courseName}}</view>
+  </view>
+
+  <!-- AI 讲解入口 -->
+  <view wx:if="{{!aiMode}}" class="ai-teach-entry">
+    <button class="btn-ai-teach" bindtap="startAiTeach" disabled="{{aiLoading}}">
+      {{aiLoading ? 'AI 备课中…' : '🎓 AI 老师讲解'}}
+    </button>
+  </view>
+
+  <!-- AI 讲解模式 -->
+  <view wx:if="{{aiMode}}" class="ai-teach-block">
+    <view class="ai-teach-nav">
+      <text class="ai-teach-progress">第 {{aiIdx + 1}} / {{aiSections.length}} 段</text>
+      <view class="ai-teach-nav-actions">
+        <text class="ai-teach-speak" bindtap="toggleSpeak">{{speaking ? '■ 停止' : '🔊 朗读'}}</text>
+        <text class="ai-teach-exit" bindtap="exitAi">退出</text>
+      </view>
+    </view>
+    <view class="ai-teach-card">
+      <view class="ai-teach-text">{{aiSections[aiIdx].text}}</view>
+      <view class="ai-board" wx:if="{{aiSections[aiIdx].steps.length || aiSections[aiIdx].shapes.length}}">
+        <view class="board-title">板书</view>
+        <view class="board-step" wx:for="{{aiSections[aiIdx].steps}}" wx:for-item="step" wx:key="*this">{{step}}</view>
+        <!-- 图形板书：SVG 渲染 AI 生成的线条/矩形 -->
+        <view class="board-svg" wx:if="{{aiSections[aiIdx].shapes.length}}">
+          <svg viewBox="0 0 400 240" class="board-svg-canvas">
+            <block wx:for="{{aiSections[aiIdx].shapes}}" wx:for-item="shape" wx:key="index">
+              <line wx:if="{{shape.type === 'line'}}"
+                    x1="{{shape.x}}" y1="{{shape.y}}"
+                    x2="{{shape.x2 || shape.x + 60}}" y2="{{shape.y2 || shape.y}}"
+                    stroke="{{shape.color || '#00e5ff'}}" stroke-width="2" />
+              <rect wx:if="{{shape.type === 'rect'}}"
+                    x="{{shape.x}}" y="{{shape.y}}"
+                    width="{{shape.w || 80}}" height="{{shape.h || 50}}"
+                    fill="none" stroke="{{shape.color || '#00e5ff'}}" stroke-width="2" />
+            </block>
+          </svg>
+        </view>
+      </view>
+    </view>
+    <view class="ai-teach-summary" wx:if="{{aiIdx === aiSections.length - 1 && aiSummary}}">
+      <view class="summary-title">本节小结</view>
+      <view class="summary-text">{{aiSummary}}</view>
+    </view>
+    <view class="ai-teach-btns">
+      <button class="btn-ai-prev" bindtap="aiPrev" disabled="{{aiIdx === 0}}">上一段</button>
+      <button class="btn-ai-next" bindtap="aiNext" wx:if="{{aiIdx < aiSections.length - 1}}">下一段</button>
+    </view>
+  </view>
+
+  <!-- 静态讲义（非 AI 讲解模式） -->
+  <block wx:if="{{!aiMode}}">
+
+  <!-- 视频播放器 -->
+  <video-player
+    wx:if="{{item.videoUrl}}"
+    src="{{item.videoUrl}}"
+    poster="{{item.poster}}"
+    subtitles="{{item.subtitle}}"
+    title="{{item.title}}">
+  </video-player>
+
+  <!-- 无视频时显示引导 -->
+  <view wx:else class="no-video">
+    <view class="no-video-icon">📝</view>
+    <view class="no-video-text">本节暂无录播视频，点击上方「AI 老师讲解」体验语音授课</view>
+  </view>
+
+  <!-- 讲义正文 -->
+  <view class="body-block">
+    <view class="body-tabs">
+      <view class="body-tab {{lang === 'zh' ? 'active' : ''}}" bindtap="setLang" data-lang="zh">中文</view>
+      <view class="body-tab {{lang === 'en' ? 'active' : ''}}" bindtap="setLang" data-lang="en" wx:if="{{item.enBody}}">English</view>
+    </view>
+    <view class="body-speak" bindtap="speakBody">🔊 朗读讲义</view>
+    <view class="body-content">{{currentBody}}</view>
+  </view>
+
+  <!-- 随堂测验 -->
+  <view class="quiz-block" wx:if="{{item.quiz}}">
+    <view class="quiz-title">{{T.quiz}}</view>
+    <view class="quiz-question">{{currentQuiz.question}}</view>
+    <view class="quiz-options">
+      <view class="quiz-option {{selected === index ? 'selected' : ''}} {{showAnswer && selected === currentQuiz.answerIndex ? 'correct' : ''}} {{showAnswer && selected !== currentQuiz.answerIndex && selected === index ? 'wrong' : ''}}"
+            wx:for="{{currentQuiz.options}}" wx:for-item="opt" wx:for-index="index" wx:key="*this"
+            data-index="{{index}}" bindtap="selectOption">
+        {{opt}}
+      </view>
+    </view>
+    <view class="quiz-explain" wx:if="{{showAnswer}}">
+      <view class="{{selected === currentQuiz.answerIndex ? 'explain-correct' : 'explain-wrong'}}">
+        {{selected === currentQuiz.answerIndex ? T.correct : T.wrong}}
+      </view>
+      <view class="explain-text">{{T.explanationStart}}{{currentQuiz.explanation}}</view>
+    </view>
+
+    <!-- AI 讲解（答错后可点击） -->
+    <view wx:if="{{showAnswer && selected !== currentQuiz.answerIndex}}">
+      <button class="btn-ai" bindtap="aiExplain" disabled="{{aiExplainLoading}}">
+        {{aiExplainLoading ? 'AI 讲解生成中…' : '🤖 AI 讲解'}}
+      </button>
+      <view class="ai-explain" wx:if="{{aiExplainText}}">{{aiExplainText}}</view>
+    </view>
+
+    <button class="btn-next" bindtap="next" wx:if="{{showAnswer}}">{{T.next}}</button>
+  </view>
+
+  <!-- 向 AI 提问 -->
+  <view class="ask-bar">
+    <button class="btn-ask" bindtap="openAsk">💬 向 AI 提问</button>
+  </view>
+  </block>
+
+  <!-- 提问弹窗 -->
+  <view class="ask-mask" wx:if="{{showAsk}}" bindtap="closeAsk">
+    <view class="ask-dialog" catchtap="noop">
+      <view class="ask-title">向 AI 提问</view>
+      <!-- 对话流 -->
+      <scroll-view scroll-y class="ask-chat" scroll-into-view="{{'msg-' + (chatHistory.length - 1)}}">
+        <view wx:for="{{chatHistory}}" wx:for-item="msg" wx:key="index" id="msg-{{index}}" class="chat-row {{msg.role === 'user' ? 'chat-user' : 'chat-ai'}}">
+          <text class="chat-bubble">{{msg.content}}</text>
+        </view>
+        <view class="chat-row chat-ai" wx:if="{{aiReplyLoading}}">
+          <text class="chat-bubble">AI 思考中…</text>
+        </view>
+      </scroll-view>
+      <textarea class="ask-input" placeholder="输入你的问题…" value="{{askText}}" bindinput="onAskInput" maxlength="200"></textarea>
+      <view class="ask-btns">
+        <button class="ask-cancel" bindtap="closeAsk">关闭</button>
+        <button class="ask-submit" bindtap="submitAsk" disabled="{{aiReplyLoading}}">发送</button>
+      </view>
+    </view>
+  </view>
+</view>

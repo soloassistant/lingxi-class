@@ -1,0 +1,287 @@
+.page {
+  min-height: 100vh;
+  background: #f7f8fa;
+  padding: 24rpx 32rpx 120rpx;
+  box-sizing: border-box;
+}
+
+.page.dark {
+  background: #1a1a1a;
+  color: #eee;
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-size: 44rpx;
+  font-weight: 700;
+  color: #4f6ef2;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+}
+
+.lang-switch {
+  font-size: 26rpx;
+  color: #4f6ef2;
+  padding: 8rpx 16rpx;
+  border: 2rpx solid #4f6ef2;
+  border-radius: 8rpx;
+}
+
+.settings-icon {
+  font-size: 36rpx;
+  color: #999;
+}
+
+.greeting {
+  font-size: 30rpx;
+  color: #666;
+  margin-top: 12rpx;
+}
+
+.dashboard {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 32rpx;
+  margin: 24rpx 0;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.06);
+}
+
+.page.dark .dashboard {
+  background: #2a2a2a;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.stat-item {
+  text-align: center;
+  flex: 1;
+}
+
+.stat-num {
+  font-size: 44rpx;
+  font-weight: 700;
+  color: #4f6ef2;
+}
+
+.stat-label {
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 8rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  margin: 32rpx 0 16rpx;
+}
+
+.task-card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 16rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04);
+}
+
+.page.dark .task-card {
+  background: #2a2a2a;
+}
+
+.task-title {
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.task-meta {
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 6rpx;
+}
+
+.task-weak-tag {
+  color: #ff8a80;
+}
+
+.task-go {
+  font-size: 32rpx;
+  color: #ccc;
+}
+
+.course-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20rpx;
+}
+
+.course-card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04);
+}
+
+.page.dark .course-card {
+  background: #2a2a2a;
+}
+
+.course-emoji {
+  font-size: 52rpx;
+}
+
+.course-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  margin: 12rpx 0 6rpx;
+  text-align: center;
+}
+
+.course-progress {
+  font-size: 24rpx;
+  color: #4f6ef2;
+}
+
+.search-entry {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  background: #fff;
+  border-radius: 40rpx;
+  padding: 22rpx 28rpx;
+  margin: 24rpx 0;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.06);
+}
+
+.page.dark .search-entry {
+  background: #2a2a2a;
+}
+
+.search-entry-icon {
+  font-size: 32rpx;
+}
+
+.search-entry-text {
+  font-size: 28rpx;
+  color: #999;
+}
+
+.quick-row {
+  display: flex;
+  gap: 20rpx;
+  margin: 0 0 24rpx;
+}
+
+.quick-item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx 0;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04);
+}
+
+.page.dark .quick-item {
+  background: #2a2a2a;
+}
+
+.quick-icon {
+  font-size: 32rpx;
+}
+
+.quick-text {
+  font-size: 28rpx;
+  font-weight: 500;
+}
+
+.achievement-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16rpx;
+}
+
+.achievement {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 20rpx 8rpx;
+  text-align: center;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04);
+}
+
+.page.dark .achievement {
+  background: #2a2a2a;
+}
+
+.achievement.locked {
+  opacity: 0.5;
+}
+
+.achievement-icon {
+  font-size: 44rpx;
+}
+
+.achievement-name {
+  font-size: 22rpx;
+  margin-top: 8rpx;
+  color: #666;
+}
+
+.page.dark .achievement-name {
+  color: #bbb;
+}
+
+.achievement-bar {
+  height: 6rpx;
+  background: #eee;
+  border-radius: 3rpx;
+  margin-top: 10rpx;
+  overflow: hidden;
+}
+
+.achievement-bar-inner {
+  height: 100%;
+  background: #4f6ef2;
+}
+
+.weak-card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 20rpx 24rpx;
+  margin-bottom: 12rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04);
+}
+
+.page.dark .weak-card {
+  background: #2a2a2a;
+}
+
+.weak-name {
+  font-size: 28rpx;
+}
+
+.weak-count {
+  font-size: 24rpx;
+  color: #f44336;
+}

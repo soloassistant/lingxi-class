@@ -1,0 +1,178 @@
+.vp-wrap {
+  position: relative;
+  width: 100%;
+  background: #000;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+.vp-video {
+  width: 100%;
+  height: 420rpx;
+  display: block;
+  background: #000;
+}
+.vp-fullscreen .vp-video {
+  height: 100vh;
+}
+
+/* 加载 */
+.vp-loading {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.4);
+  z-index: 5;
+}
+.vp-spinner {
+  width: 60rpx; height: 60rpx;
+  border: 4rpx solid rgba(255,255,255,0.2);
+  border-top-color: #00e5ff;
+  border-radius: 50%;
+  animation: vp-spin 0.8s linear infinite;
+}
+@keyframes vp-spin { to { transform: rotate(360deg); } }
+
+/* 错误 */
+.vp-error {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.85);
+  z-index: 6;
+}
+.vp-error-icon { font-size: 64rpx; }
+.vp-error-text { color: #fff; font-size: 28rpx; margin: 16rpx 0; }
+.vp-error-btn {
+  background: #00e5ff;
+  color: #000;
+  padding: 12rpx 48rpx;
+  border-radius: 40rpx;
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+/* 字幕层 */
+.vp-cue-layer {
+  position: absolute;
+  left: 0; right: 0;
+  bottom: 180rpx;
+  text-align: center;
+  padding: 0 24rpx;
+  z-index: 4;
+  pointer-events: none;
+}
+.vp-cue-text {
+  display: inline-block;
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+  font-size: 28rpx;
+  line-height: 1.5;
+  padding: 8rpx 20rpx;
+  border-radius: 8rpx;
+  max-width: 90%;
+}
+
+/* 顶部条 */
+.vp-top-bar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  padding: 16rpx;
+  display: flex;
+  justify-content: flex-end;
+  z-index: 4;
+}
+.vp-cue-toggle {
+  background: rgba(0,0,0,0.5);
+  color: #fff;
+  font-size: 22rpx;
+  padding: 6rpx 20rpx;
+  border-radius: 20rpx;
+}
+.vp-cue-toggle.on { background: rgba(0,229,255,0.3); color: #00e5ff; }
+
+/* 字幕列表 */
+.vp-cue-list {
+  max-height: 240rpx;
+  background: rgba(15,17,23,0.95);
+  z-index: 4;
+}
+.vp-cue-item {
+  font-size: 26rpx;
+  color: #b0b6c4;
+  padding: 12rpx 24rpx;
+  border-bottom: 1rpx solid #2a2e3a;
+}
+.vp-cue-item.active { color: #00e5ff; background: rgba(0,229,255,0.08); }
+
+/* 控制条 */
+.vp-controls {
+  background: linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0));
+  padding: 0 16rpx 12rpx;
+  z-index: 4;
+}
+.vp-progress { padding: 0 8rpx; }
+.vp-slider { margin: 0; }
+.vp-bottom-row {
+  display: flex;
+  align-items: center;
+  padding: 4rpx 8rpx;
+}
+.vp-play-btn {
+  width: 56rpx; height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 28rpx;
+}
+.vp-time {
+  color: #fff;
+  font-size: 22rpx;
+  margin-left: 12rpx;
+  font-variant-numeric: tabular-nums;
+}
+.vp-spacer { flex: 1; }
+.vp-speed-btn, .vp-quality-btn, .vp-full-btn {
+  color: #fff;
+  font-size: 24rpx;
+  padding: 8rpx 16rpx;
+  margin-left: 8rpx;
+}
+.vp-speed-btn { min-width: 64rpx; text-align: center; }
+
+/* 面板 */
+.vp-panel-mask {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.vp-panel {
+  background: #1a1d27;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  min-width: 320rpx;
+}
+.vp-panel-title {
+  font-size: 26rpx;
+  color: #7a7f8a;
+  margin-bottom: 16rpx;
+  text-align: center;
+}
+.vp-panel-item {
+  font-size: 28rpx;
+  color: #e8eaf0;
+  text-align: center;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #2a2e3a;
+}
+.vp-panel-item:last-child { border-bottom: none; }
+.vp-panel-item.active { color: #00e5ff; font-weight: 600; }

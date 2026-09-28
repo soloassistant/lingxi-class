@@ -1,0 +1,47 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/search/search",
+    "pages/courses/courses",
+    "pages/course/course",
+    "pages/teach/teach",
+    "pages/homework/homework",
+    "pages/homework-review/homework-review",
+    "pages/quiz/quiz",
+    "pages/report/report",
+    "pages/plan/plan",
+    "pages/wrongbook/wrongbook",
+    "pages/community/community",
+    "pages/profile/profile",
+    "pages/legal/legal",
+    "pages/settings/settings",
+    "pages/agreement/agreement",
+    "pages/admin/admin"
+  ],
+  "window": {
+    "backgroundColor": "#0f1117",
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#0f1117",
+    "navigationBarTitleText": "AI网课老师",
+    "navigationBarTextStyle": "white"
+  },
+  "tabBar": {
+    "color": "#7a7f8a",
+    "selectedColor": "#00e5ff",
+    "backgroundColor": "#1a1d27",
+    "list": [
+      { "pagePath": "pages/index/index", "text": "首页" },
+      { "pagePath": "pages/courses/courses", "text": "课程" },
+      { "pagePath": "pages/plan/plan", "text": "规划" },
+      { "pagePath": "pages/wrongbook/wrongbook", "text": "错题" },
+      { "pagePath": "pages/profile/profile", "text": "我的" }
+    ]
+  },
+  "sitemapLocation": "sitemap.json",
+  "plugins": {
+    "WechatSI": {
+      "version": "0.3.6",
+      "provider": "wx069ba97219f66d99"
+    }
+  }
+}

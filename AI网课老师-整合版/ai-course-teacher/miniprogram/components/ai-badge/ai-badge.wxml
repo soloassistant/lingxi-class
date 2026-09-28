@@ -1,0 +1,4 @@
+<view class="ai-badge">
+  <text class="ai-icon">🤖</text>
+  <text class="ai-text">{{text}}</text>
+</view>

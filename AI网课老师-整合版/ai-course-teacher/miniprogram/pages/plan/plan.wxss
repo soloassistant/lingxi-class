@@ -1,0 +1,143 @@
+.goal-card { text-align: center; }
+.goal-title { font-size: 36rpx; font-weight: 700; }
+.goal-sub { font-size: 26rpx; color: #7a7f8a; margin: 12rpx 0 20rpx; }
+.btn-secondary {
+  display: inline-block;
+  background: rgba(0, 229, 255, 0.1);
+  color: #00e5ff;
+  border: 2rpx solid #00e5ff;
+  border-radius: 40rpx;
+  font-weight: 600;
+  height: 68rpx;
+  line-height: 68rpx;
+  font-size: 26rpx;
+  padding: 0 24rpx;
+}
+.section-title { font-size: 30rpx; font-weight: 700; margin-bottom: 16rpx; color: #e8eaf0; }
+.task-item {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #2a2e3a;
+}
+.task-item:last-child { border-bottom: none; }
+.task-check {
+  width: 24rpx;
+  height: 24rpx;
+  border-radius: 50%;
+  border: 4rpx solid #00e5ff;
+  margin-right: 16rpx;
+  flex-shrink: 0;
+}
+.task-content { flex: 1; }
+.task-title { font-size: 28rpx; }
+.task-course { font-size: 22rpx; color: #7a7f8a; margin-top: 4rpx; }
+.task-action {
+  font-size: 24rpx;
+  color: #00e5ff;
+  background: rgba(0, 229, 255, 0.1);
+  padding: 8rpx 20rpx;
+  border-radius: 30rpx;
+}
+.empty { text-align: center; color: #7a7f8a; font-size: 26rpx; padding: 30rpx 0; }
+.week-day { display: flex; padding: 12rpx 0; border-bottom: 1rpx solid #2a2e3a; }
+.week-day:last-child { border-bottom: none; }
+.day-label {
+  width: 80rpx;
+  color: #00e5ff;
+  font-size: 26rpx;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.day-tasks { flex: 1; }
+.day-task {
+  background: #2a2e3a;
+  border-radius: 8rpx;
+  padding: 6rpx 12rpx;
+  font-size: 22rpx;
+  color: #b0b6c4;
+  display: inline-block;
+  margin: 4rpx 8rpx 4rpx 0;
+}
+.roadmap-item { display: flex; align-items: center; padding: 16rpx 0; }
+.roadmap-dot {
+  width: 20rpx;
+  height: 20rpx;
+  border-radius: 50%;
+  background: #2a2e3a;
+  border: 4rpx solid #7a7f8a;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+}
+.roadmap-dot.current {
+  background: #00e5ff;
+  border-color: #00e5ff;
+  box-shadow: 0 0 16rpx rgba(0, 229, 255, 0.6);
+}
+.roadmap-content { flex: 1; }
+.roadmap-stage { font-size: 28rpx; }
+.roadmap-days { font-size: 22rpx; color: #7a7f8a; }
+.weak-item { display: flex; align-items: center; padding: 12rpx 0; }
+.weak-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background: #ff1744;
+  margin-right: 16rpx;
+  flex-shrink: 0;
+}
+.weak-text { flex: 1; font-size: 26rpx; }
+.weak-action {
+  font-size: 22rpx;
+  color: #ffd740;
+  background: rgba(255, 215, 64, 0.1);
+  padding: 4rpx 16rpx;
+  border-radius: 20rpx;
+}
+.ai-advice {
+  background: rgba(0, 229, 255, 0.06);
+  border-left: 6rpx solid #00e5ff;
+  padding: 16rpx;
+  border-radius: 8rpx;
+  color: #b0b6c4;
+  font-size: 26rpx;
+  line-height: 1.6;
+  margin-bottom: 16rpx;
+}
+.modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-box {
+  width: 600rpx;
+  background: #1a1d27;
+  border-radius: 24rpx;
+  padding: 40rpx;
+}
+.modal-title { font-size: 32rpx; font-weight: 700; margin-bottom: 24rpx; text-align: center; }
+.picker {
+  background: #2a2e3a;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  margin-bottom: 16rpx;
+  font-size: 28rpx;
+  color: #e8eaf0;
+}
+.btn-primary {
+  background: #00e5ff;
+  color: #0f1117;
+  border-radius: 44rpx;
+  font-weight: 600;
+  height: 80rpx;
+  line-height: 80rpx;
+  font-size: 28rpx;
+  margin-top: 16rpx;
+}

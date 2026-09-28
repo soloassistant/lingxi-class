@@ -1,0 +1,43 @@
+<view class="page {{darkMode ? 'dark' : ''}}" style="font-size: {{fontScale}};">
+  <view class="course-header">
+    <view class="course-emoji">{{course.emoji}}</view>
+    <view class="course-info">
+      <view class="course-name">{{course.name}}</view>
+      <view class="course-desc">{{course.desc}}</view>
+      <view class="course-progress-bar">
+        <view class="course-progress-inner" style="width: {{course.progress}}%;"></view>
+      </view>
+      <view class="course-progress-text">{{course.progress}}% 已掌握</view>
+    </view>
+  </view>
+
+  <view class="ask-ai" bindtap="goAskAI">💬 向 AI 提问</view>
+
+  <view class="section-title">章节目录</view>
+  <view class="chapter-list">
+    <view class="chapter-card" wx:for="{{chapters}}" wx:key="id">
+      <view class="chapter-head">
+        <view class="chapter-title">{{item.title}}</view>
+        <view class="chapter-count">{{item.items.length}} 项</view>
+      </view>
+      <view class="knowledge-list">
+        <view class="knowledge-item {{k.learned ? 'done' : ''}}"
+              wx:for="{{item.items}}" wx:for-item="k" wx:key="id"
+              data-id="{{k.id}}" bindtap="goLesson">
+          <view class="knowledge-dot {{k.learned ? 'done' : ''}}"></view>
+          <view class="knowledge-main">
+            <view class="knowledge-title">{{k.title}}</view>
+            <view class="knowledge-tags">
+              <text class="knowledge-tag" wx:if="{{k.videoUrl}}">🎬 视频</text>
+              <text class="knowledge-tag" wx:if="{{k.enBody}}">🌐 英文</text>
+            </view>
+          </view>
+          <view class="knowledge-status">
+            <text wx:if="{{k.learned}}">✅</text>
+            <text wx:else>→</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,117 @@
+<view class="vp-wrap {{isFullScreen ? 'vp-fullscreen' : ''}}">
+  <!-- 视频主体 -->
+  <video
+    class="vp-video"
+    src="{{innerSrc}}"
+    poster="{{poster}}"
+    title="{{title}}"
+    play-btn-show="{{false}}"
+    controls="{{false}}"
+    show-center-play-btn="{{true}}"
+    show-loading="{{true}}"
+    enable-progress-gesture="{{true}}"
+    autoplay="{{false}}"
+    loop="{{false}}"
+    muted="{{false}}"
+    object-fit="contain"
+    playback-rate="{{currentSpeed}}"
+    bindplay="onPlay"
+    bindpause="onPause"
+    bindended="onEnded"
+    bindwaiting="onWaiting"
+    bindplaying="onPlaying"
+    binderror="onError"
+    bindtimeupdate="onTimeUpdate"
+    bindloadedmetadata="onLoadedMeta"
+    bindfullscreenchange="onFullScreenChange"
+  ></video>
+
+  <!-- 加载遮罩 -->
+  <view class="vp-loading" wx:if="{{loading}}">
+    <view class="vp-spinner"></view>
+  </view>
+
+  <!-- 错误遮罩 -->
+  <view class="vp-error" wx:if="{{error}}">
+    <view class="vp-error-icon">⚠️</view>
+    <view class="vp-error-text">视频加载失败</view>
+    <view class="vp-error-btn" bindtap="play">重试</view>
+  </view>
+
+  <!-- 字幕/要点层 -->
+  <view class="vp-cue-layer" wx:if="{{showCues && activeCue}}">
+    <view class="vp-cue-text">{{activeCue}}</view>
+  </view>
+
+  <!-- 顶部条：标题 + 字幕开关 -->
+  <view class="vp-top-bar" wx:if="{{cues.length > 0}}">
+    <view class="vp-cue-toggle {{showCues ? 'on' : ''}}" bindtap="toggleCues">
+      {{showCues ? '字幕开' : '字幕关'}}
+    </view>
+  </view>
+
+  <!-- 字幕/要点列表（点击跳转） -->
+  <scroll-view class="vp-cue-list" scroll-y="true" wx:if="{{showCues && cues.length > 0}}">
+    <view
+      class="vp-cue-item {{currentTime >= (item.start || 0) ? 'active' : ''}}"
+      wx:for="{{cues}}"
+      wx:key="start"
+      data-start="{{item.start}}"
+      bindtap="onTapCue"
+    >{{item.startLabel || item.start}} · {{item.text || item.label}}</view>
+  </scroll-view>
+
+  <!-- 底部控制条 -->
+  <view class="vp-controls">
+    <view class="vp-progress" bindtouchmove="noop">
+      <slider
+        class="vp-slider"
+        min="0"
+        max="{{duration || 1}}"
+        step="1"
+        value="{{currentTime}}"
+        activeColor="#00e5ff"
+        backgroundColor="rgba(255,255,255,0.2)"
+        block-size="12"
+        bindchanging="onSliderChanging"
+        bindchange="onSliderChange"
+      />
+    </view>
+    <view class="vp-bottom-row">
+      <view class="vp-play-btn" bindtap="togglePlay">{{playing ? '❚❚' : '▶'}}</view>
+      <view class="vp-time">{{currentTimeLabel}} / {{durationLabel}}</view>
+      <view class="vp-spacer"></view>
+      <view class="vp-speed-btn" bindtap="toggleSpeedPanel">{{currentSpeed}}x</view>
+      <view class="vp-quality-btn" wx:if="{{showQuality}}" bindtap="toggleQualityPanel">▣</view>
+      <view class="vp-full-btn" bindtap="toggleFullScreen">{{isFullScreen ? '⤧' : '⤢'}}</view>
+    </view>
+  </view>
+
+  <!-- 倍速面板 -->
+  <view class="vp-panel-mask" wx:if="{{showSpeedPanel}}" bindtap="toggleSpeedPanel">
+    <view class="vp-panel" catchtap="noop">
+      <view class="vp-panel-title">播放速度</view>
+      <view
+        class="vp-panel-item {{currentSpeed === item ? 'active' : ''}}"
+        wx:for="{{speedOptions}}"
+        wx:key="*this"
+        data-speed="{{item}}"
+        bindtap="onPickSpeed"
+      >{{item}}x</view>
+    </view>
+  </view>
+
+  <!-- 清晰度面板 -->
+  <view class="vp-panel-mask" wx:if="{{showQualityPanel}}" bindtap="toggleQualityPanel">
+    <view class="vp-panel" catchtap="noop">
+      <view class="vp-panel-title">清晰度</view>
+      <view
+        class="vp-panel-item {{currentQuality === item.key ? 'active' : ''}}"
+        wx:for="{{qualityOptions}}"
+        wx:key="key"
+        data-key="{{item.key}}"
+        bindtap="onPickQuality"
+      >{{item.label}}</view>
+    </view>
+  </view>
+</view>

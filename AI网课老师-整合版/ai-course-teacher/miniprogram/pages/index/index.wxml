@@ -1,0 +1,103 @@
+<privacy-modal visible="{{showPrivacy}}" bind:agree="onPrivacyAgree" bind:disagree="noop"></privacy-modal>
+
+<view class="page {{darkMode ? 'dark' : ''}}" style="font-size: {{fontScale}};">
+  <view class="header">
+    <view class="header-top">
+      <view class="logo">语桥</view>
+      <view class="header-actions">
+        <text class="lang-switch" bindtap="toggleLang">{{langText}}</text>
+        <text class="settings-icon" bindtap="goSettings">⚙</text>
+      </view>
+    </view>
+    <view class="greeting">{{T.greeting}}，{{nickname || T.friend}}</view>
+  </view>
+
+  <!-- 搜索 / AI 答疑入口 -->
+  <view class="search-entry" bindtap="goSearch">
+    <text class="search-entry-icon">🔍</text>
+    <text class="search-entry-text">搜索课程知识点，或向 AI 提问</text>
+  </view>
+
+  <!-- 阶段测评 / 学习报告 / 今日作业 快捷入口 -->
+  <view class="quick-row">
+    <view class="quick-item" bindtap="goQuiz">
+      <text class="quick-icon">📝</text>
+      <text class="quick-text">阶段测评</text>
+    </view>
+    <view class="quick-item" bindtap="goReport">
+      <text class="quick-icon">📊</text>
+      <text class="quick-text">学习报告</text>
+    </view>
+    <view class="quick-item" bindtap="goHomework">
+      <text class="quick-icon">✏️</text>
+      <text class="quick-text">今日作业</text>
+    </view>
+  </view>
+
+  <!-- 学习看板 -->
+  <view class="dashboard">
+    <block wx:if="{{!dashboardLoading}}">
+      <view class="stat-row">
+        <view class="stat-item">
+          <view class="stat-num">{{streakDays}}</view>
+          <view class="stat-label">{{T.days}}</view>
+        </view>
+        <view class="stat-item">
+          <view class="stat-num">{{learnedCount}}/{{totalCount}}</view>
+          <view class="stat-label">{{T.learned}}</view>
+        </view>
+        <view class="stat-item">
+          <view class="stat-num">{{accuracy}}%</view>
+          <view class="stat-label">正确率</view>
+        </view>
+      </view>
+    </block>
+    <skeleton wx:else type="dashboard"/>
+  </view>
+
+  <!-- 学习成就（对标 Duolingo / 粉笔 / 得到 勋章体系） -->
+  <block wx:if="{{achievements.length}}">
+    <view class="section-title">学习成就</view>
+    <view class="achievement-grid">
+      <view class="achievement {{item.unlocked ? 'unlocked' : 'locked'}}" wx:for="{{achievements}}" wx:key="id">
+        <view class="achievement-icon">{{item.icon}}</view>
+        <view class="achievement-name">{{item.name}}</view>
+        <view class="achievement-bar" wx:if="{{!item.unlocked}}">
+          <view class="achievement-bar-inner" style="width: {{item.progress}}%;"></view>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <!-- 薄弱知识点（对标作业帮 / 高途 学情报告） -->
+  <block wx:if="{{weakPoints.length}}">
+    <view class="section-title">待加强</view>
+    <view class="weak-card" wx:for="{{weakPoints}}" wx:key="courseId">
+      <view class="weak-name">{{item.courseName}}</view>
+      <view class="weak-count">{{item.count}} 道错题</view>
+    </view>
+  </block>
+
+  <!-- 今日任务 -->
+  <view class="section-title">{{T.todayTasks}}</view>
+  <block wx:if="{{todayTasks.length}}">
+    <view class="task-card" wx:for="{{todayTasks}}" wx:key="_id" data-id="{{item.knowledgeId}}" bindtap="goLesson">
+      <view>
+        <view class="task-title">{{item.title}}</view>
+        <view class="task-meta">{{item.courseName}}<text wx:if="{{item.isWeak}}" class="task-weak-tag"> · 待巩固</text></view>
+      </view>
+      <view class="task-go">→</view>
+    </view>
+  </block>
+  <empty-state wx:else text="{{T.noTasks}}" buttonText="{{T.goLearn}}" bind:action="goCourses"/>
+
+  <!-- 课程入口 -->
+  <view class="section-title">{{T.courses}}</view>
+  <view class="course-grid">
+    <view class="course-card" wx:for="{{courses}}" wx:key="id" data-id="{{item.id}}" bindtap="goCourse">
+      <view class="course-emoji">{{item.emoji}}</view>
+      <view class="course-name">{{item.name}}</view>
+      <view class="course-progress">{{item.progress}}%</view>
+    </view>
+  </view>
+</view>

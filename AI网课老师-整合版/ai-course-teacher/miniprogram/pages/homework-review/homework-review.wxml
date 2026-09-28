@@ -1,0 +1,25 @@
+<view class="container">
+  <view wx:if="{{loading}}" class="loading">AI 老师正在批改讲评…</view>
+
+  <block wx:elif="{{review}}">
+    <view class="summary-card">
+      <view class="review-header">
+        <view class="review-course">课后练习讲评</view>
+        <view class="review-status {{review.correct ? 'pass' : 'fail'}}">{{review.correct ? '通过' : '未通过'}}</view>
+      </view>
+      <view class="review-title">{{review.itemId}}</view>
+    </view>
+
+    <view class="summary-card">
+      <view class="review-feedback">📝 {{review.feedback}}</view>
+      <view class="review-suggestion" wx:if="{{review.suggestion}}">💡 {{review.suggestion}}</view>
+    </view>
+  </block>
+
+  <view wx:elif="{{loadError}}" class="loading">讲评生成失败，请稍后重试</view>
+
+  <view class="btn-row">
+    <button class="btn-secondary" bindtap="goBack">返回作业</button>
+    <button class="btn-primary" bindtap="goLesson">再看一遍讲解</button>
+  </view>
+</view>

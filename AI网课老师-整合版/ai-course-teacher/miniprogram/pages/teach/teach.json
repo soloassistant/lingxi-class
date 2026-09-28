@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "AI 授课",
+  "usingComponents": {
+    "ai-badge": "/components/ai-badge/ai-badge",
+    "video-player": "/components/video-player/video-player"
+  }
+}

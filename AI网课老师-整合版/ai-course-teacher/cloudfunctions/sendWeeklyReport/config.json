@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "openapi": [
+      "subscribeMessage.send"
+    ]
+  },
+  "triggers": [
+    {
+      "name": "weeklyReportTimer",
+      "type": "timer",
+      "config": "0 0 9 * * MON *"
+    }
+  ],
+  "timeout": 60
+}

@@ -1,0 +1,2716 @@
+/**
+ * 课程知识点数据全集（对象版）
+ * knowledge: 73条知识点 | courses: 22门 | chapters: 22章（脚本生成，可手工调整）
+ * course.js 读 courses/chapters，teach.js 读 knowledge
+ */
+const knowledge = [
+  {
+    "id": "ielts_listening_basics",
+    "courseId": "ielts_listening",
+    "title": "雅思听力基础：定位词",
+    "enTitle": "IELTS Listening Basics: Locating Words",
+    "body": "定位词用于快速锁定答案所在的句子…",
+    "enBody": "Locating words help you quickly identify the sentence containing the answer…",
+    "quiz": {
+      "question": "以下哪类词最适合做定位词？",
+      "options": [
+        "介词",
+        "专有名词",
+        "动名词",
+        "形容词"
+      ],
+      "answerIndex": 1,
+      "explanation": "专有名词如人名、地名在听力中不容易被同义替换，最适合做定位词。"
+    },
+    "videoUrl": "",
+    "poster": ""
+  },
+  {
+    "id": "toefl_b2_i1",
+    "chapterId": "toefl_b2_ch1",
+    "title": "Cornell 笔记法",
+    "type": "lecture",
+    "body": "托福听力讲座信息密度高，推荐 Cornell 笔记法：把纸分成主栏（右侧记录要点）、副栏（左侧写提示词）、底部总结栏。听时快速记主栏，间歇时写提示词，讲座结束前用 10 秒做总结。注意提升笔记效率。",
+    "quiz": {
+      "question": "In Cornell notes, the main column is for:",
+      "options": [
+        "Key points",
+        "Summary",
+        "Keywords",
+        "Questions"
+      ],
+      "answerIndex": 0,
+      "explanation": "主栏记录讲座要点；副栏写提示词；底部是总结。",
+      "remedialSection": "用 Cornell 法做一遍 TPO 讲座听力笔记。"
+    }
+  },
+  {
+    "id": "toefl_b2_i2",
+    "chapterId": "toefl_b2_ch1",
+    "title": "信号词",
+    "type": "lecture",
+    "body": "听力讲座中的信号词提示结构和重点。列举型：first, besides, another. 转折型：however, but, in contrast. 因果型：therefore, as a result, consequently. 举例型：for instance, such as, take ... as an example. 听到因果型信号词时尤其要提高警惕。",
+    "quiz": {
+      "question": "Which word signals a cause-and-effect relationship?",
+      "options": [
+        "For instance",
+        "Consequently",
+        "In addition",
+        "Meanwhile"
+      ],
+      "answerIndex": 1,
+      "explanation": "consequently 表示结果，是因果关系的信号词。",
+      "remedialSection": "把讲座中听到的信号词按类型整理成表，每天听一篇标记一次。"
+    }
+  },
+  {
+    "id": "toefl_b2_i3",
+    "chapterId": "toefl_b2_ch1",
+    "title": "讲座结构",
+    "type": "lecture",
+    "body": "托福学术讲座结构稳定：引入主题 → 背景铺垫 → 核心概念定义 → 分点展开 → 举例说明 → 教授评价与总结。预判结构能在听力中提前定位：听到 \"let's define\" 就知道这是概念定义部分。",
+    "quiz": {
+      "question": "A professor says: \"Let me give you an example of this process.\" What comes next?",
+      "options": [
+        "Definition",
+        "Example",
+        "Evaluation",
+        "Conclusion"
+      ],
+      "answerIndex": 1,
+      "explanation": "give you an example 指示接下来是举例部分。",
+      "remedialSection": "听 3 篇讲座，在笔记中标注结构转换点。"
+    }
+  },
+  {
+    "id": "toefl_b2_i4",
+    "chapterId": "toefl_b2_ch1",
+    "title": "速记符号",
+    "type": "lecture",
+    "body": "听力笔记用符号代替整词：箭头 → 表示导致，← 表示来源于，↑ 上升/增加，↓ 下降/减少，∵ 因为，∴ 所以，= 等于/意味着，× 不是/错误，≠ 不同于。符号能帮你跟上语速。",
+    "quiz": {
+      "question": "In listening notes, \"∵\" usually means:",
+      "options": [
+        "Therefore",
+        "Because",
+        "However",
+        "In addition"
+      ],
+      "answerIndex": 1,
+      "explanation": "∵ 表示 because（因为）；∴ 表示 therefore（所以）。",
+      "remedialSection": "用这套符号系统重写一篇讲座笔记。"
+    }
+  },
+  {
+    "id": "toefl_adv_i1",
+    "chapterId": "toefl_adv_ch1",
+    "title": "整合框架",
+    "type": "lecture",
+    "body": "综合写作是\"阅读 vs 听力\"的对比框架。阅读提出三个论点，听力逐点反驳。写作基本结构：首段总述阅读与听力关系 + 三个主体段（每段先说明阅读观点，再说明听力反驳）。",
+    "quiz": {
+      "question": "In integrated writing, the listening passage typically:",
+      "options": [
+        "Supports the reading",
+        "Challenges the reading",
+        "Summarizes the reading",
+        "Is unrelated to the reading"
+      ],
+      "answerIndex": 1,
+      "explanation": "听力通常对阅读中的论点提出质疑或反驳。",
+      "remedialSection": "用框架图画出综合写作的结构骨：阅读论点 vs 听力反驳。"
+    }
+  },
+  {
+    "id": "toefl_adv_i2",
+    "chapterId": "toefl_adv_ch1",
+    "title": "模板句式",
+    "type": "lecture",
+    "body": "高频模板句式：The reading passage argues that ... However, the lecturer challenges this by explaining that ... The professor contradicts the point by emphasizing ... 注意模板只搭骨架，70% 以上内容必须是自己的语言和细节，不能整篇套用。",
+    "quiz": {
+      "question": "Which sentence best introduces a contrast?",
+      "options": [
+        "The reading states that X, and the lecturer agrees.",
+        "The reading states that X. However, the lecturer challenges this.",
+        "The reading states that X, so the lecturer listens.",
+        "The reading states that X because the lecturer responds."
+      ],
+      "answerIndex": 1,
+      "explanation": "However, the lecturer challenges 是标准的对比表达。",
+      "remedialSection": "用 3 组对比模板写综合写作开头段。"
+    }
+  },
+  {
+    "id": "toefl_adv_i3",
+    "chapterId": "toefl_adv_ch1",
+    "title": "阅读预判",
+    "type": "lecture",
+    "body": "综合写作前 3 分钟阅读环节，要用笔标出三个论点：找 \"firstly / secondly / finally\" 或段落首句。提前用一句话概括每个论点，为定位听力反驳做准备。",
+    "quiz": {
+      "question": "During the reading phase, you should mainly:",
+      "options": [
+        "Memorize every detail",
+        "Identify the three main arguments",
+        "Write your full outline",
+        "Check grammar"
+      ],
+      "answerIndex": 1,
+      "explanation": "阅读阶段核心任务是识别阅读中的三个分论点。",
+      "remedialSection": "拿 3 篇综合写作真题练阅读预判，只写三个分论点。"
+    }
+  },
+  {
+    "id": "toefl_adv_i4",
+    "chapterId": "toefl_adv_ch1",
+    "title": "评分标准",
+    "type": "lecture",
+    "body": "综合写作评分维度：信息完整性（是否覆盖阅读和听力所有要点）、准确性（是否歪曲信息）、清晰度（逻辑和语言清晰）。丢掉一个要点基本就告别 28 分以上。所以宁可少修饰，不能漏要点。",
+    "quiz": {
+      "question": "Which factor most seriously hurts your integrated writing score?",
+      "options": [
+        "Missing a key point",
+        "Using simple words",
+        "Long sentences",
+        "Handwriting"
+      ],
+      "answerIndex": 0,
+      "explanation": "遗漏要点比语言简单更致命。",
+      "remedialSection": "按评分标准给你的综合写作作文打 3 项分。"
+    }
+  },
+  {
+    "id": "igcse_math_i1",
+    "chapterId": "igcse_math_ch1",
+    "title": "一元二次方程",
+    "type": "lecture",
+    "body": "一元二次方程 ax² + bx + c = 0 的解法三种：因式分解法（最快）、配方法（变形严谨）、求根公式 x = [-b ± √(b²-4ac)] / (2a)。判别式 Δ = b² - 4ac：Δ > 0 两个实根，Δ = 0 一个重根，Δ < 0 无实根。",
+    "quiz": {
+      "question": "What is the discriminant of x² - 5x + 6 = 0?",
+      "options": [
+        "1",
+        "25",
+        "36",
+        "49"
+      ],
+      "answerIndex": 0,
+      "explanation": "Δ = b² - 4ac = (-5)² - 4×1×6 = 25 - 24 = 1。",
+      "remedialSection": "复习求根公式和完全平方式，算出 Δ 后判断根的类型。"
+    }
+  },
+  {
+    "id": "igcse_math_i2",
+    "chapterId": "igcse_math_ch1",
+    "title": "因式分解",
+    "type": "lecture",
+    "body": "因式分解是把多项式写成因式乘积。常见题型：提公因式 ax + bx = x(a+b)；平方差 a² - b² = (a+b)(a-b)；完全平方 a² ± 2ab + b² = (a±b)²。先看是否有公因式，再看是否特殊形式。",
+    "quiz": {
+      "question": "Factor x² - 9:",
+      "options": [
+        "(x-3)²",
+        "(x+3)(x-3)",
+        "(x+9)(x-1)",
+        "x(x-9)"
+      ],
+      "answerIndex": 1,
+      "explanation": "x² - 9 是平方差形式：x² - 3² = (x+3)(x-3)。",
+      "remedialSection": "练习 5 题平方差和完全平方的因式分解。"
+    }
+  },
+  {
+    "id": "igcse_math_i3",
+    "chapterId": "igcse_math_ch1",
+    "title": "完全平方",
+    "type": "lecture",
+    "body": "完全平方三项式：a² + 2ab + b² = (a+b)²；a² - 2ab + b² = (a-b)²。关键检测法：首尾加括号能否写成某式平方，中项是否为两倍乘。例如 x² + 6x + 9 = (x+3)²。",
+    "quiz": {
+      "question": "Which is a perfect square trinomial?",
+      "options": [
+        "x² + 6x + 9",
+        "x² + 5x + 6",
+        "x² - 4x + 8",
+        "x² - x + 1"
+      ],
+      "answerIndex": 0,
+      "explanation": "x² + 6x + 9 = (x+3)²，其中 6x = 2×x×3。",
+      "remedialSection": "判断五个三项式是否是完全平方，写出因式分解。"
+    }
+  },
+  {
+    "id": "igcse_math_i4",
+    "chapterId": "igcse_math_ch1",
+    "title": "解不等式",
+    "type": "lecture",
+    "body": "解不等式与解方程类似，但乘除以负数时方向反转。例如 -2x < 6 → x > -3。解集可用数轴表示，实心点表示含等号，空心点表示不含等号。注意文字题的\"at least\"和\"more than\"的区别。",
+    "quiz": {
+      "question": "Solve: -3x ≤ 12",
+      "options": [
+        "x ≥ -4",
+        "x ≤ -4",
+        "x ≥ 4",
+        "x ≤ 4"
+      ],
+      "answerIndex": 0,
+      "explanation": "两边除以 -3，不等号方向反转：-3x ≤ 12 → x ≥ -4。",
+      "remedialSection": "回顾不等式方向法则，做 5 道含负数系数的练习题。"
+    }
+  },
+  {
+    "id": "igcse_am_i1",
+    "chapterId": "igcse_addmath_ch1",
+    "title": "微分基本规则",
+    "type": "lecture",
+    "body": "微分是求变化率。幂函数求导：d/dx (xⁿ) = nxⁿ⁻¹。常数求导为 0。例如 y = x³ 的导数是 3x²。导数的几何意义是曲线在该点的切线斜率。",
+    "quiz": {
+      "question": "What is dy/dx for y = x⁴?",
+      "options": [
+        "x³",
+        "3x³",
+        "4x³",
+        "x⁵/5"
+      ],
+      "answerIndex": 2,
+      "explanation": "用幂函数求导法则：d/dx(xⁿ) = nxⁿ⁻¹，所以 d/dx(x⁴) = 4x³。",
+      "remedialSection": "回顾幂函数求导法则，练习 8 题基础求导。"
+    }
+  },
+  {
+    "id": "igcse_am_i2",
+    "chapterId": "igcse_addmath_ch1",
+    "title": "切线斜率",
+    "type": "lecture",
+    "body": "求曲线上一点的切线斜率：先求导函数，再代入该点的 x 坐标。例如 y = x² 在 x = 3 处斜率为 dy/dx = 2x = 6。斜率大于 0 表示递增，小于 0 表示递减。",
+    "quiz": {
+      "question": "The slope of y = x² at x = 3 is:",
+      "options": [
+        "2",
+        "3",
+        "6",
+        "9"
+      ],
+      "answerIndex": 2,
+      "explanation": "y' = 2x，代入 x = 3 得 6。",
+      "remedialSection": "求 y = x² + 1 在 x = 2 处的切线方程。"
+    }
+  },
+  {
+    "id": "igcse_am_i3",
+    "chapterId": "igcse_addmath_ch1",
+    "title": "定积分",
+    "type": "lecture",
+    "body": "定积分表示曲线与 x 轴围成的面积。∫ₐᵇ f(x) dx = F(b) - F(a)，其中 F 是 f 的反导函数。例如 ∫₁³ x² dx = [x³/3]₁³ = 27/3 - 1/3 = 26/3。面积为正时要注意取绝对值。",
+    "quiz": {
+      "question": "What is ∫₀¹ 2x dx?",
+      "options": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "answerIndex": 1,
+      "explanation": "∫₀¹ 2x dx = [x²]₀¹ = 1 - 0 = 1。",
+      "remedialSection": "复习反导函数概念，练习计算 5 个定积分。"
+    }
+  },
+  {
+    "id": "igcse_am_i4",
+    "chapterId": "igcse_addmath_ch1",
+    "title": "积分应用",
+    "type": "lecture",
+    "body": "积分可用于求变速运动的位移（速度函数积分）、求曲线间面积（上曲线减下曲线积分）、求体积。实际问题中先画图确定积分上下限，再判断哪条曲线在上方。",
+    "quiz": {
+      "question": "The area between y = x² and the x-axis from x=0 to x=2 is:",
+      "options": [
+        "2/3",
+        "4/3",
+        "8/3",
+        "16/3"
+      ],
+      "answerIndex": 2,
+      "explanation": "∫₀² x² dx = [x³/3]₀² = 8/3。",
+      "remedialSection": "把题目图形画出来，确认曲线位置后再积分。"
+    }
+  },
+  {
+    "id": "alevel_p3_i1",
+    "chapterId": "alevel_pure3_ch1",
+    "title": "分离变量法",
+    "type": "lecture",
+    "body": "可分离变量的微分方程形如 dy/dx = f(x)g(y)。解法：把 y 项移到左边、x 项移到右边，两边积分。例如 dy/dx = x/y，则 y dy = x dx，两边积分得 y²/2 = x²/2 + C，即 y² = x² + C。",
+    "quiz": {
+      "question": "Which equation can be solved by separation of variables?",
+      "options": [
+        "dy/dx = x + y",
+        "dy/dx = x²y",
+        "dy/dx = x - 2y",
+        "dy/dx = y"
+      ],
+      "answerIndex": 1,
+      "explanation": "dy/dx = x²y 可分离：dy/y = x² dx，然后两边积分。",
+      "remedialSection": "回顾分离变量法的两个步骤：分离和积分。"
+    }
+  },
+  {
+    "id": "alevel_p3_i2",
+    "chapterId": "alevel_pure3_ch1",
+    "title": "积分因子法",
+    "type": "lecture",
+    "body": "一阶线性微分方程 dy/dx + P(x)y = Q(x) 用积分因子 I = e^∫P dx 求解。两边乘 I 后左边变成 (Iy)'，两边积分即得通解。例如 dy/dx + y = sin x，P(x) = 1，I = eˣ。",
+    "quiz": {
+      "question": "For dy/dx + 2y = x, the integrating factor is:",
+      "options": [
+        "x²",
+        "e²ˣ",
+        "x",
+        "eˣ"
+      ],
+      "answerIndex": 1,
+      "explanation": "I = e^∫2 dx = e²ˣ。",
+      "remedialSection": "复习 e 的积分规则，再练 2 道积分因子题。"
+    }
+  },
+  {
+    "id": "alevel_p3_i3",
+    "chapterId": "alevel_pure3_ch1",
+    "title": "二阶常系数方程",
+    "type": "lecture",
+    "body": "二阶常系数齐次方程 ay'' + by' + cy = 0，解特征方程 aλ² + bλ + c = 0。两个不同实根 λ₁, λ₂ 时通解为 y = A e^(λ₁x) + B e^(λ₂x)。重根时 y = (A + Bx)e^(λx)。根为复数时用三角形式。",
+    "quiz": {
+      "question": "The characteristic equation of y'' + 5y' + 6y = 0 is:",
+      "options": [
+        "λ² + 5λ + 6 = 0",
+        "λ² - 5λ + 6 = 0",
+        "λ² + 5λ - 6 = 0",
+        "λ² - 5λ - 6 = 0"
+      ],
+      "answerIndex": 0,
+      "explanation": "把 y'' 换成 λ²，y' 换成 λ，y 换成 1，得 λ² + 5λ + 6 = 0。",
+      "remedialSection": "解特征方程 (λ+2)(λ+3)=0 后写出通解。"
+    }
+  },
+  {
+    "id": "alevel_p3_i4",
+    "chapterId": "alevel_pure3_ch1",
+    "title": "初始条件",
+    "type": "lecture",
+    "body": "通解含任意常数，需要初始条件确定唯一特解。例如 y' = y，初值 y(0) = 1，通解 y = Ceˣ，代入得 C = 1，特解为 y = eˣ。注意代初值要在求导和整理之后。",
+    "quiz": {
+      "question": "If dy/dx = y and y(0) = 2, what is the particular solution?",
+      "options": [
+        "y = 2eˣ",
+        "y = e²ˣ",
+        "y = eˣ + 2",
+        "y = 2e⁻ˣ"
+      ],
+      "answerIndex": 0,
+      "explanation": "通解 y = Ceˣ，代入 y(0) = 2 得 C = 2。",
+      "remedialSection": "解 dy/dx = 2y，初值 y(0) = 3。"
+    }
+  },
+  {
+    "id": "alevel_mech_i1",
+    "chapterId": "alevel_mech_ch1",
+    "title": "牛顿第二定律",
+    "type": "lecture",
+    "body": "牛顿第二定律 F = ma。力单位牛顿 N，质量 1N = 1 kg·m/s²。解题步骤：画受力分析图 → 合成净外力 → 套 F = ma。注意方向：以运动方向为正。",
+    "quiz": {
+      "question": "A 3 kg object accelerates at 2 m/s². The net force is:",
+      "options": [
+        "1.5 N",
+        "5 N",
+        "6 N",
+        "9 N"
+      ],
+      "answerIndex": 2,
+      "explanation": "F = ma = 3 × 2 = 6 N。",
+      "remedialSection": "画一个受力分析图，标出所有力再计算合力。"
+    }
+  },
+  {
+    "id": "alevel_mech_i2",
+    "chapterId": "alevel_mech_ch1",
+    "title": "匀加速运动",
+    "type": "lecture",
+    "body": "匀加速运动的五个关系式：v = u + at、s = ut + ½at²、v² = u² + 2as、s = (u+v)t/2。每个公式含 4 个变量，已知 3 个求第 4 个。",
+    "quiz": {
+      "question": "A car accelerates from rest at 2 m/s² for 3 s. The distance is:",
+      "options": [
+        "3 m",
+        "6 m",
+        "9 m",
+        "18 m"
+      ],
+      "answerIndex": 2,
+      "explanation": "s = ut + ½at² = 0 + ½×2×9 = 9 m。",
+      "remedialSection": "列出五个匀加速公式，标明每个公式中缺哪个变量。"
+    }
+  },
+  {
+    "id": "alevel_mech_i3",
+    "chapterId": "alevel_mech_ch1",
+    "title": "连接体问题",
+    "type": "lecture",
+    "body": "连接体问题：两个物体用绳子连接，整体加速度相同。列两个方程：整体方程（外部拉力）和单体方程（绳张力）。例如 A 和 B 用绳连接，拉力 F 拉 A，则 F - T = mA·a，T = mB·a。",
+    "quiz": {
+      "question": "In a connected-body problem, the tension in the rope:",
+      "options": [
+        "Is always zero",
+        "Equals the applied force",
+        "Is an internal force",
+        "Cannot be calculated"
+      ],
+      "answerIndex": 2,
+      "explanation": "绳张力是连接体之间的内力，通过隔离单体计算。",
+      "remedialSection": "画 A、B 连接体的受力图，标出张力和加速度方向。"
+    }
+  },
+  {
+    "id": "alevel_mech_i4",
+    "chapterId": "alevel_mech_ch1",
+    "title": "能量守恒",
+    "type": "lecture",
+    "body": "无摩擦时机械能守恒：动能 + 势能 = 常量。EK = ½mv²，EGP = mgh。例：物体从高度 h 自由下落，到底部 v = √(2gh)。有摩擦时用功能原理：外力做功 = 机械能变化。",
+    "quiz": {
+      "question": "A 1 kg ball drops from 5 m. What is its speed just before hitting the ground? (g=10 m/s²)",
+      "options": [
+        "5 m/s",
+        "10 m/s",
+        "15 m/s",
+        "50 m/s"
+      ],
+      "answerIndex": 1,
+      "explanation": "v = √(2gh) = √(2×10×5) = √100 = 10 m/s。",
+      "remedialSection": "回顾动能和势能公式，列出能量守恒方程。"
+    }
+  },
+  {
+    "id": "ib_aa_i1",
+    "chapterId": "ib_math_aa_ch1",
+    "title": "链式法则",
+    "type": "lecture",
+    "body": "复合函数求导用链式法则：dy/dx = dy/du × du/dx。例：y = sin(2x)，令 u = 2x，则 dy/du = cos(2x)，du/dx = 2，所以 dy/dx = 2cos(2x)。",
+    "quiz": {
+      "question": "What is the derivative of sin(2x)?",
+      "options": [
+        "cos(2x)",
+        "2cos(2x)",
+        "-cos(2x)",
+        "-2cos(2x)"
+      ],
+      "answerIndex": 1,
+      "explanation": "链式法则：导数是 2cos(2x)。",
+      "remedialSection": "练习求 cos(3x)、e^(2x)、ln(2x) 的导数。"
+    }
+  },
+  {
+    "id": "ib_aa_i2",
+    "chapterId": "ib_math_aa_ch1",
+    "title": "分部积分",
+    "type": "lecture",
+    "body": "分部积分公式 ∫u dv = uv - ∫v du。用于两个不同函数的乘积。选择 u 遵循 LIATE：对数、反三角、代数、三角、指数。例：∫x eˣ dx，取 u=x，dv=eˣ dx，得 = xeˣ - eˣ + C。",
+    "quiz": {
+      "question": "For ∫x cos(x) dx, the best choice for u is:",
+      "options": [
+        "cos(x)",
+        "x",
+        "1",
+        "cos(x)+x"
+      ],
+      "answerIndex": 1,
+      "explanation": "LIATE 法则：代数 x 优先于三角 cos(x)，所以 u = x，dv = cos(x) dx。",
+      "remedialSection": "复习 LIATE 法则，做 3 道分部积分基础题。"
+    }
+  },
+  {
+    "id": "ib_aa_i3",
+    "chapterId": "ib_math_aa_ch1",
+    "title": "泰勒展开",
+    "type": "lecture",
+    "body": "泰勒展开在某点附近用多项式近似函数。公式：f(x) = f(a) + f'(a)(x-a) + f''(a)(x-a)²/2! + ... 在 x=0 处的展开又称麦克劳林展开。例：eˣ = 1 + x + x²/2! + x³/3! + ...",
+    "quiz": {
+      "question": "The Maclaurin series of eˣ starts with:",
+      "options": [
+        "1 + x",
+        "1 - x",
+        "x + x²",
+        "1 + x²"
+      ],
+      "answerIndex": 0,
+      "explanation": "eˣ = 1 + x + x²/2! + x³/3! + ...，前两项是 1 + x。",
+      "remedialSection": "对比 eˣ 和 1+x 在 x=0 附近的大小，理解展开的逼近意义。"
+    }
+  },
+  {
+    "id": "ib_aa_i4",
+    "chapterId": "ib_math_aa_ch1",
+    "title": "积分换元",
+    "type": "lecture",
+    "body": "换元积分是凑微分的高阶版。u 替换复杂部分，dx 用 du 表示。例：∫2x e^(x²) dx，令 u = x²，则 du = 2x dx，原式 = ∫e^u du = e^(x²) + C。完成换元后检查 dx 是否被完全替换。",
+    "quiz": {
+      "question": "What substitution for ∫2x cos(x²) dx?",
+      "options": [
+        "u = 2x",
+        "u = x²",
+        "u = cos(x²)",
+        "u = x"
+      ],
+      "answerIndex": 1,
+      "explanation": "u = x²，则 du = 2x dx，原式 = ∫cos(u) du = sin(x²) + C。",
+      "remedialSection": "换元后一定要检查 dx 是否完全消失。练习 5 题。"
+    }
+  },
+  {
+    "id": "ib_ai_i1",
+    "chapterId": "ib_math_ai_ch1",
+    "title": "正态分布",
+    "type": "lecture",
+    "body": "正态分布 N(μ, σ²)，μ 为均值，σ 为标准差。68-95-99.7 法则：68% 数据在 μ±σ 内，95% 在 μ±2σ 内，99.7% 在 μ±3σ 内。Z 分数标准化：Z = (X - μ)/σ。",
+    "quiz": {
+      "question": "About what percentage of data lies within 2 standard deviations of the mean?",
+      "options": [
+        "68%",
+        "95%",
+        "99.7%",
+        "50%"
+      ],
+      "answerIndex": 1,
+      "explanation": "68-95-99.7 法则：2σ 范围内约 95%。",
+      "remedialSection": "画出正态分布图，标出 μ±σ、μ±2σ、μ±3σ 区间。"
+    }
+  },
+  {
+    "id": "ib_ai_i2",
+    "chapterId": "ib_math_ai_ch1",
+    "title": "线性回归",
+    "type": "lecture",
+    "body": "线性回归 y = ax + b 找到拟合数据的最佳直线。最小化残差平方和。决定系数 r² 反映模型解释能力，r 接近 1 说明线性关系强。若 |r| < 0.3 则线性模型不可靠。",
+    "quiz": {
+      "question": "A correlation coefficient r = -0.9 indicates:",
+      "options": [
+        "A strong negative linear relationship",
+        "A weak negative relationship",
+        "No relationship",
+        "A perfect positive relationship"
+      ],
+      "answerIndex": 0,
+      "explanation": "r = -0.9 表示很强的负相关，|r| 接近 1。",
+      "remedialSection": "画散点图判断 4 组数据的相关系数正负和强弱。"
+    }
+  },
+  {
+    "id": "ib_ai_i3",
+    "chapterId": "ib_math_ai_ch1",
+    "title": "复合增长",
+    "type": "lecture",
+    "body": "复合增长模型 A = P(1 + r/n)^(nt)。P 是本金，r 是年利率，n 是每年复利次数，t 是年数。r 为负时表示衰减。当 n 趋向无穷时为连续复利：A = P e^(rt)。",
+    "quiz": {
+      "question": "What does n represent in A = P(1 + r/n)^(nt)?",
+      "options": [
+        "Interest rate",
+        "Number of compounding periods per year",
+        "Years",
+        "Initial amount"
+      ],
+      "answerIndex": 1,
+      "explanation": "n 是每年复利计算的次数。",
+      "remedialSection": "用同一个 P、r、t 分别计算按年、按月、连续复利的结果。"
+    }
+  },
+  {
+    "id": "ib_ai_i4",
+    "chapterId": "ib_math_ai_ch1",
+    "title": "误差传播",
+    "type": "lecture",
+    "body": "加法模型的误差传播：绝对误差相加。乘法模型的相对误差相加。例：测量长度 L=10±0.1 cm，宽度 W=5±0.1 cm，周长相对误差比面积更容易算。",
+    "quiz": {
+      "question": "If each measurement has a 1% relative error, multiplying them yields about:",
+      "options": [
+        "1% error",
+        "2% error",
+        "0.5% error",
+        "10% error"
+      ],
+      "answerIndex": 1,
+      "explanation": "乘法模型中相对误差相加：1% + 1% = 2%。",
+      "remedialSection": "分别按加法和乘法计算两组误差传播。"
+    }
+  },
+  {
+    "id": "ap_calc_i1",
+    "chapterId": "ap_calc_ch1",
+    "title": "泰勒级数展开",
+    "type": "lecture",
+    "body": "泰勒级数在某点展开：f(x) = f(a) + f'(a)(x-a) + f''(a)(x-a)²/2! + ... 麦克劳林展开是 a=0 的特例。对于光滑函数，项数越多近似越精确。",
+    "quiz": {
+      "question": "The center of a Maclaurin series is:",
+      "options": [
+        "x = 0",
+        "x = 1",
+        "x = -1",
+        "x = e"
+      ],
+      "answerIndex": 0,
+      "explanation": "麦克劳林级数是以 x=0 为中心的泰勒展开。",
+      "remedialSection": "菲多级数基本框架：写出前 5 项，确认系数规律。"
+    }
+  },
+  {
+    "id": "ap_calc_i2",
+    "chapterId": "ap_calc_ch1",
+    "title": "收敛半径",
+    "type": "lecture",
+    "body": "收敛半径 R 决定幂级数收敛范围。比值检验：R = lim |aₙ/aₙ₊₁|。幂级数在 |x-a| < R 内绝对收敛，在 |x-a| > R 处发散，端点需要单独检验。",
+    "quiz": {
+      "question": "For a power series with convergence radius R = 2 centered at x = 1, the series converges when:",
+      "options": [
+        "-1 < x < 3",
+        "x > 2",
+        "x < 1",
+        "x = 4"
+      ],
+      "answerIndex": 0,
+      "explanation": "|x-1| < 2 → -1 < x < 3。",
+      "remedialSection": "画数轴标出收敛区间，端点 x=-1、x=3 单独检验。"
+    }
+  },
+  {
+    "id": "ap_calc_i3",
+    "chapterId": "ap_calc_ch1",
+    "title": "麦克劳林特殊展开",
+    "type": "lecture",
+    "body": "三个必背麦克劳林展开：eˣ = Σxⁿ/n!，sin x = Σ(-1)ⁿx^(2n+1)/(2n+1)!，cos x = Σ(-1)ⁿx^(2n)/(2n)!。展开时注意正负交错和阶乘分母。",
+    "quiz": {
+      "question": "The first two nonzero terms of sin x are:",
+      "options": [
+        "x - x³/6",
+        "x + x³/6",
+        "x - x²/2",
+        "x - x³/3"
+      ],
+      "answerIndex": 0,
+      "explanation": "sin x = x - x³/3! + x⁵/5! - ...，所以前两项是 x - x³/6。",
+      "remedialSection": "手写推导 sin x 的前三项，对照公式检查系数。"
+    }
+  },
+  {
+    "id": "ap_calc_i4",
+    "chapterId": "ap_calc_ch1",
+    "title": "余项估计",
+    "type": "lecture",
+    "body": "泰勒余项 Rₙ(x) 衡量多项式近似误差。拉格朗日余项：Rₙ(x) = f^(n+1)(c)(x-a)^(n+1)/(n+1)!，其中 c 在 a 和 x 之间。余项估计用于判断展开截断后的误差上界。",
+    "quiz": {
+      "question": "To bound the error of a 3rd degree Taylor approximation, you need:",
+      "options": [
+        "The 4th derivative",
+        "The 3rd derivative",
+        "The 2nd derivative",
+        "The 0th derivative"
+      ],
+      "answerIndex": 0,
+      "explanation": "拉格朗日余项 R₃ 需要用到 n+1=4 阶导数。",
+      "remedialSection": "回顾拉格朗日余项公式，代入具体值估算误差。"
+    }
+  },
+  {
+    "id": "ap_stats_i1",
+    "chapterId": "ap_stats_ch1",
+    "title": "取样方法",
+    "type": "lecture",
+    "body": "统计推断依赖随机抽样。简单随机抽样每个个体等概率。分层抽样先按特征分层再各层随机抽。整群抽样随机抽若干群再全部调查。方便抽样和自愿样本容易产生偏差。",
+    "quiz": {
+      "question": "A biased sample is likely produced by:",
+      "options": [
+        "Simple random sampling",
+        "Convenience sampling",
+        "Stratified sampling",
+        "Cluster sampling"
+      ],
+      "answerIndex": 1,
+      "explanation": "方便抽样只取容易到达的样本，代表性差，容易偏差。",
+      "remedialSection": "对比四种抽样方法，各举一个例子。"
+    }
+  },
+  {
+    "id": "ap_stats_i2",
+    "chapterId": "ap_stats_ch1",
+    "title": "中心极限定理",
+    "type": "lecture",
+    "body": "中心极限定理：样本量 n 足够大时，样本均值的抽样分布近似正态，均值等于总体均值 μ，标准差 σ/√n。一般 n ≥ 30 即可满足。该定理是构建置信区间的基础。",
+    "quiz": {
+      "question": "The standard deviation of the sampling distribution of the mean is:",
+      "options": [
+        "σ",
+        "σ/√n",
+        "σ²",
+        "nσ"
+      ],
+      "answerIndex": 1,
+      "explanation": "标准误 = σ/√n，n 越大误差越小。",
+      "remedialSection": "用中心极限定理理解为何大样本更可靠。"
+    }
+  },
+  {
+    "id": "ap_stats_i3",
+    "chapterId": "ap_stats_ch1",
+    "title": "置信区间",
+    "type": "lecture",
+    "body": "置信区间估计总体参数。均值置信区间：样本均值 ± z* × σ/√n。95% 置信度对应 z* = 1.96（近似 2）。置信区间越窄说明估计越精确。",
+    "quiz": {
+      "question": "For a 95% confidence interval, the critical value z* is approximately:",
+      "options": [
+        "1.28",
+        "1.645",
+        "1.96",
+        "2.58"
+      ],
+      "answerIndex": 2,
+      "explanation": "95% 置信水平对应的 z* = 1.96。",
+      "remedialSection": "理解置信级别的含义：重复抽样中约 95% 的区间包含真值。"
+    }
+  },
+  {
+    "id": "ap_stats_i4",
+    "chapterId": "ap_stats_ch1",
+    "title": "显著性检验",
+    "type": "lecture",
+    "body": "假设检验流程：提出原假设 H₀ 和备择假设 H₁ → 计算检验统计量 → 得 p 值 → 与显著性水平 α 比较。p < α 则拒绝 H₀。p 值是\"在原假设为真时观察到此结果的概率\"。",
+    "quiz": {
+      "question": "If p-value = 0.03 and α = 0.05, you should:",
+      "options": [
+        "Reject H₀",
+        "Fail to reject H₀",
+        "Accept H₁",
+        "Increase α"
+      ],
+      "answerIndex": 0,
+      "explanation": "p = 0.03 < α = 0.05，结果显著，拒绝原假设。",
+      "remedialSection": "区分 p 值含义和假设检验的两类错误。"
+    }
+  },
+  {
+    "id": "sat_math_i1",
+    "chapterId": "sat_math_ch1",
+    "title": "一次函数",
+    "type": "lecture",
+    "body": "一次函数 y = mx + b，m 是斜率（slope），b 是 y 截距。斜率 = 变化量比 = (y₂-y₁)/(x₂-x₁)。平行线斜率相同，垂直线斜率乘积为 -1。",
+    "quiz": {
+      "question": "What is the slope of the line through (0,2) and (3,8)?",
+      "options": [
+        "2",
+        "3",
+        "6",
+        "8/3"
+      ],
+      "answerIndex": 0,
+      "explanation": "m = (8-2)/(3-0) = 6/3 = 2。",
+      "remedialSection": "画两点连线，用坐标差计算斜率。"
+    }
+  },
+  {
+    "id": "sat_math_i2",
+    "chapterId": "sat_math_ch1",
+    "title": "二次函数",
+    "type": "lecture",
+    "body": "二次函数 y = ax² + bx + c。顶点坐标 x = -b/2a。顶点式为 y = a(x-h)² + k，顶点 (h,k)。开口方向由 a 决定：正向上，负向下。判别式决定与 x 轴交点个数。",
+    "quiz": {
+      "question": "The vertex of y = 2(x-3)² + 5 is:",
+      "options": [
+        "(3, 5)",
+        "(-3, 5)",
+        "(2, 3)",
+        "(5, 3)"
+      ],
+      "answerIndex": 0,
+      "explanation": "顶点式 y=a(x-h)²+k 中顶点为 (h,k) = (3,5)。",
+      "remedialSection": "把一次函数化成顶点式，确认 h 和 k 的符号。"
+    }
+  },
+  {
+    "id": "sat_math_i3",
+    "chapterId": "sat_math_ch1",
+    "title": "三角比",
+    "type": "lecture",
+    "body": "直角三角形中：sin θ = 对边/斜边，cos θ = 邻边/斜边，tan θ = 对边/邻边。记住 SOH-CAH-TOA。常见值：sin 30° = 1/2，cos 60° = 1/2，tan 45° = 1。",
+    "quiz": {
+      "question": "In a right triangle, if sin θ = 3/5, the opposite side is:",
+      "options": [
+        "3",
+        "5",
+        "4",
+        "3/5"
+      ],
+      "answerIndex": 0,
+      "explanation": "sin θ = 对边/斜边，2 通过对边=3，斜边=5。",
+      "remedialSection": "用 SOH-CAH-TOA 口诀复习三个三角比的定义。"
+    }
+  },
+  {
+    "id": "sat_math_i4",
+    "chapterId": "sat_math_ch1",
+    "title": "图表数据分析",
+    "type": "lecture",
+    "body": "数据分析题：读图时注意坐标轴标签、单位、趋势。平均数易受极端值影响，中位数更稳健。散点散点图关注相关性与离群点。",
+    "quiz": {
+      "question": "Which measure of central tendency is most affected by extreme values?",
+      "options": [
+        "Mean",
+        "Median",
+        "Mode",
+        "Range"
+      ],
+      "answerIndex": 0,
+      "explanation": "平均数对极端值敏感，中位数更稳健。",
+      "remedialSection": "对比平均数/中位数/众数的适用场景。"
+    }
+  },
+  {
+    "id": "sat_write_i1",
+    "chapterId": "sat_write_ch1",
+    "title": "主谓一致",
+    "type": "lecture",
+    "body": "主语与谓语单复数必须一致。注意插入语、同位语不影响主语单复数。集合名词（如 team）看作整体用单数，强调成员用复数。Neither...nor 遵循就近原则。",
+    "quiz": {
+      "question": "Which is correct?",
+      "options": [
+        "The list of items are long.",
+        "The list of items is long.",
+        "The list of items were long.",
+        "The list, with items, are long."
+      ],
+      "answerIndex": 1,
+      "explanation": "主语是 list（单数），of items 是修饰，谓语用 is。",
+      "remedialSection": "划出真正主语再判断单复数。"
+    }
+  },
+  {
+    "id": "sat_write_i2",
+    "chapterId": "sat_write_ch1",
+    "title": "标点：逗号与分号",
+    "type": "lecture",
+    "body": "逗号连接两个独立分句需用连词（FANBOYS）。分号 ; 可直接连接两个相关独立分句，无需连词。冒号 : 引出解释/列表。破折号 —— 表插入或强调。",
+    "quiz": {
+      "question": "Which correctly joins two independent clauses without a conjunction?",
+      "options": [
+        "She ran; he walked.",
+        "She ran, he walked.",
+        "She ran he walked.",
+        "She ran: he walked."
+      ],
+      "answerIndex": 0,
+      "explanation": "分号可直接连接两个独立分句。",
+      "remedialSection": "分号 vs 逗号+and 用法对比。"
+    }
+  },
+  {
+    "id": "sat_write_i3",
+    "chapterId": "sat_write_ch1",
+    "title": "时态一致性",
+    "type": "lecture",
+    "body": "全文时态需保持一致，除非叙述时间确实改变。叙述过去事件用一般过去时；普遍真理用一般现在时。If 条件句中主将从现：If it rains, we will stay.",
+    "quiz": {
+      "question": "Choose correct: \"If you study hard, you ___ succeed.\"",
+      "options": [
+        "will",
+        "would",
+        "are",
+        "were"
+      ],
+      "answerIndex": 0,
+      "explanation": "第一条件句主句用 will + 原形。",
+      "remedialSection": "三种条件句时态搭配总结。"
+    }
+  },
+  {
+    "id": "sat_write_i4",
+    "chapterId": "sat_write_ch1",
+    "title": "逻辑衔接词",
+    "type": "lecture",
+    "body": "however/nevertheless 表转折；therefore/thus/consequently 表因果；furthermore/moreover/in addition 表递进；for example/such as 举例。选词需匹配前后逻辑关系。",
+    "quiz": {
+      "question": "“He failed twice; ___, he never gave up.” Best word?",
+      "options": [
+        "therefore",
+        "however",
+        "for example",
+        "meanwhile"
+      ],
+      "answerIndex": 1,
+      "explanation": "前后是转折关系，用 however。",
+      "remedialSection": "整理常见衔接词与逻辑关系对应表。"
+    }
+  },
+  {
+    "id": "igcse_math_i5",
+    "chapterId": "igcse_math_ch1",
+    "title": "因式分解 quadratics",
+    "type": "lecture",
+    "body": "二次式 ax²+bx+c 因式分解：找两数积=c、和=b（当 a=1）。例 x²+5x+6=(x+2)(x+3)。a≠1 时用分组或拆项法。",
+    "quiz": {
+      "question": "Factorise x² - 7x + 12 =",
+      "options": [
+        "(x-3)(x-4)",
+        "(x+3)(x+4)",
+        "(x-2)(x-6)",
+        "(x-1)(x-12)"
+      ],
+      "answerIndex": 0,
+      "explanation": "-3+(-4)=-7，(-3)(-4)=12。",
+      "remedialSection": "练 10 道二次因式分解找规律。"
+    }
+  },
+  {
+    "id": "igcse_math_i6",
+    "chapterId": "igcse_math_ch1",
+    "title": "三角函数基础",
+    "type": "lecture",
+    "body": "SOH-CAH-TOA。已知角求边用 sin/cos/tan，反三角求角。注意角度模式（degrees）。正弦定理 a/sinA=b/sinB，余弦定理 c²=a²+b²-2ab cosC。",
+    "quiz": {
+      "question": "Right triangle with angle 30°, hypotenuse 10, opposite side =?",
+      "options": [
+        "5",
+        "5√3",
+        "10",
+        "√3"
+      ],
+      "answerIndex": 0,
+      "explanation": "sin30°=1/2，对边=10×1/2=5。",
+      "remedialSection": "画直角三角形标角标边再套公式。"
+    }
+  },
+  {
+    "id": "igcse_math_i7",
+    "chapterId": "igcse_math_ch1",
+    "title": "圆与圆周角定理",
+    "type": "lecture",
+    "body": "圆心角=2×同弧所对圆周角。直径所对圆周角为 90°。同弧所对圆周角相等。弦心距垂直平分弦。",
+    "quiz": {
+      "question": "Angle subtended by diameter at circumference =",
+      "options": [
+        "90°",
+        "180°",
+        "45°",
+        "varies"
+      ],
+      "answerIndex": 0,
+      "explanation": "直径所对圆周角恒为直角。",
+      "remedialSection": "画图验证直径圆周角定理。"
+    }
+  },
+  {
+    "id": "igcse_math_i8",
+    "chapterId": "igcse_math_ch1",
+    "title": "概率",
+    "type": "lecture",
+    "body": "P(A)=有利结果/总结果。互斥事件 P(A∪B)=P(A)+P(B)；独立事件 P(A∩B)=P(A)×P(B)。补事件 P(not A)=1-P(A)。",
+    "quiz": {
+      "question": "Two fair dice rolled, P(sum=7)=?",
+      "options": [
+        "6/36",
+        "1/6",
+        "both 6/36=1/6",
+        "5/36"
+      ],
+      "answerIndex": 2,
+      "explanation": "和为7共6种(1,6..6,1)，6/36=1/6。",
+      "remedialSection": "列 36 格表确认。"
+    }
+  },
+  {
+    "id": "igcse_phy_i1",
+    "chapterId": "igcse_phy_ch1",
+    "title": "运动学公式",
+    "type": "lecture",
+    "body": "v=u+at，s=ut+½at²，v²=u²+2as。匀速 v=s/t。加速度 a=Δv/t。单位：米、秒、米每秒。",
+    "quiz": {
+      "question": "Car accelerates from rest at 2 m/s² for 5 s, final speed =",
+      "options": [
+        "10 m/s",
+        "5 m/s",
+        "2.5 m/s",
+        "25 m/s"
+      ],
+      "answerIndex": 0,
+      "explanation": "v=u+at=0+2×5=10。",
+      "remedialSection": "列 SUVAT 五个量对照。"
+    }
+  },
+  {
+    "id": "igcse_phy_i2",
+    "chapterId": "igcse_phy_ch1",
+    "title": "力与牛顿定律",
+    "type": "lecture",
+    "body": "F=ma。合力为零则匀速或静止（第一定律）。作用力反作用力等大反向（第三定律）。重力 W=mg。摩擦力阻碍运动。",
+    "quiz": {
+      "question": "A 2 kg mass accelerates at 3 m/s², net force =",
+      "options": [
+        "6 N",
+        "2/3 N",
+        "5 N",
+        "1.5 N"
+      ],
+      "answerIndex": 0,
+      "explanation": "F=ma=2×3=6 N。",
+      "remedialSection": "区分质量(kg)与重量(N)。"
+    }
+  },
+  {
+    "id": "igcse_phy_i3",
+    "chapterId": "igcse_phy_ch1",
+    "title": "能量守恒",
+    "type": "lecture",
+    "body": "能量不会凭空产生消失，只在形式间转换。动能 KE=½mv²，势能 PE=mgh。功率 P=功/时间=E/t，单位瓦特。",
+    "quiz": {
+      "question": "Mass 1 kg dropped from 5 m, KE just before ground ≈ (g=10)",
+      "options": [
+        "50 J",
+        "5 J",
+        "10 J",
+        "500 J"
+      ],
+      "answerIndex": 0,
+      "explanation": "PE=mgh=1×10×5=50J，全转 KE。",
+      "remedialSection": "能量转化守恒追踪每一步。"
+    }
+  },
+  {
+    "id": "igcse_phy_i4",
+    "chapterId": "igcse_phy_ch1",
+    "title": "电学基础",
+    "type": "lecture",
+    "body": "V=IR（欧姆定律）。串联电流相同、电压分压；并联电压相同、电流分流。功率 P=VI=I²R=V²/R。",
+    "quiz": {
+      "question": "Resistor 10Ω with 5V across, current =",
+      "options": [
+        "0.5 A",
+        "2 A",
+        "50 A",
+        "0.2 A"
+      ],
+      "answerIndex": 0,
+      "explanation": "I=V/R=5/10=0.5A。",
+      "remedialSection": "串并联等效电阻公式复习。"
+    }
+  },
+  {
+    "id": "alevel_math_i1",
+    "chapterId": "alevel_math_ch1",
+    "title": "微积分求导法则",
+    "type": "lecture",
+    "body": "d/dx(xⁿ)=nxⁿ⁻¹。链式法则 (f∘g)'=f'(g)g'。乘积法则 (uv)'=u'v+uv'。商法则 (u/v)'=(u'v-uv')/v²。",
+    "quiz": {
+      "question": "d/dx(x²·sinx)=?",
+      "options": [
+        "2x·sinx + x²cosx",
+        "2x·cosx",
+        "x²sinx",
+        "2xsinx - x²cosx"
+      ],
+      "answerIndex": 0,
+      "explanation": "乘积法则：(x²)'sinx + x²(sinx)' = 2x sinx + x²cosx。",
+      "remedialSection": "逐条默写四大求导法则。"
+    }
+  },
+  {
+    "id": "alevel_math_i2",
+    "chapterId": "alevel_math_ch1",
+    "title": "积分技术",
+    "type": "lecture",
+    "body": "∫xⁿdx=xⁿ⁺¹/(n+1)+C。换元积分 u-substitution；分部积分 ∫u dv=uv-∫v du（选 u 用 LIATE）。定积分得面积。",
+    "quiz": {
+      "question": "∫₀¹ x² dx =",
+      "options": [
+        "1/3",
+        "1",
+        "1/2",
+        "2/3"
+      ],
+      "answerIndex": 0,
+      "explanation": "[x³/3]₀¹=1/3。",
+      "remedialSection": "分部积分选 u 优先级：对数>逆三角>代数>三角>指数。"
+    }
+  },
+  {
+    "id": "alevel_math_i3",
+    "chapterId": "alevel_math_ch1",
+    "title": "微分方程",
+    "type": "lecture",
+    "body": "dy/dx=f(x,y)。可分离变量：移项 dy/g(y)=f(x)dx 再两边积分。解含任意常数 C，用初值确定。一阶线性可用积分因子 e^∫P dx。",
+    "quiz": {
+      "question": "Solve dy/dx = 2y, y(0)=1 gives:",
+      "options": [
+        "y=e^{2x}",
+        "y=2e^x",
+        "y=x²+1",
+        "y=e^x"
+      ],
+      "answerIndex": 0,
+      "explanation": "分离变量得 ln|y|=2x+C → y=Ce^{2x}，代入 y(0)=1→C=1。",
+      "remedialSection": "分离变量三步：分离、积分、定常数。"
+    }
+  },
+  {
+    "id": "alevel_math_i4",
+    "chapterId": "alevel_math_ch1",
+    "title": "复数与极坐标",
+    "type": "lecture",
+    "body": "z=a+bi，模 r=|z|=√(a²+b²)，辐角 θ=arg z。极坐标 z=r(cosθ+i sinθ)=re^{iθ}。棣莫弗定理 (re^{iθ})ⁿ=rⁿe^{inθ}。",
+    "quiz": {
+      "question": "Modulus of 3+4i =",
+      "options": [
+        "5",
+        "7",
+        "12",
+        "25"
+      ],
+      "answerIndex": 0,
+      "explanation": "√(3²+4²)=√25=5。",
+      "remedialSection": "复平面画图，模=到原点距离。"
+    }
+  },
+  {
+    "id": "alevel_phy_i1",
+    "chapterId": "alevel_phy_ch1",
+    "title": "力学与转动",
+    "type": "lecture",
+    "body": "力矩 τ=Fr sinθ。转动惯量 I=Σmr²。角加速度 α。转动定律 τ=Iα（类比 F=ma）。",
+    "quiz": {
+      "question": "Torque from force 10N at perpendicular distance 2m =",
+      "options": [
+        "20 N·m",
+        "5 N·m",
+        "12 N·m",
+        "2 N·m"
+      ],
+      "answerIndex": 0,
+      "explanation": "τ=Fr=10×2=20（垂直 θ=90°）。",
+      "remedialSection": "区分力矩与功的单位虽同为 N·m 含义不同。"
+    }
+  },
+  {
+    "id": "alevel_phy_i2",
+    "chapterId": "alevel_phy_ch1",
+    "title": "电磁场",
+    "type": "lecture",
+    "body": "洛伦兹力 F=qv×B。磁场中电荷做圆周运动半径 r=mv/qB。磁通 Φ=BA cosθ。法拉第定律 ε=-dΦ/dt。",
+    "quiz": {
+      "question": "Induced emf depends on rate of change of:",
+      "options": [
+        "Magnetic flux",
+        "Current",
+        "Charge",
+        "Resistance"
+      ],
+      "answerIndex": 0,
+      "explanation": "法拉第定律：电动势正比于磁通变化率。",
+      "remedialSection": "右手定则与楞次定律判断感应方向。"
+    }
+  },
+  {
+    "id": "alevel_phy_i3",
+    "chapterId": "alevel_phy_ch1",
+    "title": "量子物理",
+    "type": "lecture",
+    "body": "光子能量 E=hf=hc/λ。光电效应阈值频率。德布罗意波长 λ=h/p。能级跃迁释放光子 hf=E₂-E₁。",
+    "quiz": {
+      "question": "Photon energy formula:",
+      "options": [
+        "E=hf",
+        "E=mc²",
+        "E=½mv²",
+        "E=IR"
+      ],
+      "answerIndex": 0,
+      "explanation": "光子能量 E=hf（普朗克关系）。",
+      "remedialSection": "光电效应三条实验规律对应解释。"
+    }
+  },
+  {
+    "id": "alevel_phy_i4",
+    "chapterId": "alevel_phy_ch1",
+    "title": "核物理",
+    "type": "lecture",
+    "body": "α衰变放氦核，β衰变中子变质子放电子。半衰期 T½。结合能=把核拆散所需能量，越大越稳定。质量亏损 ΔE=Δmc²。",
+    "quiz": {
+      "question": "In β⁻ decay, a neutron becomes:",
+      "options": [
+        "proton + electron + antineutrino",
+        "proton only",
+        "2 protons",
+        "alpha particle"
+      ],
+      "answerIndex": 0,
+      "explanation": "n→p+e⁻+反中微子。",
+      "remedialSection": "守恒电荷、重子数、轻子数。"
+    }
+  },
+  {
+    "id": "ib_math_i1",
+    "chapterId": "ib_math_ch1",
+    "title": "向量与几何",
+    "type": "lecture",
+    "body": "向量点积 a·b=|a||b|cosθ，用于判垂直（=0）求夹角。叉积模=|a||b|sinθ=平行四边形面积。向量方程直线 r=a+tb。",
+    "quiz": {
+      "question": "Two vectors perpendicular ⟹ dot product =",
+      "options": [
+        "0",
+        "1",
+        "|a||b|",
+        "-1"
+      ],
+      "answerIndex": 0,
+      "explanation": "垂直 ⟹ cos90°=0 ⟹ 点积为 0。",
+      "remedialSection": "向量三种运算（加减点叉）各自几何意义。"
+    }
+  },
+  {
+    "id": "ib_math_i2",
+    "chapterId": "ib_math_ch1",
+    "title": "矩阵与变换",
+    "type": "lecture",
+    "body": "矩阵乘法不可交换。行列式 det 衡量面积缩放。2×2 det=ad-bc。逆矩阵存在当且仅当 det≠0。旋转/缩放/反射对应特定矩阵。",
+    "quiz": {
+      "question": "det[[2,0],[0,3]]=",
+      "options": [
+        "6",
+        "5",
+        "0",
+        "-6"
+      ],
+      "answerIndex": 0,
+      "explanation": "ad-bc=2×3-0=6。",
+      "remedialSection": "行列式几何=变换后单位面积倍数。"
+    }
+  },
+  {
+    "id": "ib_math_i3",
+    "chapterId": "ib_math_ch1",
+    "title": "微积分进阶",
+    "type": "lecture",
+    "body": "隐函数求导对两边关于 x 求导并把 y' 保留。参数方程 dy/dx=(dy/dt)/(dx/dt)。泰勒展开 f(a+h)=f(a)+hf'+h²/2 f''+...",
+    "quiz": {
+      "question": "Parametric x=t²,y=t³ → dy/dx =",
+      "options": [
+        "3t/2",
+        "3t²",
+        "2/(3t)",
+        "t"
+      ],
+      "answerIndex": 0,
+      "explanation": "dy/dt=3t², dx/dt=2t → (3t²)/(2t)=3t/2。",
+      "remedialSection": "参数二阶导公式再复习。"
+    }
+  },
+  {
+    "id": "ib_math_i4",
+    "chapterId": "ib_math_ch1",
+    "title": "概率分布",
+    "type": "lecture",
+    "body": "二项分布 X~B(n,p)，均值 np、方差 np(1-p)。泊松 X~Po(λ) 均值=方差=λ。正态分布 Z=(X-μ)/σ 标准化。",
+    "quiz": {
+      "question": "X~B(10,0.3), mean =",
+      "options": [
+        "3",
+        "7",
+        "2.1",
+        "0.3"
+      ],
+      "answerIndex": 0,
+      "explanation": "均值=np=10×0.3=3。",
+      "remedialSection": "二项和泊松适用场景对比。"
+    }
+  },
+  {
+    "id": "ib_phy_i1",
+    "chapterId": "ib_phy_ch1",
+    "title": "测量与误差",
+    "type": "lecture",
+    "body": "绝对误差 ±δ，相对误差=δ/值，百分误差=相对×100%。多次测量减小随机误差。系统误差来源固定偏置。有效数字按最不精确数据定。",
+    "quiz": {
+      "question": "Measure 5.2±0.1 cm, relative uncertainty ≈",
+      "options": [
+        "1.9%",
+        "0.1%",
+        "5%",
+        "10%"
+      ],
+      "answerIndex": 0,
+      "explanation": "0.1/5.2≈0.019=1.9%。",
+      "remedialSection": "误差传播规则（乘除取相对、加减取绝对）。"
+    }
+  },
+  {
+    "id": "ib_phy_i2",
+    "chapterId": "ib_phy_ch1",
+    "title": "热力学",
+    "type": "lecture",
+    "body": "第一定律 ΔU=Q-W（吸热增内能，对外做功减）。理想气体 PV=nRT。等温过程 ΔU=0故 Q=W。熵增原理。",
+    "quiz": {
+      "question": "Ideal gas isothermal expansion: ΔU =",
+      "options": [
+        "0",
+        "positive",
+        "negative",
+        "PV"
+      ],
+      "answerIndex": 0,
+      "explanation": "理想气体内能只与温度有关，等温 ΔT=0 ⟹ ΔU=0。",
+      "remedialSection": "四种过程（等温/等压/等容/绝热）能量流梳理。"
+    }
+  },
+  {
+    "id": "ib_phy_i3",
+    "chapterId": "ib_phy_ch1",
+    "title": "波与干涉",
+    "type": "lecture",
+    "body": "相长干涉路径差=nλ，相消=(n+½)λ。驻波两端固定节点间距 λ/2。多普勒频移观察靠近频率升高。折射 n₁sinθ₁=n₂sinθ₂。",
+    "quiz": {
+      "question": "Destructive interference path difference =",
+      "options": [
+        "(n+½)λ",
+        "nλ",
+        "2nλ",
+        "λ/4 only"
+      ],
+      "answerIndex": 0,
+      "explanation": "半波长奇数倍导致相消。",
+      "remedialSection": "双缝干涉条纹间距公式 Δx=λL/d。"
+    }
+  },
+  {
+    "id": "ib_phy_i4",
+    "chapterId": "ib_phy_ch1",
+    "title": "相对论基础",
+    "type": "lecture",
+    "body": "光速不变原理。时间膨胀 Δt=γΔt₀，长度收缩 L=L₀/γ，γ=1/√(1-v²/c²)。质能 E=mc²，总能量 E=γmc²。",
+    "quiz": {
+      "question": "Lorentz factor γ for v→c approaches",
+      "options": [
+        "∞",
+        "1",
+        "0",
+        "c"
+      ],
+      "answerIndex": 0,
+      "explanation": "分母趋零，γ→∞。",
+      "remedialSection": "双生子佯谬定性理解。"
+    }
+  },
+  {
+    "id": "toefl_b1_i1",
+    "courseId": "toefl_b1",
+    "chapterId": "toefl_b1_ch1",
+    "title": "听力主旨题：抓教授开场句",
+    "body": "托福讲座的第一句话通常就是主旨。教授常会说\"Today I want to talk about...\"或\"Let's begin with...\"，后面紧跟的就是主旨题答案。练习时养成记第一句的习惯。",
+    "quiz": {
+      "question": "教授说 \"Today we'll look at how coral reefs form\"，这最可能对应什么题型？",
+      "options": [
+        "细节题",
+        "主旨题",
+        "态度题",
+        "推断题"
+      ],
+      "answerIndex": 1,
+      "explanation": "开场句直接点明讲座主题，是典型的组织主旨题信号。"
+    }
+  },
+  {
+    "id": "toefl_b1_i2",
+    "courseId": "toefl_b1",
+    "chapterId": "toefl_b1_ch1",
+    "title": "听力连接词：信号即答案",
+    "body": "but / however / in contrast / on the other hand 之后的内容几乎必考。托福出题人习惯把答案放在转折之后，听到这类词要立刻标记。同样，first / second / finally 表示并列结构，常对应表格题。",
+    "quiz": {
+      "question": "听到 \"however, recent studies show the opposite\"，答案最可能在哪？",
+      "options": [
+        "however 之前",
+        "however 之后",
+        "开头第一句",
+        "教授举例时"
+      ],
+      "answerIndex": 1,
+      "explanation": "转折词之后才是出题人想强调的新观点，是考点集中区。"
+    }
+  },
+  {
+    "id": "toefl_b1_i3",
+    "courseId": "toefl_b1",
+    "chapterId": "toefl_b1_ch1",
+    "title": "阅读事实信息题：关键词回文",
+    "body": "事实信息题（Factual Information）的做法是：题干取专有名词或数字回原文定位，答案往往是原文的同义改写而非原词照抄。找不到定位词就不要硬选。",
+    "quiz": {
+      "question": "做事实信息题第一步应该做什么？",
+      "options": [
+        "通读全文",
+        "把选项代入验证",
+        "从题干提取关键词回原文定位",
+        "猜测作者态度"
+      ],
+      "answerIndex": 2,
+      "explanation": "先定位再比对，是这类题唯一稳定高效的做法。"
+    }
+  },
+  {
+    "id": "toefl_b1_i4",
+    "courseId": "toefl_b1",
+    "chapterId": "toefl_b1_ch1",
+    "title": "口语 Task 1：15 秒构思模板",
+    "body": "独立口语第一题只有 15 秒准备。推荐模板：亮观点（I think...）+ 一个理由 + 一个具体例子。宁可说得简单完整，也不要堆复杂句导致卡顿。",
+    "quiz": {
+      "question": "口语 Task 1 准备时间是多少？",
+      "options": [
+        "15 秒",
+        "30 秒",
+        "45 秒",
+        "60 秒"
+      ],
+      "answerIndex": 0,
+      "explanation": "Task 1 准备 15 秒，答题 45 秒，时间管理很关键。"
+    }
+  },
+  {
+    "id": "ielts_listening_i2",
+    "courseId": "ielts_listening",
+    "chapterId": "ielts_listening_ch1",
+    "title": "填空题：预判词性与单复数",
+    "body": "听录音前先读题，预判空格处需要名词、数字还是形容词，以及是否可数。录音中一旦出现复数 \"s\" 没听清，就要靠语法判断，漏写 \"s\" 算错。",
+    "quiz": {
+      "question": "填空题答案 \"books\"，只写了 \"book\" 会怎样？",
+      "options": [
+        "不扣分",
+        "扣分，单复数算错",
+        "由考官决定",
+        "算半分"
+      ],
+      "answerIndex": 1,
+      "explanation": "雅思拼写必须准确，单复数错误就是答案错误。"
+    }
+  },
+  {
+    "id": "ielts_listening_i3",
+    "courseId": "ielts_listening",
+    "chapterId": "ielts_listening_ch1",
+    "title": "地图题：方位词速记",
+    "body": "地图题高频词：opposite = 对面、next to = 相邻、at the end of = 尽头、behind = 背后、between A and B = 两者之间。听到方位词立刻在图上标出位置，不要等听完再画。",
+    "quiz": {
+      "question": "听到 \"the bank is opposite the library\"，银行在图书馆的哪里？",
+      "options": [
+        "旁边",
+        "里面",
+        "对面",
+        "尽头"
+      ],
+      "answerIndex": 2,
+      "explanation": "opposite 就是正对面，是地图题最高频方位词之一。"
+    }
+  },
+  {
+    "id": "ielts_listening_i4",
+    "courseId": "ielts_listening",
+    "chapterId": "ielts_listening_ch1",
+    "title": "多选题：答案往往分散出现",
+    "body": "雅思多选题的正确答案通常分散在整段录音里，而不是连在一起。因此听到一个就选一个，不要等\"全部说完\"，否则容易漏听后续选项。",
+    "quiz": {
+      "question": "多选题答案的出现规律更接近？",
+      "options": [
+        "集中连续出现",
+        "分散在整段录音中",
+        "只在开头",
+        "只在结尾"
+      ],
+      "answerIndex": 1,
+      "explanation": "多选答案分散是雅思听力的常见设计，需边听边标记。"
+    }
+  },
+  {
+    "id": "ielts_speaking_i1",
+    "courseId": "ielts_speaking",
+    "chapterId": "ielts_speaking_ch1",
+    "title": "Part 1：回答最少拉满 3 句",
+    "body": "Part 1 最常见错误是只答 Yes/No。考官问 \"Do you like reading?\"，至少要给 观点 + 原因 + 补充。例如：\"Yes, I do, because it helps me relax. I usually read before bed, especially fiction.\" 控制在 15-20 秒完成。",
+    "quiz": {
+      "question": "Part 1 回答 \"Do you like music?\" 最合理的长度是？",
+      "options": [
+        "只说 Yes, I do",
+        "观点+原因+一句补充",
+        "讲一个完整故事",
+        "背诵一段模板"
+      ],
+      "answerIndex": 1,
+      "explanation": "Part 1 不是展示长篇大论，而是自然交谈，3 句左右最合适。"
+    }
+  },
+  {
+    "id": "ielts_speaking_i2",
+    "courseId": "ielts_speaking",
+    "chapterId": "ielts_speaking_ch1",
+    "title": "Part 2：1 分钟准备只记关键词",
+    "body": "拿到卡片后，不要写整句甚至背下来。1 分钟只够写提示词：谁、什么时候、在哪里、做了什么、感受如何。每个点写 2-3 个单词，说的时候自然展开。",
+    "quiz": {
+      "question": "Part 2 的 1 分钟准备时间最应该做什么？",
+      "options": [
+        "写完整回答并背诵",
+        "只写关键词和要点",
+        "反复读卡片题目",
+        "什么都不写直接开口"
+      ],
+      "answerIndex": 1,
+      "explanation": "写关键词能帮你组织逻辑，又不会因为盯着稿子而卡壳。"
+    }
+  },
+  {
+    "id": "ielts_speaking_i3",
+    "courseId": "ielts_speaking",
+    "chapterId": "ielts_speaking_ch1",
+    "title": "Part 3：观点 + 解释 + 例子",
+    "body": "Part 3 考察抽象讨论能力。每个回答尽量用 PEE 结构：Point（观点）→ Explanation（解释）→ Example（例子）。考官追问时要敢于调整观点，先说 \"That's interesting, I haven't thought about it that way...\" 争取思考时间。",
+    "quiz": {
+      "question": "Part 3 被打断追问时，最不推荐的做法是？",
+      "options": [
+        "承认问题有难度",
+        "坚持原观点并解释",
+        "马上改口说自己没想过",
+        "用连接词争取时间"
+      ],
+      "answerIndex": 2,
+      "explanation": "改口太快显得立场不坚定，应先大方回应再加说明。"
+    }
+  },
+  {
+    "id": "ielts_speaking_i4",
+    "courseId": "ielts_speaking",
+    "chapterId": "ielts_speaking_ch1",
+    "title": "流利度：宁用简单词不卡壳",
+    "body": "口语评分里 Fluency and Coherence 权重最高。与其憋一个高级词，不如用熟悉的词说顺。遇到想不起的词汇，用 \"It's a kind of...\" / \"You know...\" 绕过，避免长时间停顿。",
+    "quiz": {
+      "question": "说到一半找不到合适的词时，下列哪种处理最加分？",
+      "options": [
+        "停下来沉默想 10 秒",
+        "用解释性语句绕过去",
+        "直接跳回开头重新说",
+        "不断重复刚才的话"
+      ],
+      "answerIndex": 1,
+      "explanation": "自然绕过显示了交流能力，长时间沉默会严重扣流利度分。"
+    }
+  },
+  {
+    "id": "ielts_reading_i1",
+    "courseId": "ielts_reading",
+    "chapterId": "ielts_reading_ch1",
+    "title": "段落标题题：首末句定位法",
+    "body": "List of Headings 题先读每段第一句和最后一句，概述段落主题。多个段落一个标题时，靠转折词和重复出现的名词做区分。不要先读选项，否则浪费时间。",
+    "quiz": {
+      "question": "做段落标题题时，下一步最推荐？",
+      "options": [
+        "先精读全部选项",
+        "读每段首末句",
+        "从文章最后一段倒着读",
+        "先做其他题型"
+      ],
+      "answerIndex": 1,
+      "explanation": "首末句通常包含主题句，能快速匹配标题。"
+    }
+  },
+  {
+    "id": "ielts_reading_i2",
+    "courseId": "ielts_reading",
+    "chapterId": "ielts_reading_ch1",
+    "title": "T/F/NG：不要主观推断",
+    "body": "True/False/Not Given 的核心是严格基于原文。False 是原文明确否定，Not Given 是原文没提或无法从原文推出。很多考生把 Not Given 误判成 False，因为自己的常识觉得“不对”。",
+    "quiz": {
+      "question": "原文只说 \"The museum charges a fee\"，题目说 \"The museum is free\"。判断？",
+      "options": [
+        "True",
+        "False",
+        "Not Given",
+        "无法判断"
+      ],
+      "answerIndex": 1,
+      "explanation": "charge a fee 与 free 明确相反，是 False 而非 Not Given。"
+    }
+  },
+  {
+    "id": "ielts_reading_i3",
+    "courseId": "ielts_reading",
+    "chapterId": "ielts_reading_ch1",
+    "title": "填空题：同义改写是核心",
+    "body": "雅思阅读填空几乎不直接抄原文，答案会被同义替换。例如 \"expensive\" 替换成 \"costly\"，\"rise\" 替换成 \"increase\"。做题时先定位原句，再找与题干语境一致的词。",
+    "quiz": {
+      "question": "原文 \"children often find it hard to concentrate\"，题干 \"Young pupils may struggle with ______\"，空格应填？",
+      "options": [
+        "concentration",
+        "children",
+        "hard",
+        "struggle"
+      ],
+      "answerIndex": 0,
+      "explanation": "find it hard to concentrate = struggle with concentration，名词化替换。"
+    }
+  },
+  {
+    "id": "ielts_reading_i4",
+    "courseId": "ielts_reading",
+    "chapterId": "ielts_reading_ch1",
+    "title": "Heading 匹配：小心 NB 选项复用",
+    "body": "题目说明里若有 \"NB You may use any heading more than once\"，意味着至少有一个标题会被用两次。此时不要把已选过的标题划掉，反而要留意哪些标题像多余项。",
+    "quiz": {
+      "question": "看到 \"NB You may use any heading more than once\"，正确策略是？",
+      "options": [
+        "每个标题只能用一次",
+        "有标题会重复使用",
+        "选项比段落多",
+        "heading 按文章顺序排列"
+      ],
+      "answerIndex": 1,
+      "explanation": "NB 明确提示可重复，这是出题人故意设置的陷阱。"
+    }
+  },
+  {
+    "id": "ielts_writing_i1",
+    "courseId": "ielts_writing",
+    "chapterId": "ielts_writing_ch1",
+    "title": "Task 1：只描述客观数据",
+    "body": "小作文是 data reporting，不是议论文。不要写 \"I think the reason is...\"。结构：开头改写题干 → 选主要趋势 → 细节点 → 对比。注意时态根据图表年份用过去式或现在时。",
+    "quiz": {
+      "question": "Task 1 图表作文里，哪句话是得分的？",
+      "options": [
+        "The number increased significantly.",
+        "The increase is because people earn more.",
+        "I think the trend is good.",
+        "This chart is very important."
+      ],
+      "answerIndex": 0,
+      "explanation": "客观描述数据变化最符合 Task 1 要求，主观原因或评论不得分。"
+    }
+  },
+  {
+    "id": "ielts_writing_i2",
+    "courseId": "ielts_writing",
+    "chapterId": "ielts_writing_ch1",
+    "title": "Task 2：4 段式稳拿结构分",
+    "body": "大作文推荐 4 段：Introduction 改写题干+亮立场；Body 1 第一论点；Body 2 第二论点（可让步）；Conclusion 总结。每段开头用 topic sentence 统领，段落内要用例子或因果支撑。",
+    "quiz": {
+      "question": "Task 2 大作文最稳妥的段落结构是？",
+      "options": [
+        "2 段：观点+例子",
+        "3 段：开头+一段论述+结尾",
+        "4 段：开头+两主体+结尾",
+        "5 段以上自由发挥"
+      ],
+      "answerIndex": 2,
+      "explanation": "4 段式逻辑完整、结构清晰，是高分模板。"
+    }
+  },
+  {
+    "id": "ielts_writing_i3",
+    "courseId": "ielts_writing",
+    "chapterId": "ielts_writing_ch1",
+    "title": "连贯性：指代词与连接词搭配",
+    "body": "Coherence and Cohesion 评分维度要求句子间自然连接。多用 this / these / such 指代前文，用 however / therefore / for example 标志逻辑关系，但不要每个句子都加连接词，否则显得生硬。",
+    "quiz": {
+      "question": "下列哪种衔接手法最自然？",
+      "options": [
+        "Every sentence starts with \"Moreover\"",
+        "Use \"it\" and \"this\" to refer back",
+        "Copy the same word in every sentence",
+        "Avoid all linking words"
+      ],
+      "answerIndex": 1,
+      "explanation": "适当使用指代词和连接词，避免机械重复。"
+    }
+  },
+  {
+    "id": "ielts_writing_i4",
+    "courseId": "ielts_writing",
+    "chapterId": "ielts_writing_ch1",
+    "title": "语法多样性：从句的正确使用",
+    "body": "想拿 7 分以上，必须展示复杂句：定语从句、状语从句、虚拟语气。但前提是准确。一句 \"If I were you, I would agree\" 胜过三句错误的长难句。写完检查主谓一致和时态。",
+    "quiz": {
+      "question": "下面哪句语法最正确且能体现多样性？",
+      "options": [
+        "He go to school yesterday.",
+        "If he had studied harder, he would have passed.",
+        "I very like it because it is very good thing.",
+        "There are many reasons, for example, traffic."
+      ],
+      "answerIndex": 1,
+      "explanation": "条件句表达准确，展示了虚拟语气的使用能力。"
+    }
+  }
+];
+
+const courses = [
+  {
+    "id": "ielts_listening",
+    "name": "雅思听力",
+    "emoji": "🎧",
+    "desc": "4 个知识点",
+    "progress": 0
+  },
+  {
+    "id": "toefl_b2",
+    "name": "托福进阶",
+    "emoji": "📚",
+    "desc": "4 个知识点",
+    "progress": 0
+  },
+  {
+    "id": "toefl_adv",
+    "name": "托福冲刺",
+    "emoji": "📚",
+    "desc": "4 个知识点",
+    "progress": 0
+  },
+  {
+    "id": "igcse_math",
+    "name": "IGCSE数学",
+    "emoji": "🧮",
+    "desc": "8 个知识点",
+    "progress": 0
+  },
+  {
+    "id": "igcse_addmath",
+    "name": "IGCSE附加数学",
+    "emoji": "🧮",
+    "desc": "4 个知识点",
+    "progress": 0
+  },
+  {
+    "id": "alevel_pure3",
+    "name": "A-Level纯数3",
+    "emoji": "📐",
+    "desc": "4 个知识点",
+    "progress": 0
+  },
+  {
+    "id": "alevel_mech",
+    "name": "A-Level力学",
+    "emoji": "📐",
+    "desc": "4 个知识点",
+    "progress": 0
+  },
+  {
+    "id": "ib_math_aa",
+    "name": "IB数学AA",
+    "emoji": "⚛️",
+    "desc": "4 个知识点",
+    "progress": 0
+  },
+  {
+    "id": "ib_math_ai",
+    "name": "IB数学AI",
+    "emoji": "⚛️",
+    "desc": "4 个知识点",
+    "progress": 0
+  },
+  {
+    "id": "ap_calc",
+    "name": "AP微积分",
+    "emoji": "📊",
+    "desc": "4 个知识点",
+    "progress": 0
+  },
+  {
+    "id": "ap_stats",
+    "name": "AP统计",
+    "emoji": "📊",
+    "desc": "4 个知识点",
+    "progress": 0
+  },
+  {
+    "id": "sat_math",
+    "name": "SAT数学",
+    "emoji": "✏️",
+    "desc": "4 个知识点",
+    "progress": 0
+  },
+  {
+    "id": "sat_write",
+    "name": "SAT文法",
+    "emoji": "✏️",
+    "desc": "4 个知识点",
+    "progress": 0
+  },
+  {
+    "id": "igcse_phy",
+    "name": "IGCSE物理",
+    "emoji": "🧮",
+    "desc": "4 个知识点",
+    "progress": 0
+  },
+  {
+    "id": "alevel_math",
+    "name": "A-Level数学",
+    "emoji": "📐",
+    "desc": "4 个知识点",
+    "progress": 0
+  },
+  {
+    "id": "alevel_phy",
+    "name": "A-Level物理",
+    "emoji": "📐",
+    "desc": "4 个知识点",
+    "progress": 0
+  },
+  {
+    "id": "ib_math",
+    "name": "IB数学",
+    "emoji": "⚛️",
+    "desc": "4 个知识点",
+    "progress": 0
+  },
+  {
+    "id": "ib_phy",
+    "name": "IB物理",
+    "emoji": "⚛️",
+    "desc": "4 个知识点",
+    "progress": 0
+  },
+  {
+    "id": "toefl_b1",
+    "name": "托福基础",
+    "emoji": "📚",
+    "desc": "4 个知识点",
+    "progress": 0
+  },
+  {
+    "id": "ielts_speaking",
+    "name": "雅思口语",
+    "emoji": "🎧",
+    "desc": "4 个知识点",
+    "progress": 0
+  },
+  {
+    "id": "ielts_reading",
+    "name": "雅思阅读",
+    "emoji": "🎧",
+    "desc": "4 个知识点",
+    "progress": 0
+  },
+  {
+    "id": "ielts_writing",
+    "name": "雅思写作",
+    "emoji": "🎧",
+    "desc": "4 个知识点",
+    "progress": 0
+  }
+];
+
+const chapters = [
+  {
+    "id": "ielts_listening_ch0",
+    "courseId": "ielts_listening",
+    "title": "雅思听力 · 核心知识",
+    "items": [
+      {
+        "id": "ielts_listening_basics",
+        "title": "雅思听力基础：定位词",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": "Locating words help you quickly identify the sentence containing the answer…"
+      },
+      {
+        "id": "ielts_listening_i2",
+        "title": "填空题：预判词性与单复数",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "ielts_listening_i3",
+        "title": "地图题：方位词速记",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "ielts_listening_i4",
+        "title": "多选题：答案往往分散出现",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      }
+    ]
+  },
+  {
+    "id": "toefl_b2_ch0",
+    "courseId": "toefl_b2",
+    "title": "托福进阶 · 核心知识",
+    "items": [
+      {
+        "id": "toefl_b2_i1",
+        "title": "Cornell 笔记法",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "toefl_b2_i2",
+        "title": "信号词",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "toefl_b2_i3",
+        "title": "讲座结构",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "toefl_b2_i4",
+        "title": "速记符号",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      }
+    ]
+  },
+  {
+    "id": "toefl_adv_ch0",
+    "courseId": "toefl_adv",
+    "title": "托福冲刺 · 核心知识",
+    "items": [
+      {
+        "id": "toefl_adv_i1",
+        "title": "整合框架",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "toefl_adv_i2",
+        "title": "模板句式",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "toefl_adv_i3",
+        "title": "阅读预判",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "toefl_adv_i4",
+        "title": "评分标准",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      }
+    ]
+  },
+  {
+    "id": "igcse_math_ch0",
+    "courseId": "igcse_math",
+    "title": "IGCSE数学 · 核心知识",
+    "items": [
+      {
+        "id": "igcse_math_i1",
+        "title": "一元二次方程",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "igcse_math_i2",
+        "title": "因式分解",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "igcse_math_i3",
+        "title": "完全平方",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "igcse_math_i4",
+        "title": "解不等式",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "igcse_math_i5",
+        "title": "因式分解 quadratics",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "igcse_math_i6",
+        "title": "三角函数基础",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "igcse_math_i7",
+        "title": "圆与圆周角定理",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "igcse_math_i8",
+        "title": "概率",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      }
+    ]
+  },
+  {
+    "id": "igcse_addmath_ch0",
+    "courseId": "igcse_addmath",
+    "title": "IGCSE附加数学 · 核心知识",
+    "items": [
+      {
+        "id": "igcse_am_i1",
+        "title": "微分基本规则",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "igcse_am_i2",
+        "title": "切线斜率",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "igcse_am_i3",
+        "title": "定积分",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "igcse_am_i4",
+        "title": "积分应用",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      }
+    ]
+  },
+  {
+    "id": "alevel_pure3_ch0",
+    "courseId": "alevel_pure3",
+    "title": "A-Level纯数3 · 核心知识",
+    "items": [
+      {
+        "id": "alevel_p3_i1",
+        "title": "分离变量法",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "alevel_p3_i2",
+        "title": "积分因子法",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "alevel_p3_i3",
+        "title": "二阶常系数方程",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "alevel_p3_i4",
+        "title": "初始条件",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      }
+    ]
+  },
+  {
+    "id": "alevel_mech_ch0",
+    "courseId": "alevel_mech",
+    "title": "A-Level力学 · 核心知识",
+    "items": [
+      {
+        "id": "alevel_mech_i1",
+        "title": "牛顿第二定律",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "alevel_mech_i2",
+        "title": "匀加速运动",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "alevel_mech_i3",
+        "title": "连接体问题",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "alevel_mech_i4",
+        "title": "能量守恒",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      }
+    ]
+  },
+  {
+    "id": "ib_math_aa_ch0",
+    "courseId": "ib_math_aa",
+    "title": "IB数学AA · 核心知识",
+    "items": [
+      {
+        "id": "ib_aa_i1",
+        "title": "链式法则",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "ib_aa_i2",
+        "title": "分部积分",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "ib_aa_i3",
+        "title": "泰勒展开",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "ib_aa_i4",
+        "title": "积分换元",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      }
+    ]
+  },
+  {
+    "id": "ib_math_ai_ch0",
+    "courseId": "ib_math_ai",
+    "title": "IB数学AI · 核心知识",
+    "items": [
+      {
+        "id": "ib_ai_i1",
+        "title": "正态分布",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "ib_ai_i2",
+        "title": "线性回归",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "ib_ai_i3",
+        "title": "复合增长",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "ib_ai_i4",
+        "title": "误差传播",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      }
+    ]
+  },
+  {
+    "id": "ap_calc_ch0",
+    "courseId": "ap_calc",
+    "title": "AP微积分 · 核心知识",
+    "items": [
+      {
+        "id": "ap_calc_i1",
+        "title": "泰勒级数展开",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "ap_calc_i2",
+        "title": "收敛半径",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "ap_calc_i3",
+        "title": "麦克劳林特殊展开",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "ap_calc_i4",
+        "title": "余项估计",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      }
+    ]
+  },
+  {
+    "id": "ap_stats_ch0",
+    "courseId": "ap_stats",
+    "title": "AP统计 · 核心知识",
+    "items": [
+      {
+        "id": "ap_stats_i1",
+        "title": "取样方法",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "ap_stats_i2",
+        "title": "中心极限定理",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "ap_stats_i3",
+        "title": "置信区间",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "ap_stats_i4",
+        "title": "显著性检验",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      }
+    ]
+  },
+  {
+    "id": "sat_math_ch0",
+    "courseId": "sat_math",
+    "title": "SAT数学 · 核心知识",
+    "items": [
+      {
+        "id": "sat_math_i1",
+        "title": "一次函数",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "sat_math_i2",
+        "title": "二次函数",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "sat_math_i3",
+        "title": "三角比",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "sat_math_i4",
+        "title": "图表数据分析",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      }
+    ]
+  },
+  {
+    "id": "sat_write_ch0",
+    "courseId": "sat_write",
+    "title": "SAT文法 · 核心知识",
+    "items": [
+      {
+        "id": "sat_write_i1",
+        "title": "主谓一致",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "sat_write_i2",
+        "title": "标点：逗号与分号",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "sat_write_i3",
+        "title": "时态一致性",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "sat_write_i4",
+        "title": "逻辑衔接词",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      }
+    ]
+  },
+  {
+    "id": "igcse_phy_ch0",
+    "courseId": "igcse_phy",
+    "title": "IGCSE物理 · 核心知识",
+    "items": [
+      {
+        "id": "igcse_phy_i1",
+        "title": "运动学公式",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "igcse_phy_i2",
+        "title": "力与牛顿定律",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "igcse_phy_i3",
+        "title": "能量守恒",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "igcse_phy_i4",
+        "title": "电学基础",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      }
+    ]
+  },
+  {
+    "id": "alevel_math_ch0",
+    "courseId": "alevel_math",
+    "title": "A-Level数学 · 核心知识",
+    "items": [
+      {
+        "id": "alevel_math_i1",
+        "title": "微积分求导法则",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "alevel_math_i2",
+        "title": "积分技术",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "alevel_math_i3",
+        "title": "微分方程",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "alevel_math_i4",
+        "title": "复数与极坐标",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      }
+    ]
+  },
+  {
+    "id": "alevel_phy_ch0",
+    "courseId": "alevel_phy",
+    "title": "A-Level物理 · 核心知识",
+    "items": [
+      {
+        "id": "alevel_phy_i1",
+        "title": "力学与转动",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "alevel_phy_i2",
+        "title": "电磁场",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "alevel_phy_i3",
+        "title": "量子物理",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "alevel_phy_i4",
+        "title": "核物理",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      }
+    ]
+  },
+  {
+    "id": "ib_math_ch0",
+    "courseId": "ib_math",
+    "title": "IB数学 · 核心知识",
+    "items": [
+      {
+        "id": "ib_math_i1",
+        "title": "向量与几何",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "ib_math_i2",
+        "title": "矩阵与变换",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "ib_math_i3",
+        "title": "微积分进阶",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "ib_math_i4",
+        "title": "概率分布",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      }
+    ]
+  },
+  {
+    "id": "ib_phy_ch0",
+    "courseId": "ib_phy",
+    "title": "IB物理 · 核心知识",
+    "items": [
+      {
+        "id": "ib_phy_i1",
+        "title": "测量与误差",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "ib_phy_i2",
+        "title": "热力学",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "ib_phy_i3",
+        "title": "波与干涉",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "ib_phy_i4",
+        "title": "相对论基础",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      }
+    ]
+  },
+  {
+    "id": "toefl_b1_ch0",
+    "courseId": "toefl_b1",
+    "title": "托福基础 · 核心知识",
+    "items": [
+      {
+        "id": "toefl_b1_i1",
+        "title": "听力主旨题：抓教授开场句",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "toefl_b1_i2",
+        "title": "听力连接词：信号即答案",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "toefl_b1_i3",
+        "title": "阅读事实信息题：关键词回文",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "toefl_b1_i4",
+        "title": "口语 Task 1：15 秒构思模板",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      }
+    ]
+  },
+  {
+    "id": "ielts_speaking_ch0",
+    "courseId": "ielts_speaking",
+    "title": "雅思口语 · 核心知识",
+    "items": [
+      {
+        "id": "ielts_speaking_i1",
+        "title": "Part 1：回答最少拉满 3 句",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "ielts_speaking_i2",
+        "title": "Part 2：1 分钟准备只记关键词",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "ielts_speaking_i3",
+        "title": "Part 3：观点 + 解释 + 例子",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "ielts_speaking_i4",
+        "title": "流利度：宁用简单词不卡壳",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      }
+    ]
+  },
+  {
+    "id": "ielts_reading_ch0",
+    "courseId": "ielts_reading",
+    "title": "雅思阅读 · 核心知识",
+    "items": [
+      {
+        "id": "ielts_reading_i1",
+        "title": "段落标题题：首末句定位法",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "ielts_reading_i2",
+        "title": "T/F/NG：不要主观推断",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "ielts_reading_i3",
+        "title": "填空题：同义改写是核心",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "ielts_reading_i4",
+        "title": "Heading 匹配：小心 NB 选项复用",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      }
+    ]
+  },
+  {
+    "id": "ielts_writing_ch0",
+    "courseId": "ielts_writing",
+    "title": "雅思写作 · 核心知识",
+    "items": [
+      {
+        "id": "ielts_writing_i1",
+        "title": "Task 1：只描述客观数据",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "ielts_writing_i2",
+        "title": "Task 2：4 段式稳拿结构分",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "ielts_writing_i3",
+        "title": "连贯性：指代词与连接词搭配",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      },
+      {
+        "id": "ielts_writing_i4",
+        "title": "语法多样性：从句的正确使用",
+        "learned": false,
+        "videoUrl": "",
+        "enBody": ""
+      }
+    ]
+  }
+];
+
+// 课程体系（考试局/体系分组），供课程列表页按体系展示
+const systems = [
+  { id: 'ielts', name: '雅思 IELTS', board: '英国文化协会 / IDP' },
+  { id: 'toefl', name: '托福 TOEFL', board: 'ETS' },
+  { id: 'sat', name: 'SAT', board: 'College Board' },
+  { id: 'igcse', name: 'IGCSE', board: 'Cambridge' },
+  { id: 'alevel', name: 'A-Level', board: 'CAIE / Edexcel / AQA' },
+  { id: 'ap', name: 'AP', board: 'College Board' },
+  { id: 'ib', name: 'IB', board: 'IBO' }
+];
+
+// 依据课程 id 前缀补全 systemId，供按体系过滤
+const systemPrefixes = ['ielts', 'toefl', 'sat', 'igcse', 'alevel', 'ap', 'ib'];
+courses.forEach(c => {
+  const prefix = systemPrefixes.find(p => c.id.startsWith(p));
+  c.systemId = prefix || 'other';
+});
+
+module.exports = { courses, chapters, knowledge, systems };

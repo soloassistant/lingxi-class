@@ -1,0 +1,9 @@
+.legal-title { font-size: 40rpx; font-weight: 700; }
+.legal-date, .legal-version { font-size: 24rpx; color: #7a7f8a; margin-top: 8rpx; }
+.section-title { font-size: 30rpx; font-weight: 700; color: #00e5ff; margin-bottom: 16rpx; }
+.section-body {
+  font-size: 26rpx;
+  color: #b0b6c4;
+  line-height: 1.8;
+  text-align: justify;
+}

@@ -1,0 +1,32 @@
+.summary-card { text-align: center; }
+.summary-title { font-size: 34rpx; font-weight: 700; }
+.summary-desc { font-size: 24rpx; color: #7a7f8a; margin-top: 8rpx; }
+.review-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8rpx; }
+.review-course { font-size: 24rpx; color: #7a7f8a; }
+.review-status { font-size: 22rpx; padding: 4rpx 16rpx; border-radius: 8rpx; }
+.status-pass { color: #00c853; background: rgba(0, 200, 83, 0.1); }
+.status-fail { color: #ff1744; background: rgba(255, 23, 68, 0.1); }
+.review-title { font-size: 32rpx; font-weight: 700; margin-bottom: 12rpx; }
+.review-feedback { font-size: 26rpx; color: #b0b6c4; line-height: 1.6; }
+.review-suggestion { font-size: 26rpx; color: #ffd740; line-height: 1.6; margin-top: 8rpx; }
+.btn-row { margin-top: 20rpx; }
+.btn-secondary {
+  background: rgba(0, 229, 255, 0.1);
+  color: #00e5ff;
+  border: 2rpx solid #00e5ff;
+  border-radius: 40rpx;
+  font-weight: 600;
+  height: 72rpx;
+  line-height: 72rpx;
+  font-size: 26rpx;
+}
+.btn-primary {
+  background: #00e5ff;
+  color: #0f1117;
+  border-radius: 44rpx;
+  font-weight: 600;
+  height: 80rpx;
+  line-height: 80rpx;
+  font-size: 28rpx;
+  margin-top: 20rpx;
+}

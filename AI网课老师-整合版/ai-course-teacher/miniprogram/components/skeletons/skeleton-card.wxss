@@ -1,0 +1,16 @@
+.sk-wrap {
+  width: 100%;
+}
+.sk-row {
+  background: linear-gradient(90deg, #2a2e3a 25%, #363b4a 50%, #2a2e3a 75%);
+  background-size: 200% 100%;
+  border-radius: 8rpx;
+  animation: sk-shimmer 1.4s ease infinite;
+}
+.sk-round {
+  border-radius: 50%;
+}
+@keyframes sk-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

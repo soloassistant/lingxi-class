@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "语桥",
+  "usingComponents": {
+    "privacy-modal": "/components/privacy-modal/privacy-modal",
+    "skeleton": "/components/skeleton/skeleton",
+    "empty-state": "/components/empty-state/empty-state"
+  }
+}

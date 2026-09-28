@@ -1,0 +1,56 @@
+<view class="container">
+  <view class="card">
+    <view class="legal-title">隐私条款</view>
+    <view class="legal-date">更新日期：2026 年 9 月 22 日</view>
+    <view class="legal-version">生效日期：2026 年 9 月 22 日</view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">1. 我们收集的信息</view>
+    <view class="section-body">
+      本应用为学习辅助工具。当您使用微信登录后，我们会获取您的微信 OpenID（唯一匿名标识），用于同步学习进度、错题记录和社区发帖。我们不会收集您的真实姓名、手机号、通讯录等个人信息。
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">2. 信息的存储与保护</view>
+    <view class="section-body">
+      OpenID 和学习数据存储于微信云开发服务器，我们采取合理的安全措施保护您的数据。游客模式下，学习数据仅保存在您的设备本地缓存中，卸载小程序或清除缓存后数据将不可恢复。
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">3. 信息的使用</view>
+    <view class="section-body">
+      我们仅将您的学习数据用于以下目的：生成学习进度报告、推送个性化学习规划、错题本回顾、学习社区内容展示。我们不会将您的数据出售或共享给任何第三方。
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">4. AI 生成内容说明</view>
+    <view class="section-body">
+      本应用中的讲解、讲义、解答等内容由 AI 模型生成，仅供学习参考，不构成任何考试承诺或分数保证。AI 内容可能存在错误或不准确之处，请以官方教材和真题为准。使用过程中如遇到疑问，建议咨询专业教师。
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">5. 未成年人保护</view>
+    <view class="section-body">
+      若您未满 14 周岁，请在监护人陪同下使用本应用。我们不会主动收集未成年人的个人信息。
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">6. 您的权利</view>
+    <view class="section-body">
+      您有权随时清除本地数据。如需注销云端数据，请通过个人中心“清空本地数据”入口操作，并联系开发者处理云端备份。数据清除后无法恢复。
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">7. 联系我们</view>
+    <view class="section-body">
+      如对本隐私条款有任何疑问，请通过小程序内“学习圈”社区留言联系我们，我们将在 7 个工作日内回复。
+    </view>
+  </view>
+</view>

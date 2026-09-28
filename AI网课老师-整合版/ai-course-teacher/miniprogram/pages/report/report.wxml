@@ -1,0 +1,132 @@
+<view class="container">
+  <!-- 未登录：本地兜底 + 登录引导 -->
+  <view class="empty" wx:if="{{!hasLogin}}">
+    <view class="empty-icon">📊</view>
+    <view class="empty-text">登录后可查看你的学习报告</view>
+    <view class="empty-sub">包括掌握度、薄弱知识点图谱、学习热力图与成就</view>
+    <button class="empty-btn" bindtap="goLogin">去登录</button>
+  </view>
+
+  <block wx:else>
+    <!-- 掌握度 + 等级 -->
+    <view class="card mastery-card">
+      <view class="mastery-num">{{mastery}}%</view>
+      <view class="mastery-label">知识点掌握度（{{stats.done}} / {{totalKnowledge}}）</view>
+      <view class="mastery-bar">
+        <view class="mastery-inner" style="width: {{mastery}}%;"></view>
+      </view>
+      <view class="report-level level-{{level}}" wx:if="{{level}}">
+        学习等级：{{level}} · {{levelName}}
+      </view>
+    </view>
+
+    <!-- 学习热力图（近30天打卡，留存+晒图） -->
+    <view class="heat-card" wx:if="{{calendar.length}}">
+      <view class="heat-head">
+        <text class="heat-title">🔥 学习打卡</text>
+        <text class="heat-days">近 30 天活跃 {{activeDays}} 天</text>
+      </view>
+      <view class="heat-grid">
+        <view class="heat-cell {{item.count ? 'on' : ''}} {{item.count >= 2 ? 'hot' : ''}}" wx:for="{{calendar}}" wx:for-item="item" wx:key="date">
+        </view>
+      </view>
+      <view class="heat-legend">
+        <text class="heat-leg-item">少</text>
+        <view class="heat-cell on"></view>
+        <view class="heat-cell on hot"></view>
+        <text class="heat-leg-item">多</text>
+      </view>
+    </view>
+
+    <!-- 统计 -->
+    <view class="stat-grid">
+      <view class="stat-item">
+        <view class="stat-num">{{stats.days}}</view>
+        <view class="stat-label">连续学习天数</view>
+      </view>
+      <view class="stat-item">
+        <view class="stat-num">{{stats.done}}</view>
+        <view class="stat-label">完成知识点</view>
+      </view>
+      <view class="stat-item">
+        <view class="stat-num">{{stats.wrongs}}</view>
+        <view class="stat-label">待复习错题</view>
+      </view>
+      <view class="stat-item">
+        <view class="stat-num">{{accuracy}}%</view>
+        <view class="stat-label">答题正确率</view>
+      </view>
+    </view>
+
+    <!-- 学情周报（对标学而思学情周报推送） -->
+    <view class="weekly-card">
+      <view class="weekly-head">
+        <text class="weekly-title">学情周报</text>
+        <text class="weekly-week">{{weekly ? weekly.weekKey : '本周'}}</text>
+      </view>
+
+      <block wx:if="{{weekly}}">
+        <view class="weekly-grid">
+          <view class="weekly-item">
+            <view class="weekly-num">{{weekly.learnedThisWeek}}</view>
+            <view class="weekly-label">本周新学</view>
+          </view>
+          <view class="weekly-item">
+            <view class="weekly-num">{{weekly.studyDays}}</view>
+            <view class="weekly-label">学习天数</view>
+          </view>
+          <view class="weekly-item">
+            <view class="weekly-num">{{weekly.accuracy}}%</view>
+            <view class="weekly-label">正确率</view>
+          </view>
+          <view class="weekly-item">
+            <view class="weekly-num">{{weekly.pendingWrongs}}</view>
+            <view class="weekly-label">待复习错题</view>
+          </view>
+        </view>
+        <view class="weekly-advice">{{weekly.suggestion}}</view>
+      </block>
+      <view class="weekly-empty" wx:else>本周还没有周报，周一 09:00 自动生成并推送</view>
+
+      <button class="btn-subscribe {{subscribed ? 'done' : ''}}"
+              loading="{{subLoading}}"
+              bindtap="onSubscribeWeekly">
+        {{subscribed ? '已订阅 · 再订一期' : '订阅学情周报'}}
+      </button>
+      <view class="weekly-tip">订阅后每周一收到你的学习总结与补强建议</view>
+    </view>
+
+    <!-- 补学推荐（对标作业帮 AI 学情诊断） -->
+    <view class="section-title" wx:if="{{recommend.length}}">补学推荐</view>
+    <view class="rec-card" wx:for="{{recommend}}" wx:key="id" data-id="{{item.id}}" bindtap="goTeach">
+      <view class="rec-title">{{item.title}}</view>
+      <view class="rec-course">{{item.courseName}}</view>
+      <view class="rec-arrow">→</view>
+    </view>
+
+    <!-- 薄弱知识点（对标学而思学情报告） -->
+    <view class="section-title" wx:if="{{weakPoints.length}}">薄弱知识点图谱</view>
+    <view class="weak-card" wx:for="{{weakPoints}}" wx:key="courseId">
+      <view class="weak-name">{{item.courseName}}</view>
+      <view class="weak-bar">
+        <view class="weak-inner" style="width: {{item.count * 20 > 100 ? 100 : item.count * 20}}%;"></view>
+      </view>
+      <view class="weak-count">{{item.count}} 道错题</view>
+    </view>
+
+    <!-- 学习成就 -->
+    <view class="section-title" wx:if="{{achievements.length}}">学习成就</view>
+    <view class="achievement-grid">
+      <view class="achievement {{item.unlocked ? 'unlocked' : 'locked'}}" wx:for="{{achievements}}" wx:key="id">
+        <view class="achievement-icon">{{item.icon}}</view>
+        <view class="achievement-name">{{item.name}}</view>
+      </view>
+    </view>
+
+    <!-- 操作 -->
+    <view class="action-row">
+      <button class="btn-quiz" bindtap="goQuiz">开始阶段测评</button>
+      <button class="btn-wrongbook" bindtap="goWrongbook">去错题本</button>
+    </view>
+  </block>
+</view>

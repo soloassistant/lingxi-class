@@ -1,0 +1,94 @@
+<view class="container">
+  <!-- 目标卡片 -->
+  <view class="card goal-card">
+    <block wx:if="{{goal}}">
+      <view class="goal-title">🎯 {{goal.systemName}} · {{goal.date}}</view>
+      <view class="goal-sub">距考试还有 {{goal.daysLeft}} 天</view>
+    </block>
+    <block wx:else>
+      <view class="goal-title">设定一个学习目标</view>
+      <view class="goal-sub">选择体系 + 考试日期，AI 帮你规划路线</view>
+    </block>
+    <button class="btn-secondary" bindtap="openGoalModal">
+      {{goal ? '调整目标' : '设定目标'}}
+    </button>
+  </view>
+
+  <!-- 今日任务 -->
+  <view class="card">
+    <view class="section-title">📋 今日任务</view>
+    <block wx:for="{{todayTasks}}" wx:key="id">
+      <view class="task-item">
+        <view class="task-check"></view>
+        <view class="task-content">
+          <view class="task-title">{{item.title}}</view>
+          <view class="task-course">{{item.courseName}}</view>
+        </view>
+        <view class="task-action" data-id="{{item.id}}" bindtap="startTask">去学习</view>
+      </view>
+    </block>
+    <view class="empty" wx:if="{{todayTasks.length === 0}}">暂无任务，先去设定目标</view>
+  </view>
+
+  <!-- 本周计划 -->
+  <view class="card">
+    <view class="section-title">📅 本周计划</view>
+    <block wx:for="{{weekPlan}}" wx:key="day">
+      <view class="week-day">
+        <view class="day-label">{{item.day}}</view>
+        <view class="day-tasks">
+          <block wx:for="{{item.tasks}}" wx:for-item="task" wx:key="id">
+            <view class="day-task">{{task.title}}</view>
+          </block>
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <!-- 路线图 -->
+  <view class="card">
+    <view class="section-title">🗺️ 学习路线图</view>
+    <block wx:for="{{roadmap}}" wx:key="stage">
+      <view class="roadmap-item">
+        <view class="roadmap-dot {{item.status}}"></view>
+        <view class="roadmap-content">
+          <view class="roadmap-stage">{{item.stage}}</view>
+          <view class="roadmap-days">{{item.days}}</view>
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <!-- 薄弱点 -->
+  <view class="card" wx:if="{{weakPoints.length > 0}}">
+    <view class="section-title">⚠️ 薄弱点预警</view>
+    <block wx:for="{{weakPoints}}" wx:key="title">
+      <view class="weak-item">
+        <view class="weak-dot"></view>
+        <view class="weak-text">{{item.title}}</view>
+        <view class="weak-action" data-id="{{item.courseId}}" bindtap="goCourse">去复习</view>
+      </view>
+    </block>
+  </view>
+
+  <!-- AI 建议 -->
+  <view class="card">
+    <view class="section-title">💡 AI 建议</view>
+    <view class="ai-advice">{{aiAdvice}}</view>
+    <button class="btn-secondary" bindtap="refreshAdvice">换一条</button>
+  </view>
+
+  <!-- 目标设置弹窗 -->
+  <view class="modal-mask" wx:if="{{showGoalModal}}" bindtap="closeGoalModal">
+    <view class="modal-box" catchtap="noop">
+      <view class="modal-title">设定学习目标</view>
+      <picker mode="selector" range="{{systems}}" range-key="name" value="{{systemIndex}}" bindchange="onSystemChange">
+        <view class="picker">📚 {{systems[systemIndex].name}}</view>
+      </picker>
+      <picker mode="date" value="{{targetDate}}" bindchange="onDateChange">
+        <view class="picker">📅 {{targetDate}}</view>
+      </picker>
+      <button class="btn-primary" bindtap="saveGoal">保存目标</button>
+    </view>
+  </view>
+</view>

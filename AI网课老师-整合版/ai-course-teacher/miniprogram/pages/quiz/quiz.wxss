@@ -1,0 +1,344 @@
+.container {
+  min-height: 100vh;
+  padding: 24rpx;
+  box-sizing: border-box;
+  background: #0f1117;
+}
+
+.quiz-progress {
+  margin-bottom: 24rpx;
+}
+
+.progress-text {
+  font-size: 26rpx;
+  color: #7a7f8a;
+}
+
+.progress-bar {
+  height: 8rpx;
+  background: #2a2e3a;
+  border-radius: 4rpx;
+  margin-top: 12rpx;
+  overflow: hidden;
+}
+
+.progress-inner {
+  height: 100%;
+  background: #00e5ff;
+  transition: width 0.2s;
+}
+
+.question-card {
+  background: #1a1d27;
+  border-radius: 16rpx;
+  padding: 32rpx;
+}
+
+.q-course {
+  font-size: 24rpx;
+  color: #00e5ff;
+  margin-bottom: 12rpx;
+}
+
+.q-title {
+  font-size: 32rpx;
+  color: #e8eaf0;
+  line-height: 1.6;
+  margin-bottom: 24rpx;
+}
+
+.q-option {
+  padding: 22rpx 24rpx;
+  border: 2rpx solid #2a2e3a;
+  border-radius: 12rpx;
+  margin-bottom: 16rpx;
+  font-size: 28rpx;
+  color: #e8eaf0;
+}
+
+.q-option.selected {
+  border-color: #00e5ff;
+  background: rgba(0, 229, 255, 0.08);
+}
+
+.btn-row {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 32rpx;
+}
+
+.btn-prev {
+  flex: 1;
+  background: #2a2e3a;
+  color: #b0b6c4;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+}
+
+.btn-next {
+  flex: 1;
+  background: #00e5ff;
+  color: #0f1117;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.btn-submit {
+  flex: 1;
+  background: #00e5ff;
+  color: #0f1117;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.result-card {
+  background: #1a1d27;
+  border-radius: 20rpx;
+  padding: 48rpx;
+  text-align: center;
+}
+
+.result-score {
+  font-size: 120rpx;
+  font-weight: 700;
+  color: #00e5ff;
+  line-height: 1;
+}
+
+.result-label {
+  font-size: 28rpx;
+  color: #b0b6c4;
+  margin-top: 12rpx;
+}
+
+.result-sub {
+  font-size: 26rpx;
+  color: #7a7f8a;
+  margin-top: 12rpx;
+}
+
+.result-level {
+  display: inline-block;
+  margin-top: 20rpx;
+  padding: 10rpx 24rpx;
+  border-radius: 30rpx;
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+.level-S\+ {
+  color: #ffd740;
+  background: rgba(255, 215, 64, 0.12);
+}
+
+.level-S {
+  color: #00e5ff;
+  background: rgba(0, 229, 255, 0.12);
+}
+
+.level-A\+ {
+  color: #ff8a80;
+  background: rgba(255, 138, 128, 0.12);
+}
+
+.result-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #e8eaf0;
+  margin: 32rpx 0 16rpx;
+}
+
+.wrong-item {
+  background: #1a1d27;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 16rpx;
+}
+
+.wrong-q {
+  font-size: 28rpx;
+  color: #e8eaf0;
+  line-height: 1.6;
+}
+
+.wrong-meta {
+  font-size: 24rpx;
+  color: #ffd740;
+  margin-top: 12rpx;
+}
+
+.wrong-exp {
+  font-size: 24rpx;
+  color: #7a7f8a;
+  line-height: 1.6;
+  margin-top: 8rpx;
+}
+
+.wrong-link {
+  font-size: 26rpx;
+  color: #00e5ff;
+  margin-top: 12rpx;
+}
+
+.btn-restart {
+  flex: 1;
+  background: #2a2e3a;
+  color: #b0b6c4;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+}
+
+.btn-wrongbook {
+  flex: 1;
+  background: #00e5ff;
+  color: #0f1117;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+/* ---------- 诊断报告 ---------- */
+.diag-card {
+  background: #1a1d27;
+  border-radius: 16rpx;
+  padding: 28rpx;
+  margin-bottom: 20rpx;
+}
+
+.diag-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #e8eaf0;
+  margin-bottom: 20rpx;
+}
+
+.diag-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.diag-name {
+  width: 160rpx;
+  font-size: 24rpx;
+  color: #b0b6c4;
+  flex-shrink: 0;
+}
+
+.diag-bar {
+  flex: 1;
+  height: 14rpx;
+  background: #2a2e3a;
+  border-radius: 7rpx;
+  overflow: hidden;
+  margin: 0 16rpx;
+}
+
+.diag-inner {
+  height: 100%;
+  background: #00e5ff;
+  border-radius: 7rpx;
+}
+
+.diag-inner.low {
+  background: #ff8a80;
+}
+
+.diag-pct {
+  width: 70rpx;
+  font-size: 24rpx;
+  color: #00e5ff;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.diag-pct.low {
+  color: #ff8a80;
+}
+
+.diag-suggest {
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  color: #7a7f8a;
+  background: rgba(0, 229, 255, 0.06);
+  border-radius: 8rpx;
+  padding: 12rpx 16rpx;
+}
+
+.diag-comment {
+  font-size: 26rpx;
+  line-height: 1.7;
+  color: #b0b6c4;
+}
+
+.diag-comment.loading {
+  color: #7a7f8a;
+}
+
+/* 专属学习方案 */
+.plan-item {
+  display: flex;
+  align-items: center;
+  padding: 18rpx 0;
+  border-bottom: 1rpx solid rgba(255, 255, 255, 0.04);
+}
+
+.plan-item:last-child {
+  border-bottom: none;
+}
+
+.plan-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: #00e5ff;
+  margin-right: 16rpx;
+  flex-shrink: 0;
+}
+
+.plan-dot.weak {
+  background: #ff8a80;
+}
+
+.plan-main {
+  flex: 1;
+}
+
+.plan-title {
+  font-size: 26rpx;
+  color: #e8eaf0;
+}
+
+.plan-weak-tag {
+  margin-left: 12rpx;
+  font-size: 20rpx;
+  color: #ff8a80;
+  background: rgba(255, 138, 128, 0.12);
+  padding: 2rpx 10rpx;
+  border-radius: 16rpx;
+}
+
+.plan-course {
+  font-size: 22rpx;
+  color: #7a7f8a;
+  margin-top: 4rpx;
+}
+
+.plan-go {
+  font-size: 28rpx;
+  color: #7a7f8a;
+  margin-left: 12rpx;
+}
+
+.btn-share {
+  margin-top: 16rpx;
+  background: rgba(0, 229, 255, 0.1);
+  color: #00e5ff;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+

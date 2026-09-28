@@ -1,0 +1,63 @@
+<view class="container">
+  <view class="gen-bar">
+    <button class="btn-gen" bindtap="openGen">✨ AI 生成课程</button>
+  </view>
+
+  <!-- 已发布的 AI 生成课程（审核通过后展示） -->
+  <view class="card" wx:if="{{aiCourses.length > 0}}">
+    <view class="system-header">
+      <text class="system-name">AI 生成课程</text>
+      <text class="system-board">审核通过 · {{aiCourses.length}} 门</text>
+    </view>
+    <block wx:for="{{aiCourses}}" wx:key="id" wx:for-item="ai">
+      <view class="course-item ai-course-item" data-id="{{ai.id}}" bindtap="toggleAi">
+        <view>
+          <view class="course-name">{{ai.title}}</view>
+          <view class="course-level">{{ai.system}} · {{ai.subject}} · {{ai.level || '通用'}} <text class="ai-tag">AI</text></view>
+        </view>
+        <view class="course-arrow">{{expandedAi === ai.id ? '▾' : '→'}}</view>
+      </view>
+      <view class="ai-chapters" wx:if="{{expandedAi === ai.id}}">
+        <block wx:for="{{ai.chapterList}}" wx:for-item="ch" wx:key="title">
+          <view class="ai-chapter">
+            <text class="ai-chapter-title">{{ch.title}}</text>
+            <text class="ai-chapter-items">{{ch.items}}</text>
+          </view>
+        </block>
+        <view class="ai-chapter-empty" wx:if="{{ai.chapterList.length === 0}}">该课程暂无章节内容</view>
+      </view>
+    </block>
+  </view>
+
+  <block wx:for="{{systems}}" wx:key="id">
+    <view class="card">
+      <view class="system-header">
+        <text class="system-name">{{item.name}}</text>
+        <text class="system-board">{{item.board}}</text>
+      </view>
+      <block wx:for="{{courses}}" wx:for-item="course" wx:key="id">
+        <view class="course-item" wx:if="{{course.systemId === item.id}}"
+              data-id="{{course.id}}" bindtap="goCourse">
+          <view>
+            <view class="course-name">{{course.name}}</view>
+            <view class="course-level">{{course.desc}} · {{progressMap[course.id + '_ch1'] ? '已开始' : '未开始'}}</view>
+          </view>
+          <view class="course-arrow">→</view>
+        </view>
+      </block>
+    </view>
+  </block>
+
+  <!-- AI 生成课程弹窗 -->
+  <view class="gen-mask" wx:if="{{showGen}}" bindtap="closeGen">
+    <view class="gen-dialog" catchtap="noop">
+      <view class="gen-title">AI 生成课程</view>
+      <view class="gen-tip">输入你想学的主题，AI 将生成课程结构并提交人工审核</view>
+      <input class="gen-input" placeholder="例如：微积分定积分入门" value="{{genTopic}}" bindinput="onGenInput" maxlength="60" />
+      <view class="gen-btns">
+        <button class="gen-cancel" bindtap="closeGen">取消</button>
+        <button class="gen-submit" bindtap="submitGen" disabled="{{genLoading}}">{{genLoading ? '生成中…' : '生成'}}</button>
+      </view>
+    </view>
+  </view>
+</view>
