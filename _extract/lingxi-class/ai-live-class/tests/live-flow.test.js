@@ -2302,6 +2302,25 @@ setTimeout(async () => {
     /\.hero-soundtest \{ margin-top: 12px; opacity: 0\.8; \}/.test(cssNotice) &&
     /\.hero-soundtest:hover \{ opacity: 1; \}/.test(cssNotice));
 
+  console.log('\n=== 45. 云 endpoint 必须跟随当前域名（跨源把整节课弄哑过）===');
+  /* ★ 真实事故（2026-09-28）：endpoint 写死指向旧域名。页面在旧域名上时是同源、不走 CORS，
+     所以一直没事；换个域名部署后变成跨源，浏览器因云端白名单里没有
+     `x-conversation-id` 这个头而拦掉 `.cloud/llm/chat/completions` ——
+     老师的话根本发不出去 → 没文本 → **整节课没声音**，界面上却只显示一句"网络异常"。
+     实测对照：跨源时真发声 0 次；改到同源后真发声 5 次。 */
+  t('CN1 endpoint 不再写死域名，而是跟随当前 origin', (() => {
+    const seg = srcTR.slice(0, 4000);
+    return /const CLOUD_ENDPOINT = [\s\S]{0,200}?window\.location\.origin/.test(seg) &&
+      /endpoint:\s*CLOUD_ENDPOINT/.test(seg);
+  })());
+  t('CN2 没有把旧域名硬编码进 endpoint', (() => {
+    const seg = srcTR.slice(0, 4000);
+    return !/endpoint:\s*'https?:\/\/lingxi-class\.app\.workbuddy\.host'/.test(seg);
+  })());
+  t('CN3 写得清为什么（免得有人"顺手"改回写死域名，再把整节课弄哑一次）',
+    /跨源/.test(srcTR.slice(0, 4000)) && /x-conversation-id/.test(srcTR.slice(0, 4000)) &&
+    /整节课都是哑的/.test(srcTR.slice(0, 4000)));
+
   console.log('\n=== 14. 结束课堂清理 ===');
   try { window.endLiveSilent(); t('endLiveSilent 无异常', true); }
   catch (e) { t('endLiveSilent 无异常', false, e.message); }

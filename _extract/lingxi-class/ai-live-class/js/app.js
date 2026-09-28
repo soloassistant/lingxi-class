@@ -5,8 +5,31 @@
 'use strict';
 
 /* ---------- 云服务配置（来自云服务环境 publicConfig） ---------- */
+/* ★★ endpoint 必须**跟随当前页面的域名**，不能写死。
+   为什么（2026-09-28 真实事故，代价很大）：
+   这里原本写死 `https://lingxi-class.app.workbuddy.host`。页面在这个域名上时，云端请求是
+   **同源**的 —— 同源请求不走 CORS，所以一直没事。
+   后来应用被发布到了另一个域名（`<sandboxId>.app.workbuddy.host`），于是云端请求变成**跨源**，
+   浏览器开始做预检，而云端白名单里**没有 `x-conversation-id` 这个自定义头**：
+
+     Access to fetch at '…/.cloud/llm/chat/completions' from origin '…' has been blocked by
+     CORS policy: Request header field x-conversation-id is not allowed by Access-Control-Allow-Headers
+
+   后果不是"某个次要功能坏了"，而是**整节课都是哑的**：老师的话根本发不出去 →
+   没有文本 → 朗读无事可做 → 用户听到的是**完全没声音**，而且界面上只有一句
+   "网络异常，请检查网络后重试"（连"没声音"和"网络异常"之间的因果关系都看不出来）。
+   实测对照：跨源时真发声 0 次；把请求改到同源后真发声 5 次、老师正常讲课。
+
+   用 location.origin 还带来一个好处：**应用从此与域名解耦** —— 以后再换域名/多域名部署，
+   云端调用都不会因为跨源而失效（这正是本次故障的根因）。
+   本地用 `npm start` 跑时 origin 是 localhost、没有 `.cloud/*` 代理，云端功能本就用不了
+   （会走"云服务未就绪"的既有降级路径），所以这里不需要为本地做特例。 */
+const CLOUD_ENDPOINT = (typeof window !== 'undefined' && window.location && window.location.origin)
+  ? window.location.origin
+  : 'https://lingxi-class.app.workbuddy.host';
+
 const PUBLIC_CONFIG = {
-  endpoint: 'https://lingxi-class.app.workbuddy.host',
+  endpoint: CLOUD_ENDPOINT,
   publishableKey: 'wbpk_Pq3DhJIr74vvC8YpuqkMPA_lgoEQ7iPSjSnnQx9ZsLOpjoB6dFoKCSh',
   /* 运营方联系邮箱：填写后会出现在《隐私政策》「联系我们」与注销确认里。
      留空时，界面只展示可自助的数据权利入口，不会出现死链接。 */
