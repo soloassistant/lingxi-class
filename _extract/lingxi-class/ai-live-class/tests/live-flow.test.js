@@ -2321,6 +2321,24 @@ setTimeout(async () => {
     /跨源/.test(srcTR.slice(0, 4000)) && /x-conversation-id/.test(srcTR.slice(0, 4000)) &&
     /整节课都是哑的/.test(srcTR.slice(0, 4000)));
 
+  console.log('\n=== 46. 自检要能回答"为什么它又要我登录" ===');
+  /* ★ 由来：用户反复说"要登录才能用"，而按代码 + 实测都复现不出对**访客**的登录要求
+     （needsPhone 里写着"访客不是账号，不拦"）。与其继续猜，不如把
+     "当前身份 + 到底哪道门会拦你 + 今天还剩多少 AI 用量"直接显示给用户看。 */
+  t('AC1 自检里有「身份与门禁」项', /add\('account', '身份与门禁'/.test(srcTR));
+  t('AC2 它区分"访客"与"已登录但没登记手机号"两种情况', (() => {
+    const i = srcTR.indexOf("add('account', '身份与门禁'");
+    const seg = srcTR.slice(Math.max(0, i - 1700), i + 400);
+    return /访客（未登录）/.test(seg) && /还没登记手机号/.test(seg) &&
+      /这是要你登记，不是要你登录/.test(seg);
+  })());
+  t('AC3 自检里有「AI 用量（本机）」项', /add\('aigate', 'AI 用量（本机）'/.test(srcTR));
+  t('AC4 自检用到的辅助函数都真实存在（我三次写不存在的名字：--border / btn-quiet / maskEmail）',
+    ['currentPhone', 'needsPhone', 'aiGateSnapshot'].every((n) => new RegExp('function ' + n + '\\b').test(srcTR)) &&
+    !/maskEmail\s*\(/.test(srcTR));
+  t('AC5 自检报告里不出现完整邮箱（会被截图转发）',
+    /replace\(\/\^\(\.\{1,2\}\)\[\^@\]\*\(@\.\*\)\$\/, '\$1\*\*\*\$2'\)/.test(srcTR));
+
   console.log('\n=== 14. 结束课堂清理 ===');
   try { window.endLiveSilent(); t('endLiveSilent 无异常', true); }
   catch (e) { t('endLiveSilent 无异常', false, e.message); }

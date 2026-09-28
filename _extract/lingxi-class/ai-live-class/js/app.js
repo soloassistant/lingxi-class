@@ -9735,11 +9735,48 @@ function runSelfCheck() {
     TTS.speaking ? ('正在朗读，队列剩 ' + TTS.queue.length + ' 条') : '空闲',
     '若上方显示"正在朗读"但实际没声音，点右下角「语音」按钮关掉再打开即可复位');
 
-  /* ③ 云服务 */
-  const cloudOk = !!state.cloud;
-  add('cloud', '云端连接', cloudOk,
-    cloudOk ? '已连接（AI 可用）' : '未连接（生成课程与直播课不可用）',
-    '检查网络后刷新页面；若反复失败，可能是云端服务暂时不可用');
+    /* ③ 云服务 */
+    const cloudOk = !!state.cloud;
+    add('cloud', '云端连接', cloudOk,
+      cloudOk ? '已连接（AI 可用）' : '未连接（生成课程与直播课不可用）',
+      '检查网络后刷新页面；若反复失败，可能是云端服务暂时不可用');
+
+    /* ③b ★ 身份与门禁（2026-09-28 加）
+       由来：用户反复反馈"要登录才能用"，而我按代码与实测都复现不出对**访客**的登录要求
+       （`needsPhone()` 里明确写着"访客不是账号，不拦"）。说明用户遇到的多半是
+       **已登录但没登记手机号**那个状态，或者他的浏览器里还有别的门禁在起作用。
+       与其继续猜，不如把"当前身份 + 到底哪道门会拦你"直接显示出来 ——
+       这类"为什么又要我登录"的问题以后不用再靠问。 */
+    const acc = (() => {
+      if (!state.user) return { id: 'guest', label: '访客（未登录）', needPhone: false, detail: '不需要登录也不需要手机号就能生成课程、进直播间；登录后额外获得跨设备长期记忆' };
+      const phone = (typeof currentPhone === 'function') ? currentPhone() : '';
+      const hasEmail = !!state.user.email;
+      const need = (function () { try { return needsPhone(); } catch (_) { return false; } })();
+      /* 邮箱只显示前两位 + 域名，避免自检报告被截图转发时带出完整邮箱。
+         （不引入新的脱敏工具函数 —— 就地做，少一个可能写错的名字。） */
+      const emailHint = hasEmail
+        ? (String(state.user.email).replace(/^(.{1,2})[^@]*(@.*)$/, '$1***$2'))
+        : '';
+      return {
+        id: 'signed',
+        label: hasEmail ? ('已登录（邮箱 ' + emailHint + '）') : '已登录',
+        needPhone: need,
+        detail: need
+          ? '已登录但**还没登记手机号** → 点「生成课程」或「进入课堂」会被手机号门禁拦住（这是要你登记，不是要你登录）'
+          : ('已登记手机号 ' + (phone ? phone : '(读取中)') + '；各功能均可使用'),
+      };
+    })();
+    add('account', '身份与门禁', !acc.needPhone, acc.label + '｜' + acc.detail,
+      acc.needPhone ? '在「学习档案」里补登记手机号即可（不需要验证码），补完就能继续生成课程/进课堂' : '');
+
+    /* ③c AI 用量（本地闸门，按设备计数；每次生成/对话都消耗） */
+    const gate = (function () { try { return aiGateSnapshot(); } catch (_) { return null; } })();
+    if (gate) {
+      const left = Math.max(0, (gate.limit || 0) - (gate.used || 0));
+      add('aigate', 'AI 用量（本机）', left > 0,
+        '今天已用 ' + (gate.used || 0) + '/' + (gate.limit || 0) + ' 次' + (left > 0 ? ('，还剩 ' + left + ' 次') : '，今天已用完（明天自动恢复）'),
+        left > 0 ? '' : '这是防额度过快消耗的本地上限；明天会自动恢复，已生成的课程与数据都还在');
+    }
 
   /* ④ 本地存储：未登录时课程只存在本机，写不进去等于"刷新就没了" */
   add('storage', '本地存储', checkupStorage(),
