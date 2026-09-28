@@ -3197,6 +3197,21 @@ function ttsHealth() {
         runTTSSelfCheck(true);
       });
     }
+    /* ★ 首页的"会前试音"入口：这是**唯一一个不需要登录就能到达**的自检入口
+       （课堂里的那条要进课堂，声音设置面板要先进课堂再长按语音按钮）。
+       点它 → 打开声音设置面板并直接跑实测，结果就显示在面板里。 */
+    const hero = $('#btn-hero-soundtest');
+    if (hero && !hero._bound) {
+      hero._bound = true;
+      hero.addEventListener('click', () => {
+        openVoiceModal();
+        const t = $('#voice-tts-title');
+        if (t) { t.hidden = false; t.textContent = '语音实测结果'; }
+        const v = $('#btn-voice-tts-test');
+        if (v) v.hidden = true;
+        runTTSSelfCheck(true);
+      });
+    }
   }
 
   function ttsNoticeTip(reason) {

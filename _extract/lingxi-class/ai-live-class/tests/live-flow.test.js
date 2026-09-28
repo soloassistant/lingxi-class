@@ -2283,6 +2283,24 @@ setTimeout(async () => {
   })());
   t('SC21 绑定写在 init 里的理由有注释（免得被"顺手"挪回 showTTSNotice）',
     /踩过的坑（2026-09-28，E2E 抓到）/.test(srcTR) && /点了没反应的死按钮/.test(srcTR));
+  /* ★★ 用户反馈「没有游客模式」→ 走真实路径实测发现：
+     未登录时 #live-room / 工具条 / #tb-voice **全都不可达**（点「先看看直播间」也不可见），
+     所以课堂里的入口和声音设置里的入口**对游客都是死的**。
+     我上一轮"未登录也能用"的结论是**强行把面板显示出来**验出来的 —— 那正好绕过了卡点。
+     现在把入口放到首页（游客唯一能到的地方），并且措辞改成"会前试音"而不是"报错"。 */
+  t('SC22 首页有"会前试音"入口（未登录唯一能到达的自检入口）',
+    /id="btn-hero-soundtest"/.test(htmlCheck) && /先测一下这台设备能不能出声/.test(htmlCheck));
+  t('SC23 点它 → 打开声音设置面板并直接跑实测',
+    /\$\('#btn-hero-soundtest'\)/.test(srcTR) && /openVoiceModal\(\);[\s\S]{0,300}?runTTSSelfCheck\(true\)/.test(srcTR));
+  t('SC24 首页入口用的都是**已存在**的样式类（别再写 btn-quiet / var(--border) 这种不存在的）', (() => {
+    const i = htmlCheck.indexOf('id="btn-hero-soundtest"');
+    const tag = htmlCheck.slice(Math.max(0, i - 200), i + 60);
+    const classes = (tag.match(/class="([^"]+)"/) || [])[1] || '';
+    return classes.split(/\s+/).filter(Boolean).every((c) => cssNotice.indexOf('.' + c) >= 0);
+  })());
+  t('SC25 首页入口低调但常驻（不跟主 CTA 抢注意力，但要一直在）',
+    /\.hero-soundtest \{ margin-top: 12px; opacity: 0\.8; \}/.test(cssNotice) &&
+    /\.hero-soundtest:hover \{ opacity: 1; \}/.test(cssNotice));
 
   console.log('\n=== 14. 结束课堂清理 ===');
   try { window.endLiveSilent(); t('endLiveSilent 无异常', true); }

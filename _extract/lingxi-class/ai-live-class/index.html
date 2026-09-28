@@ -110,6 +110,15 @@
           <button class="btn btn-primary btn-lg" data-nav="generate">立即生成我的课程</button>
           <button class="btn btn-ghost btn-lg" data-nav="live">先看看直播间</button>
         </div>
+        <!-- ★ 会前试音（2026-09-28）
+             为什么放在**首页**：进课堂要过「登录 + 手机号」两道门，而"听不到老师声音"的人
+             很可能正卡在门外 —— 把诊断工具锁在他进不去的地方等于没有（这一条已经踩过一次：
+             我把入口放在课堂里和声音设置里，结果两者都要先进课堂）。
+             为什么叫"先测一下能不能出声"而不是"听不到声音"：后者像在报错，
+             前者像会前试音，落地页上本来就有这种位置，用户也更容易主动点。 -->
+        <button class="btn btn-ghost btn-sm hero-soundtest" id="btn-hero-soundtest" type="button">
+          🔈 先测一下这台设备能不能出声
+        </button>
         <div class="hero-stats">
           <div class="stat"><b>22+</b><span>覆盖科目</span></div>
           <div class="stat"><b>2</b><span>课程体系</span></div>
