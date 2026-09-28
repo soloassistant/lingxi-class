@@ -4,6 +4,7 @@
   "private": true,
   "description": "灵犀课堂 · AI 一对一直播课（网页版）。纯静态站，无构建步骤；这里只声明跑测试所需的开发依赖。",
   "scripts": {
+    "start": "node tools/serve.js",
     "test": "node tests/run-all.js",
     "test:online": "node tests/run-all.js --online",
     "audit": "node tests/audit.js"

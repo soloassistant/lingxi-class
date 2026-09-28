@@ -2645,8 +2645,13 @@ function speakOne(item) {
     u.onstart = () => {
       started = true;
       TTS._stuckCount = 0;
+      /* 记下"这节课累计成功发声多少句" —— 自检报告里要用它区分
+         "从来没念过" 与 "念了但你没听到"（这两种的排查方向完全不同）。 */
+      TTS._startedTotal = (TTS._startedTotal || 0) + 1;
       /* ★ 真的开口了 → 把"声音没出来"的常驻提示收起来（自愈）。
-         这样用户不需要手动关，提示的存在本身就是"还没好"的信号。 */
+         注意：这里**不能**顺手把"没声音？"自检入口也隐藏 ——
+         onstart 只证明"引擎接了活"，不证明**用户听到了**（静音开关/音量 0 时 onstart 照样触发）。
+         那个入口只在自检里用户亲口答"听到了"之后才隐藏。 */
       try { hideTTSNotice(); ttsNotified = ''; } catch (_) {}
     };
     u.onend = done;
@@ -2872,6 +2877,255 @@ function ttsHealth() {
     document.addEventListener('visibilitychange', onVis, true);
   }
 
+  /* ── 语音自检（2026-09-28）───────────────────────────────────────
+     为什么必须做这个：产品有**一个自己看不见的盲区** ——
+     引擎报告"我念完了"（onstart/onend 都触发），但用户因为
+     系统音量 / iPhone 侧边静音开关 / 蓝牙耳机 / 标签页被静音 而**什么都听不到**。
+     这种情况下所有自动检测与埋点都不触发，界面看起来完全正常，
+     用户只能反复说"没声音"，而我远程查不出任何东西（这条已经卡了好几轮）。
+
+     破解办法：让**用户的耳朵**当传感器。
+       代码知道的事实：引擎有没有接受这次朗读（onstart）、onend 有没有回来、有没有音色…
+       只有用户知道的事实：**到底有没有声音**。
+     两者一组合，四种组合各自对应一个明确结论（见 renderSelfCheck）。 */
+
+  /* 收集环境事实（都是能直接读到的，不含猜测） */
+  function ttsFacts() {
+    const f = {};
+    try {
+      const ss = window.speechSynthesis;
+      f.hasApi = !!(ss && typeof ss.speak === 'function');
+      const vs = (ss && ss.getVoices) ? (ss.getVoices() || []) : [];
+      f.voices = vs.length;
+      f.zhVoices = vs.filter((v) => /^zh/i.test(v.lang || '')).length;
+      f.voiceName = TTS.voice ? (TTS.voice.name + ' / ' + TTS.voice.lang) : '(未选中)';
+      f.paused = ss ? !!ss.paused : null;
+      f.speaking = ss ? !!ss.speaking : null;
+      f.pending = ss ? !!ss.pending : null;
+      f.enabled = TTS.enabled;
+      f.rate = TTS.rate;
+      f.visible = document.visibilityState;
+      f.focused = (typeof document.hasFocus === 'function') ? document.hasFocus() : null;
+      const ua = navigator.userActivation;
+      f.activated = ua ? !!ua.hasBeenActive : null;
+      f.startedTotal = TTS._startedTotal || 0;
+      f.stuck = TTS._stuckCount || 0;
+      f.ua = String(navigator.userAgent || '').slice(0, 80);
+    } catch (e) { f.err = String(e && e.message); }
+    return f;
+  }
+
+  /* 念一句短句，看引擎接不接受。返回 { accepted, ended, ms } */
+  function probeUtterance(text, timeoutMs) {
+    return new Promise((resolve) => {
+      const out = { accepted: false, ended: false, ms: 0, err: '' };
+      let done = false;
+      const finish = () => { if (done) return; done = true; out.ms = Date.now() - t0; resolve(out); };
+      const t0 = Date.now();
+      try {
+        if (!TTS.supported) { out.err = 'no_api'; finish(); return; }
+        try { window.speechSynthesis.cancel(); } catch (_) {}
+        try { if (window.speechSynthesis.paused) window.speechSynthesis.resume(); } catch (_) {}
+        const u = new SpeechSynthesisUtterance(text);
+        if (TTS.voice) { try { u.voice = TTS.voice; } catch (_) {} }
+        u.lang = (TTS.voice && TTS.voice.lang) || teachLangProfile().utteranceLang;
+        u.rate = TTS.rate || 1;
+        u.volume = 1;
+        u.onstart = () => { out.accepted = true; };
+        u.onend = () => { out.ended = true; finish(); };
+        u.onerror = (e) => { out.err = String((e && e.error) || 'error'); finish(); };
+        window.speechSynthesis.speak(u);
+        setTimeout(finish, timeoutMs || 3000);
+      } catch (e) { out.err = String(e && e.message); finish(); }
+    });
+  }
+
+  /* 在提示区里问一句"你听到了吗"，等用户点。只有他知道答案。 */
+  function askHeard() {
+    return new Promise((resolve) => {
+      const box = $('#tts-notice-result');
+      if (!box) { resolve(null); return; }
+      box.hidden = false;
+      box.innerHTML = '';
+      const q = document.createElement('div');
+      q.className = 'tcr-q';
+      q.textContent = '刚才那句「灵犀老师语音自检」，你听到了吗？';
+      const btns = document.createElement('div');
+      btns.className = 'tcr-btns';
+      const yes = document.createElement('button');
+      yes.className = 'btn btn-sm';
+      yes.textContent = '✅ 听到了';
+      const no = document.createElement('button');
+      no.className = 'btn btn-sm';
+      no.textContent = '🔇 没听到';
+      const pick = (heard) => { btns.remove(); q.remove(); resolve(heard); };
+      yes.addEventListener('click', () => pick(true));
+      no.addEventListener('click', () => pick(false));
+      btns.appendChild(yes);
+      btns.appendChild(no);
+      box.appendChild(q);
+      box.appendChild(btns);
+    });
+  }
+
+  const FACTS_LABEL = {
+    hasApi: '语音接口', voices: '音色数', zhVoices: '中文音色', voiceName: '选中音色',
+    paused: '引擎暂停中', speaking: '引擎正在读', pending: '引擎有排队', enabled: '朗读开关',
+    rate: '语速', visible: '页面可见性', focused: '窗口聚焦', activated: '曾获用户激活',
+    startedTotal: '本课已成功发声', stuck: '句中卡住次数',
+  };
+
+  function factsText(f) {
+    return Object.keys(FACTS_LABEL)
+      .filter((k) => f[k] !== undefined)
+      .map((k) => FACTS_LABEL[k] + '：' + f[k]).join('\n');
+  }
+
+  /* 自检主流程：先读环境 → 再实测一句 → 再问用户听到没有 → 给结论 */
+  async function runTTSSelfCheck() {
+    showTTSNotice('checking');
+    const title = $('#tts-notice-title');
+    const why = $('#tts-notice-why');
+    const box = $('#tts-notice-result');
+    const acts = document.querySelector('.tts-notice-acts');
+    if (title) title.textContent = '语音自检中…';
+    if (why) why.textContent = '会念一句给你听，大约 3 秒。请先把系统音量调到一半以上。';
+    if (box) { box.hidden = true; box.innerHTML = ''; }
+    if (acts) acts.style.display = 'none';       // 自检期间先把按钮收起来，避免误点
+    try { track('tts_selfcheck_start', {}); } catch (_) {}
+
+    const facts = ttsFacts();
+    const probe = await probeUtterance('灵犀老师语音自检，一二三四五。', 3000);
+
+    let heard = null;
+    if (probe.accepted) {
+      heard = await askHeard();                   // 引擎接受过才问"听到了吗"
+    }
+    if (acts) acts.style.display = '';
+
+    renderSelfCheck(facts, probe, heard);
+    try {
+      track('tts_selfcheck_result', {
+        accepted: probe.accepted, ended: probe.ended, heard: heard === null ? 'na' : heard,
+        voices: facts.voices, zh: facts.zhVoices, paused: facts.paused, vis: facts.visible,
+      });
+    } catch (_) {}
+  }
+
+  /* 结论矩阵：代码知道"引擎接不接受"，用户知道"有没有声音"，两两组合四种情况 */
+  function renderSelfCheck(facts, probe, heard) {
+    const box = $('#tts-notice-result');
+    const title = $('#tts-notice-title');
+    const why = $('#tts-notice-why');
+    if (!box) return;
+    box.hidden = false;
+    box.innerHTML = '';
+
+    let head = '', todo = [], ok = false;
+
+    if (!facts.hasApi) {
+      head = '这个浏览器没有语音接口。';
+      todo = ['换 Chrome 或 Edge 打开（手机上也一样）', '若是微信内打开，请点右上角「···」→ 用浏览器打开'];
+    } else if (facts.voices === 0) {
+      head = '浏览器在线，但**这台设备一个语音都没有**。';
+      todo = [
+        'Windows：设置 → 时间和语言 → 语音 → 添加「中文（简体）」语音包',
+        'Mac：系统设置 → 辅助功能 → 朗读内容 → 系统声音 → 管理声音（下载中文）',
+        'Android：系统设置 → 语言与输入 → 文字转语音 → 安装中文语音数据',
+        'iPhone：系统设置 → 辅助功能 → 朗读内容 → 声音 → 中文',
+        '实在不行先用 Edge 打开（它带在线语音，不依赖系统语音包）',
+      ];
+    } else if (!facts.zhVoices) {
+      head = '设备上有语音，但**没有中文语音** —— 读中文会没声或发音很怪。';
+      todo = ['按上面同样的路径添加「中文」语音包', '或换 Edge 打开'];
+    } else if (!probe.accepted) {
+      head = '引擎**拒绝发声**（朗读指令发出去了，但它一声没吭）。';
+      todo = [
+        '先点「再试一次」（会重置引擎并换一个音色重读）',
+        '若这一页曾被切到别的窗口/标签：切回来再多等 1 秒，浏览器会暂停语音引擎',
+        '检查是否有另一个标签页正在朗读（同一浏览器同时只能有一路语音）',
+        '刷新页面后，**先点任意位置再进课堂**（浏览器要求用户动作后才允许发声）',
+      ];
+    } else if (heard === false) {
+      /* ★ 关键的一格：引擎明明说它念了，用户却没听到 —— 这是产品自己发现不了的情况 */
+      head = '引擎说它念完了，但你没听到 —— 这是**声音输出**的问题，不是网页的问题。';
+      todo = [
+        'iPhone：**侧边静音开关**（拨到静音时网页语音会完全没声）',
+        '系统音量是否为 0、是否静音',
+        '蓝牙耳机/外接音响是否连上但没戴、或没通电',
+        '浏览器标签页是否被右键「网站静音」（标签上会出现小喇叭斜杠）',
+        '系统音量合成器里，浏览器这一路是否被单独调成 0（Windows）',
+        '换一副耳机或换台设备试一句 —— 能立刻区分是"网页问题"还是"这台设备没声"',
+      ];
+    } else if (heard === true) {
+      ok = true;
+      head = '语音是好的 —— 刚才这句你听到了。';
+      todo = ['如果课上还是没声，点「再试一次」，并把本条提示截图发给我'];
+      /* 用户亲口确认听到了 → "没声音？"入口从此不再出现（不再骚扰） */
+      hideTTSCheckEntry();
+    } else {
+      head = '引擎接受了朗读，但没能确认你是否听到。';
+      todo = ['点「再试一次」听一句；仍没声就再来一次自检'];
+    }
+
+    if (title) title.textContent = ok ? '语音正常 ✅' : '语音自检结果';
+    if (why) why.textContent = '';
+    const ico = $('#tts-notice-ico');
+    if (ico) ico.textContent = ok ? '🔊' : '🔇';
+
+    const h = document.createElement('div');
+    h.className = ok ? 'tcr-ok' : 'tcr-q';
+    h.textContent = head;
+    box.appendChild(h);
+
+    if (todo.length) {
+      const ul = document.createElement('ul');
+      ul.className = 'tcr-todo';
+      todo.forEach((t) => { const li = document.createElement('li'); li.textContent = t; ul.appendChild(li); });
+      box.appendChild(ul);
+    }
+
+    const pre = document.createElement('div');
+    pre.className = 'tcr-facts';
+    pre.textContent = '引擎接受朗读：' + (probe.accepted ? '是' : '否')
+      + '｜读完回调：' + (probe.ended ? '是' : '否')
+      + '｜耗时：' + probe.ms + 'ms'
+      + (probe.err ? '｜错误：' + probe.err : '')
+      + (heard === null ? '' : '｜你听到：' + (heard ? '是' : '否'))
+      + '\n' + factsText(facts);
+    box.appendChild(pre);
+
+    if (facts.ua) {
+      const ua = document.createElement('div');
+      ua.className = 'tcr-facts';
+      ua.textContent = 'UA：' + facts.ua;
+      box.appendChild(ua);
+    }
+  }
+
+  /* 一次性的"没声音？"入口：课堂开始 20 秒后出现（避免打扰），
+     一旦确认听到过声音就永久隐藏（不再骚扰）。 */
+  let ttsCheckEntryTimer = null;
+  function armTTSCheckEntry() {
+    const btn = $('#tts-check-entry');
+    if (!btn || btn._bound) return;
+    btn._bound = true;
+    btn.addEventListener('click', () => { btn.hidden = true; runTTSSelfCheck(); });
+    if (ttsCheckEntryTimer) clearTimeout(ttsCheckEntryTimer);
+    ttsCheckEntryTimer = setTimeout(() => {
+      /* 已经确认听到过 → 不再显示 */
+      if (TTS._heardOk) return;
+      if (!state.live || state.live.ended) return;
+      btn.hidden = false;
+    }, 20000);
+  }
+  function hideTTSCheckEntry() {
+    TTS._heardOk = true;
+    const btn = $('#tts-check-entry');
+    if (btn) btn.hidden = true;
+    if (ttsCheckEntryTimer) { clearTimeout(ttsCheckEntryTimer); ttsCheckEntryTimer = null; }
+  }
+
   /* ── 语音问题的常驻提示 ────────────────────────────────────────
      ★ 为什么要有它（2026-09-28）：线上只上报了 `tts_unavailable{reason:"silent"}`，
      我据此排查了很久；**但用户那边从头到尾只看到"没声音"三个字**——
@@ -2892,6 +3146,7 @@ function ttsHealth() {
       silent: '朗读指令发出去了，但语音引擎没有出声。最常见的原因是这一页曾被切到后台（浏览器会暂停语音），'
         + '或系统/浏览器被静音。点「再试一次」通常就能恢复。',
       stuck: '语音引擎卡住了（某一句读了很久不结束）。已经自动跳过那一句，继续往下读。',
+      checking: '会念一句给你听，大约 3 秒。请先把系统音量调到一半以上。',
     };
     return tips[reason] || '语音暂时不可用，老师会以字幕讲课。';
   }
@@ -2917,6 +3172,12 @@ function ttsHealth() {
         try { toast('正在重试语音…', 'ok'); } catch (_) {}
         retryPendingSpeech();
       });
+    }
+    /* 「语音自检」：把"没声音"变成一个确定的结论（含"引擎说念了但你没听到"这一格） */
+    const check = $('#tts-notice-check');
+    if (check && !check._bound) {
+      check._bound = true;
+      check.addEventListener('click', () => { runTTSSelfCheck(); });
     }
     const x = $('#tts-notice-close');
     if (x && !x._bound) {
@@ -4107,6 +4368,8 @@ const TRACK_EVENTS = [
   'tts_voice_stale',   // 缓存的语音对象失效（系统语音包更新/卸载等），已自动丢弃并回退
   'tts_utterance_stuck', // 某句开口后 onend 不触发、超过预估时长被强制跳过（连续 3 次才提示用户）
   'tts_gesture_retry',   // 引擎拒绝发声后，用户点了一下、触发了自动重试
+  'tts_selfcheck_start',   // 用户点了「语音自检」
+  'tts_selfcheck_result',  // 自检结论（含"引擎说念了但用户没听到"这一格）—— 这是排查"没声音"最有用的一条
 
   'figure_backfill',   // 生成时缺图，已自动补图（n=补了几张）—— 用于衡量"配图不稳定"的实际发生率
   'parent_report_open',   // 打开家长学情报告（家长这一侧是我们原来的空白，先用埋点看是否有人用）
@@ -7548,6 +7811,11 @@ async function startLive(course) {
   // 语音就绪自检：默认开启朗读（讲课没声音等于产品失效），
   // 但若设备没有可用语音，必须当场说清楚，不能静默不出声
   ensureVoiceReady();
+
+  /* 挂上"没听到声音？点这里自检"的入口（20 秒后才显示，用户确认听到过就永久隐藏）。
+     为什么需要它：产品有一个自己看不见的盲区 —— 引擎报告"念完了"，
+     但用户因系统音量/iPhone 静音开关/标签页静音而听不到，此时所有自动检测都不触发。 */
+  armTTSCheckEntry();
 
   /* 2026-09-27 加的一次静默暖机（点击那一刻说一个 volume=0 的空串）。
      ⚠ **如实说明：这一条我没有验证出它有效。**
@@ -11370,6 +11638,7 @@ try {
     buildProgressSnapshot, validateProgressFile, previewProgressImport, applyProgressImport,
     undoProgressImport, hasProgressBackup, renderProgressCard, exportProgress, handleProgressFile,
     armGestureRetry, notifyTTSProblem, ttsHealth,
+    runTTSSelfCheck, ttsFacts, renderSelfCheck, hideTTSCheckEntry,
     renderBank, bankFiltered, bankExport, BANK_KEY, BANK_TYPES, BANK_DIFF,
     currentTheme, applyTheme, setTheme, toggleTheme, loadTheme,
     SUBJECT_EXAMPLES, subjectExampleHint, exampleScaleHint, genSubjectContext,

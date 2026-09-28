@@ -2183,7 +2183,8 @@ setTimeout(async () => {
     /\$\('#tts-notice-retry'\)/.test(srcTR) &&
     /const did = retryPendingSpeech\(\)/.test(srcTR));
   t('TN5 真的出声后提示自动收起（自愈，不用用户手动关）',
-    /u\.onstart = \(\) => \{[\s\S]{0,240}?hideTTSNotice\(\); ttsNotified = '';/.test(srcTR));
+    /* 窗口放到 600：onstart 里现在还要记累计发声数、并写了"为什么不能顺带隐藏自检入口"的注释。 */
+    /u\.onstart = \(\) => \{[\s\S]{0,600}?hideTTSNotice\(\); ttsNotified = '';/.test(srcTR));
   t('TN6 常驻提示不受"只提示一次"去重限制（要用户看清）', (() => {
     const i = srcTR.indexOf('function notifyTTSProblem');
     const seg = srcTR.slice(i, i + 320);
@@ -2192,6 +2193,51 @@ setTimeout(async () => {
   t('TN7 提示样式齐备（含护眼模式与窄屏换行）',
     /\.tts-notice \{/.test(cssNotice) && /html\[data-theme="eye"\] \.tts-notice/.test(cssNotice) &&
     /\.tts-notice \{ flex-wrap: wrap/.test(cssNotice));
+
+  console.log('\n=== 43. 语音自检：补上产品自己看不见的那一格 ===');
+  /* ★ 由来：引擎报告"我念完了"（onstart/onend 都触发），但用户因为系统音量 /
+     iPhone 侧边静音开关 / 蓝牙耳机 / 标签页被静音 而**什么都听不到** ——
+     这种情况下所有自动检测与埋点都不触发，界面看起来完全正常，用户只能反复说"没声音"。
+     破解：让**用户的耳朵**当传感器 —— 代码知道"引擎接不接受"，只有用户知道"有没有声音"，
+     两者组合成四种结论。 */
+  const htmlCheck = fs.readFileSync(path.join(dir, 'index.html'), 'utf8');
+  t('SC1 课堂里有"没听到声音？点这里自检"的入口', /id="tts-check-entry"/.test(htmlCheck));
+  t('SC2 提示区里有「语音自检」按钮与结果容器',
+    /id="tts-notice-check"/.test(htmlCheck) && /id="tts-notice-result"/.test(htmlCheck));
+  t('SC3 自检会实测念一句，而不是只读静态属性',
+    /function probeUtterance\(/.test(srcTR) && /new SpeechSynthesisUtterance\(text\)/.test(srcTR) &&
+    /u\.onstart = \(\) => \{ out\.accepted = true; \}/.test(srcTR));
+  t('SC4 它会问用户"听到了吗"（这一格只能由用户回答）',
+    /function askHeard\(/.test(srcTR) && /你听到了吗/.test(srcTR) && /听到了/.test(srcTR) && /没听到/.test(srcTR));
+  t('SC5 ★ 有"引擎说念了但你没听到"这一格的结论与排查清单', (() => {
+    const i = srcTR.indexOf('} else if (heard === false) {');
+    const seg = srcTR.slice(i, i + 900);
+    return /声音输出/.test(seg) && /侧边静音开关/.test(seg) && /网站静音/.test(seg) && /蓝牙/.test(seg);
+  })());
+  t('SC6 自动检测覆盖其余四种：无接口 / 无音色 / 无中文 / 引擎拒绝',
+    /!facts\.hasApi/.test(srcTR) && /facts\.voices === 0/.test(srcTR) &&
+    /!facts\.zhVoices/.test(srcTR) && /!probe\.accepted/.test(srcTR));
+  t('SC7 自检期间先收起按钮，避免误点', /acts\.style\.display = 'none'/.test(srcTR));
+  t('SC8 结果里带**可复制的原始事实**（便于发给开发者定位）',
+    /function factsText\(/.test(srcTR) && /引擎接受朗读：/.test(srcTR) && /UA：/.test(srcTR));
+  t('SC9 入口 20 秒后才出现（不打扰），且只在课堂进行中',
+    /ttsCheckEntryTimer = setTimeout\(/.test(srcTR) && /20000/.test(srcTR) && /state\.live\.ended/.test(srcTR));
+  t('SC10 ★ 只有用户亲口答"听到了"才隐藏入口（onstart 不算 —— 静音时 onstart 照样触发）', (() => {
+    const i = srcTR.indexOf('} else if (heard === true) {');
+    const seg = srcTR.slice(i, i + 400);
+    if (!/hideTTSCheckEntry\(\)/.test(seg)) return false;
+    /* 反证：onstart 里不许调用 hideTTSCheckEntry */
+    const j = srcTR.indexOf('u.onstart = () => {');
+    const os = srcTR.slice(j, j + 700);
+    return !/hideTTSCheckEntry/.test(os);
+  })());
+  t('SC11 埋点登记（可统计真实发生率）', (() => {
+    const i = srcTR.indexOf('const TRACK_EVENTS');
+    const seg = srcTR.slice(i, i + 7000);
+    return /tts_selfcheck_start/.test(seg) && /tts_selfcheck_result/.test(seg);
+  })());
+  t('SC12 成功发声有累计计数（用于区分"从没念过"与"念了但没听到"）',
+    /TTS\._startedTotal = \(TTS\._startedTotal \|\| 0\) \+ 1/.test(srcTR));
 
   console.log('\n=== 14. 结束课堂清理 ===');
   try { window.endLiveSilent(); t('endLiveSilent 无异常', true); }

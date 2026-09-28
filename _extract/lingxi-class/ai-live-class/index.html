@@ -390,18 +390,30 @@
                   <span class="cap-text" id="teacher-status">课程即将开始…</span>
                 </div>
 
-                <!-- ★ 语音出问题时的**常驻**提示（2026-09-28）
+                <!-- ★ 语音自检入口（2026-09-28）
+                     产品有一个**自己看不见**的盲区：引擎报告"我念完了"，但用户因为
+                     系统音量 / iPhone 侧边静音开关 / 蓝牙耳机 / 标签页被静音而**什么都听不到** ——
+                     这种情况下所有自动检测都不触发，界面看起来一切正常。
+                     解法：让用户能随时点一下自检，并回答那个**只有他知道**的问题："你听到了吗？"。
+                     代码知道"引擎有没有说它念了"，用户知道"有没有声音"，两者一组合就能定位。
+                     入口在课堂开始 20 秒后才出现（避免打扰），一旦确认听到过就永久隐藏。 -->
+                <button class="tts-check-entry" id="tts-check-entry" hidden>🔇 没听到老师的声音？点这里自检</button>
+
+                <!-- 语音出问题时的**常驻**提示
                      为什么不用 toast：toast 2 秒就没了，而"整节课都没声音"是阻塞性问题 ——
-                     用户还没看清就消失，等于没提示（线上就是这种情况：报了 silent，
-                     但用户完全不知道发生了什么，只能说"没声音"）。
-                     这里常驻到"声音正常"或用户主动关掉，并且给一个能立刻点的「再试一次」。 -->
+                     用户还没看清就消失，等于没提示。这里常驻到"声音正常"或用户主动关掉。 -->
                 <div class="tts-notice" id="tts-notice" hidden>
                   <span class="tts-notice-ico" id="tts-notice-ico">🔇</span>
                   <div class="tts-notice-body">
                     <b id="tts-notice-title">老师的声音没出来</b>
                     <span id="tts-notice-why"></span>
+                    <!-- 自检结果 / "你听到了吗" 追问都渲染在这里 -->
+                    <div class="tts-notice-result" id="tts-notice-result" hidden></div>
                   </div>
-                  <button class="btn btn-sm" id="tts-notice-retry">再试一次</button>
+                  <div class="tts-notice-acts">
+                    <button class="btn btn-sm" id="tts-notice-check">语音自检</button>
+                    <button class="btn btn-sm" id="tts-notice-retry">再试一次</button>
+                  </div>
                   <button class="tts-notice-x" id="tts-notice-close" aria-label="关闭语音提示">✕</button>
                 </div>
 

@@ -2094,6 +2094,35 @@ small { font-size: 12px; }
    之前 11px/11.5px 共 79 处散落各处，中文在这个尺寸下笔画会糊，
    尤其学生多用手机、家长多用 1x 的办公屏。 */
 
+/* ── 语音自检入口（只在意"还没人确认听到过声音"时出现）────────────────
+   做成低调的文字按钮，不抢字幕的注意力；但不隐藏 ——
+   因为产品自己发现不了"引擎说念了、用户却没听到"这种情况，只能靠用户主动点。 */
+.tts-check-entry {
+  display: block; width: 100%; margin: 8px 0 0;
+  background: none; border: 1px dashed var(--line); border-radius: 10px;
+  padding: 7px 10px; font-size: 13px; color: var(--muted); cursor: pointer;
+  text-align: center; transition: all 0.18s;
+}
+.tts-check-entry:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft, rgba(91,92,230,0.06)); }
+html[data-theme="eye"] .tts-check-entry:hover { color: #B45309; border-color: #C86A2E; }
+
+/* 提示区右侧的动作按钮组（自检 + 再试一次） */
+.tts-notice-acts { flex: 0 0 auto; align-self: center; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+
+/* 自检结果 / "你听到了吗"追问 */
+.tts-notice-result { margin-top: 8px; }
+.tts-notice-result .tcr-q { font-weight: 600; margin-bottom: 6px; }
+.tts-notice-result .tcr-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.tts-notice-result .tcr-facts {
+  margin: 6px 0 0; padding: 8px 10px; border-radius: 8px;
+  background: rgba(0, 0, 0, 0.04); font-family: ui-monospace, Consolas, monospace;
+  font-size: 12px; line-height: 1.7; color: var(--text); white-space: pre-wrap; word-break: break-word;
+}
+html[data-theme="eye"] .tts-notice-result .tcr-facts { background: rgba(120, 80, 40, 0.08); }
+.tts-notice-result .tcr-todo { margin: 8px 0 0; padding-left: 18px; }
+.tts-notice-result .tcr-todo li { margin: 3px 0; }
+.tts-notice-result .tcr-ok { color: #15803D; font-weight: 600; }
+
 /* ── 语音问题常驻提示 ─────────────────────────────────────────
    与 toast 的区别：toast 是"通知"，这里是"故障说明 + 补救入口"，
    所以它常驻、带一个能立刻点的动作、并且在声音恢复后自己消失。 */
@@ -2107,7 +2136,6 @@ small { font-size: 12px; }
 .tts-notice-body { flex: 1 1 auto; min-width: 0; }
 .tts-notice-body b { display: block; font-size: 14px; margin-bottom: 3px; }
 .tts-notice-body span { display: block; color: #9A3412; word-break: break-word; }
-.tts-notice .btn { flex: 0 0 auto; align-self: center; }
 .tts-notice-x {
   flex: 0 0 auto; align-self: flex-start; background: none; border: 0; cursor: pointer;
   color: #B45309; font-size: 14px; line-height: 1; padding: 6px 4px; margin: -4px -2px;
@@ -2119,7 +2147,8 @@ html[data-theme="eye"] .tts-notice-body span { color: #7A4A22; }
 html[data-theme="eye"] .tts-notice-x { color: #8A5726; }
 @media (max-width: 620px) {
   .tts-notice { flex-wrap: wrap; }
-  .tts-notice .btn { width: 100%; justify-content: center; margin-top: 4px; }
+  .tts-notice-acts { width: 100%; justify-content: stretch; }
+  .tts-notice-acts .btn { flex: 1 1 auto; justify-content: center; }
 }
 
 /* ============ 登录 / 注册弹窗 ============ */
