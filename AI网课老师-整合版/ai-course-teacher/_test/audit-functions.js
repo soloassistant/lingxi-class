@@ -1,6 +1,10 @@
 const fs = require('fs');
 const path = require('path');
-const BASE = 'C:/Users/geral/WorkBuddy/2026-09-23-06-38-38/ai-course-teacher';
+/* ★ 2026-09-28 修：原来硬编码了**本机绝对路径**（指向一个早已不存在的工作区目录）——
+   脚本一跑就 ENOENT；而且把用户名与本地目录结构写进仓库、公开出去也不合适
+   （我自己的审计报告 R8 早就标注"改为相对路径"，一直没改，这里补上）。
+   改为**相对本文件**推导，从此换机器、换目录都不用改。 */
+const BASE = path.resolve(__dirname, '..');
 
 const cfDir = BASE + '/cloudfunctions';
 const cfs = fs.readdirSync(cfDir).filter(d => fs.existsSync(path.join(cfDir, d, 'index.js')));

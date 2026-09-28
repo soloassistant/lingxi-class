@@ -1,0 +1,40 @@
+name: tests
+
+# 1796 项断言原本只能在本地手动跑（`node tests/run-all.js`），
+# 而项目是纯静态站、没有构建步骤 —— 一旦有人改坏，没有任何自动拦截。
+# 这里把它接到 push / PR 上。
+#
+# 说明：
+#   · 只跑 `run-all.js` 里那 12 个纯本地 jsdom 测试（秒级、不需要浏览器与网络）
+#   · `--online` 那套（tests/selfcheck.js，用 playwright 打已部署站点）**故意不放在这里**：
+#     它依赖外网与真实部署，放进来会让 CI 变慢且在 fork/PR 上不可靠
+#   · 只依赖 jsdom 一个包
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: _extract/lingxi-class/ai-live-class
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: _extract/lingxi-class/ai-live-class/package-lock.json
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: 跑测试
+        run: npm test
+
+      - name: 代码接线审计（重复 id / 死指针 / 未定义 CSS 变量）
+        run: npm run audit
