@@ -1042,17 +1042,62 @@ function authErr(e) {
   return raw || '操作失败，请重试';
 }
 
+/* ── 登录门禁（2026-09-28，按产品要求）────────────────────────────
+   要求原话：「**未登录不允许跑（跳出登录界面）**」。
+   即：未登录时进来就弹登录界面，且**不允许绕过去使用**。
+
+   为什么要有 state.loginGate 这个开关、而不是"直接把弹窗设成不可关"：
+   同一个弹窗在两种场景下语义完全不同 ——
+     · 用户主动点「登录 / 注册」（或课程列表里的登录链接）→ 是个**可关的**弹窗，点✕/点遮罩就该关掉；
+     · 未登录进站被门禁拦住 → **必须登录**，关掉等于绕过门禁。
+   所以用开关区分，而不是把关闭能力永远拿掉。
+
+   同时要**堵掉三条绕过路径**：✕ 关闭、点遮罩关闭、以及「按访客继续」按钮
+   （产品明确"没有游客模式"，这个后门必须隐藏 —— 只禁用不隐藏会让人以为还能用）。 */
+let loginGateOn = false;
+function isSignedIn() { return !!(state.user && !state.user.anonymous); }
+
+/* 清掉/恢复门禁态下的绕过入口可见性 */
+function setGateBypassesHidden(hidden) {
+  ['#au-skip', '#btn-auth-close'].forEach((sel) => {
+    const el = $(sel);
+    if (el) el.hidden = !!hidden;
+  });
+  const tip = $('#au-gate-tip');
+  if (tip) tip.hidden = !hidden;      // 门禁态下显示"需要登录后才能使用"的说明
+}
+
 function openAuthModal() {
   const m = $('#auth-modal');
   if (!m) return;
   authMsg('');
   m.hidden = false;
+  if (loginGateOn) setGateBypassesHidden(true);
   const e1 = $('#au-pw-email');
   if (e1) setTimeout(() => { try { e1.focus(); } catch (_) {} }, 60);
 }
 function closeAuthModal() {
+  /* 门禁期间不允许关闭 —— 关掉就等于"未登录也能用"，与要求相反。
+     （点击遮罩、按 Esc、点✕ 都会走到这里，一处拦住即可覆盖全部路径。） */
+  if (loginGateOn && !isSignedIn()) return;
   const m = $('#auth-modal');
   if (m) m.hidden = true;
+}
+
+/* 登录成功后自动解除门禁，并恢复弹窗的正常关闭行为 */
+function releaseLoginGate() {
+  if (!loginGateOn) return;
+  loginGateOn = false;
+  setGateBypassesHidden(false);
+}
+
+/* 未登录则亮出登录界面并锁住。登录成功后由 auth 回调调用 releaseLoginGate() 解除。
+   ★ 必须在 initAuth() **完成之后**再判断：会话恢复是异步的，
+     提前弹窗会让已登录用户在刷新时先看到一次登录界面（闪一下，很难看也很吓人）。 */
+function enforceLoginGate() {
+  if (isSignedIn()) { releaseLoginGate(); return; }
+  loginGateOn = true;
+  openAuthModal();
 }
 
 function switchAuthTab(name) {
@@ -1218,6 +1263,8 @@ async function initAuth() {
         if (u) {
           state.user = mergeUser(state.user, u);
           authUI();
+          // ★ 登录成功 → 解除登录门禁，登录界面恢复成"可关闭的普通弹窗"
+          if (isSignedIn()) { releaseLoginGate(); try { closeAuthModal(); } catch (_) {} }
           // 资料不完整时异步补一次，不阻塞回调
           if (!state.user.email && !state.user.phone) {
             fetchAuthUser().then((full) => {
@@ -1245,12 +1292,36 @@ function continueAsGuest() {
 function bindAuthEvents() {
   const btnAuth = $('#btn-auth');
   if (btnAuth) btnAuth.addEventListener('click', () => {
-    if (state.user && !state.user.anonymous) {
+    if (isSignedIn()) {
       if (window.confirm('要退出登录吗？退出后灵犀老师将暂时不再跨课程记住你（记忆仍在云端，重新登录即可恢复）。')) doSignOut();
     } else {
       openAuthModal();
     }
   });
+  /* 登录界面上的"先测一下设备能不能出声"：设备/音量/静音开关的问题与账号无关，
+     让用户在还没登录时就能先确认，省得登录后才发现没声音又回头怀疑产品。
+     它只做一次本地发声实测，不提供任何产品功能，不构成绕过登录门禁。 */
+  const auSound = $('#au-soundtest');
+  if (auSound && !auSound._bound) {
+    auSound._bound = true;
+    auSound.addEventListener('click', (ev) => {
+      ev.preventDefault();
+      runTTSSelfCheck(false);        // 复用课堂那条的渲染落点（提示区），
+                                     // 登录界面本身也会显示结果，用户不必进课堂
+      const box = $('#tts-notice-result');
+      if (box) {
+        try { box.scrollIntoView({ block: 'nearest' }); box.style.display = ''; } catch (_) {}
+      }
+      /* 提示区在登录弹窗**后面**，会被遮住 → 把结果搬到登录界面里显示。
+         做法：把整块提示区临时移到弹窗内（测完不影响其它逻辑，因为选择器都还在）。 */
+      const notice = $('#tts-notice');
+      const slot = $('#au-soundtest-result');
+      if (notice && slot && notice.parentNode !== slot) {
+        slot.hidden = false;
+        slot.appendChild(notice);
+      }
+    });
+  }
   const c1 = $('#btn-auth-close');
   if (c1) c1.addEventListener('click', closeAuthModal);
   const c2 = $('#au-skip');
@@ -11686,7 +11757,10 @@ function init() {
   safeInit('restoreGuidePref', restoreGuidePref);
   // 账号与长期记忆：异步恢复会话，失败不影响页面
   safeInit('authUI', authUI);
-  initAuth().catch((e) => { console.warn('[init] initAuth 失败:', e); renderMemoryView(); });
+  initAuth().catch((e) => { console.warn('[init] initAuth 失败:', e); renderMemoryView(); })
+    /* ★ 登录门禁：等会话恢复**结束之后**再判定，否则已登录用户刷新时会先闪一下登录界面。
+       要求原话：「未登录不允许跑（跳出登录界面）」—— 未登录就亮出登录界面并锁住。 */
+    .finally(() => { try { enforceLoginGate(); } catch (e) { console.warn('[init] 登录门禁失败:', e); } });
 
   /* 开屏收尾：页面该绑的都绑好了，立刻把开屏收掉，让用户进得来。
      云服务/模型目录是异步的，**不能拿它当"加载完成"的门槛**（慢网下会很晚），

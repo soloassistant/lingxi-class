@@ -2202,6 +2202,17 @@ html[data-theme="eye"] .tts-notice-x { color: #8A5726; }
 .auth-note { font-size: 12px; color: var(--muted); margin: 14px 0 0; text-align: center; line-height: 1.6; }
 .auth-note a { color: var(--text-2); text-decoration: underline; }
 
+/* 登录门禁说明：未登录进站时显示 —— 明确"必须登录"，而不是让用户以为是可选弹窗 */
+.auth-gate-tip {
+  margin: 0 0 12px; padding: 9px 12px; border-radius: 10px;
+  background: #FFF7ED; border-left: 3px solid #F97316;
+  font-size: 13px; line-height: 1.6; color: #7C2D12;
+}
+html[data-theme="eye"] .auth-gate-tip { background: #F6EBDC; border-left-color: #C86A2E; color: #6B3A16; }
+/* 登录界面上的试音入口（未登录时唯一的页面；测设备与账号无关，所以放在这里） */
+.auth-soundtest { margin-top: 6px; }
+#au-soundtest-result:not([hidden]) { margin-top: 8px; text-align: left; }
+
 /* 导航栏用户态 */
 .user-chip {
   display: inline-flex; align-items: center; gap: 7px; padding: 5px 11px 5px 6px;

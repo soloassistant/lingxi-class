@@ -2339,6 +2339,33 @@ setTimeout(async () => {
   t('AC5 自检报告里不出现完整邮箱（会被截图转发）',
     /replace\(\/\^\(\.\{1,2\}\)\[\^@\]\*\(@\.\*\)\$\/, '\$1\*\*\*\$2'\)/.test(srcTR));
 
+  console.log('\n=== 47. 未登录硬门禁（产品要求：未登录不允许跑）===');
+  /* ★ 要求原话：「未登录不允许跑（跳出登录界面）」。
+     注意这条**不是 bug 修复，是产品策略** —— 与之前几轮做的"让访客也能用"方向相反。
+     所以判据要盯住三件事：① 未登录会弹且锁住；② 三条绕过路径都被堵；③ 登录成功后自动解除。 */
+  t('GK1 有独立的门禁开关（同一个弹窗在"用户主动点"和"被门禁拦住"两种场景语义不同）',
+    /let loginGateOn = false;/.test(srcTR) && /function isSignedIn\(\)/.test(srcTR));
+  t('GK2 未登录时打开登录界面并锁住', /function enforceLoginGate\(\)/.test(srcTR) &&
+    /loginGateOn = true;[\s\S]{0,80}?openAuthModal\(\)/.test(srcTR));
+  t('GK3 ★ 门禁期间不允许关闭（点✕/点遮罩都得走到这里，一处即覆盖全部路径）',
+    /function closeAuthModal\(\) \{[\s\S]{0,200}?if \(loginGateOn && !isSignedIn\(\)\) return;/.test(srcTR));
+  t('GK4 ★「先以访客身份继续」在门禁态被隐藏（产品明确"没有游客模式"）', (() => {
+    const seg = srcTR.slice(srcTR.indexOf('function setGateBypassesHidden'));
+    const body = seg.slice(0, 520);
+    return /\[\s*'#au-skip',\s*'#btn-auth-close'\s*\]/.test(body) && /el\.hidden = !!hidden/.test(body);
+  })());
+  t('GK5 门禁态下显示"必须登录"的说明（免得用户去找✕关不掉更困惑）',
+    /id="au-gate-tip"/.test(htmlCheck) && /需要登录后使用/.test(htmlCheck));
+  t('GK6 ★ 登录成功后自动解除门禁（否则登录完还锁着）',
+    /if \(isSignedIn\(\)\) \{ releaseLoginGate\(\); try \{ closeAuthModal\(\); \} catch \(_\) \{\} \}/.test(srcTR));
+  t('GK7 ★ 门禁在 initAuth() 之后才判定（会话恢复是异步的，提前弹会让已登录用户闪一下登录界面）',
+    /finally\(\(\) => \{ try \{ enforceLoginGate\(\)/.test(srcTR) &&
+    /initAuth\(\)\.catch\([\s\S]{0,200}?\.finally\(\(\) => \{ try \{ enforceLoginGate\(\)/.test(srcTR));
+  t('GK8 登录界面上保留了"先测设备能不能出声"（听不到声音与账号无关，不该被门禁挡住）',
+    /id="au-soundtest"/.test(htmlCheck) && /\$\('#au-soundtest'\)/.test(srcTR));
+  t('GK9 试音入口写明它不构成绕过登录（只测设备，不提供产品功能）',
+    /不构成绕过登录/.test(srcTR) && /runTTSSelfCheck\(false\)/.test(srcTR));
+
   console.log('\n=== 14. 结束课堂清理 ===');
   try { window.endLiveSilent(); t('endLiveSilent 无异常', true); }
   catch (e) { t('endLiveSilent 无异常', false, e.message); }

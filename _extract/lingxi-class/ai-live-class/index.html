@@ -753,6 +753,13 @@
       <p class="auth-lead">登录后灵犀老师会跨课程记住你的薄弱点、偏好和进度。
         同一账号，换设备也能接着上。</p>
 
+      <!-- 未登录进站时的门禁说明（只在门禁态显示）——
+           明确告诉用户"这是必须登录"，而不是让他以为是可选弹窗，
+           免得他去找✕关掉却关不掉（那时更困惑）。 -->
+      <p class="auth-gate-tip" id="au-gate-tip" hidden>
+        🔒 本产品需要登录后使用，请先完成登录 / 注册。
+      </p>
+
       <div class="auth-tabs">
         <button class="auth-tab active" data-auth-tab="phone">手机号登录</button>
         <button class="auth-tab" data-auth-tab="password">邮箱登录</button>
@@ -830,6 +837,18 @@
       </label>
 
       <p class="auth-note"><a href="#" id="au-skip">先以访客身份继续</a>（老师不会记住你）</p>
+
+      <!-- ★ 登录界面上的"先测一下设备能不能出声"（2026-09-28）
+           为什么放在这里：产品要求「未登录不允许跑」，所以登录界面成了**唯一**的入口页。
+           而"听不到老师的声音"这件事**本来就和账号无关**（是设备/浏览器/音量的问题）。
+           把它放在这里，用户可以在**还没登录、也还没进课堂**的时候先确认自己的设备有没有声音 ——
+           否则一旦登录后才发现没声音，又要回头怀疑是产品坏了。
+           注意：它只是"测设备"，不提供任何产品功能，不构成绕过登录。 -->
+      <p class="auth-note auth-soundtest">
+        <a href="#" id="au-soundtest">🔈 先测一下这台设备能不能出声</a>
+      </p>
+      <!-- 试音结果就显示在这里（运行时会把语音提示区临时搬进来） -->
+      <div id="au-soundtest-result" hidden></div>
     </div>
   </div>
 </div>
