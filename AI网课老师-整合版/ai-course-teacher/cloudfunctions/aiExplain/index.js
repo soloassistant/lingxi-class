@@ -11,16 +11,23 @@ exports.main = async (event) => {
     '；正确答案：' + (correctAnswer || '') +
     '；标准解析：' + (explanation || '');
 
-  const ai = await cloud.callFunction({ name: 'aiProxy', data: { prompt } }).catch(() => null);
+  /* ★ 2026-09-29 修（外部审查 R13）：
+     ① 本函数的提示词要的是**口语化讲解**（「讲解要口语化、有条理」），
+        而 aiProxy 原来无条件强制 JSON —— 契约相反。
+        现在显式声明 format:'text'。
+     ② 只认一个字段 `text`（原来是 explanation || content || text 蒙一个）。
+     ③ 失败**不冒充成功**：回退到标准解析时带 `fallback: true`，
+        让前端能如实说"这是标准解析，不是 AI 讲解"，而不是把两者混为一谈。 */
+  const ai = await cloud.callFunction({ name: 'aiProxy', data: { prompt, format: 'text' } }).catch(() => null);
 
-  if (ai && ai.result && ai.result.code === 0 && ai.result.data) {
-    return {
-      code: 0,
-      data: {
-        content: ai.result.data.explanation || ai.result.data.content || ai.result.data.text || ''
-      }
-    };
+  if (ai && ai.result && ai.result.code === 0 && typeof ai.result.text === 'string' && ai.result.text.trim()) {
+    return { code: 0, data: { content: ai.result.text.trim() }, fallback: false };
   }
 
-  return { code: 0, data: { content: explanation || 'AI 暂时无法生成讲解，请参考标准解析。' } };
+  return {
+    code: 0,
+    data: { content: explanation || 'AI 暂时无法生成讲解，请参考标准解析。' },
+    fallback: true,
+    msg: 'AI 讲解生成失败，已退回标准解析'
+  };
 };

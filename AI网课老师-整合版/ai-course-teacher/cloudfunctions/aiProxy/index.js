@@ -60,6 +60,23 @@ exports.main = async (event) => {
     process.env.AI_MODEL_SECONDARY || 'gpt-4o-mini'
   ];
 
+  /* ============================================================
+     输出格式契约（外部审查 R13）
+     ------------------------------------------------------------
+     原状：这里**无条件**要求 JSON（system 里写"Always output valid JSON only"，
+     还带 response_format: json_object，并对返回做 JSON.parse）。
+     可是打断问答（aiInterject）与答案解析（aiExplain）的提示词明确写着
+     「不要输出 JSON」「讲解要口语化」—— 两边在互相下相反的命令。
+     后果：模型要么被 system 压成 JSON（然后调用方去**猜**字段名
+     reply/answer/text/content），要么真的输出散文、JSON.parse 直接抛错。
+
+     现在的契约（调用方必须显式选一种，只有两种）：
+       format: 'json'（默认）→ 返回 { code:0, data: <解析后的对象> }
+       format: 'text'        → 返回 { code:0, text: <纯文本> }
+     猜字段名的兜底链一并去掉：一个功能一个字段，不再"四个里蒙一个"。
+     ============================================================ */
+  const wantText = String(event.format || 'json') === 'text';
+
   if (keys.length === 0) {
     return { code: 503, msg: 'AI 密钥未配置', fallback: event.fallback || null };
   }
@@ -118,15 +135,19 @@ exports.main = async (event) => {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + keys[i]
         },
-        body: JSON.stringify({
+        body: JSON.stringify(Object.assign({
           model: models[i],
           messages: [
-            { role: 'system', content: 'You are a strict tutor. Always output valid JSON only, no markdown.' },
+            {
+              role: 'system',
+              content: wantText
+                ? 'You are a patient teacher. Reply in plain text only — no JSON, no markdown fences, no code blocks.'
+                : 'You are a strict tutor. Always output valid JSON only, no markdown.'
+            },
             { role: 'user', content: event.prompt || '' }
           ],
-          temperature: 0.2,
-          response_format: { type: 'json_object' }
-        }),
+          temperature: 0.2
+        }, wantText ? {} : { response_format: { type: 'json_object' } })),
         signal: controller.signal
       });
 
@@ -135,6 +156,16 @@ exports.main = async (event) => {
          而"拿到响应头"不等于"拿到结果"。定时器统一在 finally 里清。 */
       const json = await res.json();
       const content = json.choices && json.choices[0] && json.choices[0].message.content;
+
+      /* ★ R13：两条契约各自返回**唯一确定的形状**，调用方不再猜字段。 */
+      if (wantText) {
+        const text = String(content == null ? '' : content).replace(/^```[a-z]*\n?|```$/g, '').trim();
+        if (!text) throw new Error('empty text content');
+        failCount = 0;
+        await incrementCount(OPENID);
+        return { code: 0, text };
+      }
+
       const parsed = JSON.parse(content);
 
       failCount = 0; // 成功，重置

@@ -130,6 +130,17 @@
         <view class="chat-row chat-ai" wx:if="{{aiReplyLoading}}">
           <text class="chat-bubble">AI 思考中…</text>
         </view>
+        <!-- ★ 2026-09-29 修（外部审查 R13）：失败要**看得出来是失败**，并给一个重试入口。
+             原来把「AI 暂不可用」当成老师的回答渲染成气泡 —— 学生分不出
+             "老师回答了这句话"和"这次没成功"；而且那句错误文案还会被当成历史
+             传给下一轮。现在单独一张错误卡，并明确说明"这不是老师的回答"。 -->
+        <view class="chat-row chat-ai" wx:if="{{aiError}}">
+          <view class="chat-error">
+            <text class="chat-error-text">{{aiError}}</text>
+            <text class="chat-error-note">（这不是老师的回答，只是这次没能收到回复）</text>
+            <view class="chat-error-btn" bindtap="retryAsk">重试一次</view>
+          </view>
+        </view>
       </scroll-view>
       <textarea class="ask-input" placeholder="输入你的问题…" value="{{askText}}" bindinput="onAskInput" maxlength="200"></textarea>
       <view class="ask-btns">

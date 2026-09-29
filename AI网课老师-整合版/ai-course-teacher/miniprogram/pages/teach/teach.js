@@ -19,6 +19,9 @@ Page({
     askText: '',
     aiReply: '',
     aiReplyLoading: false,
+    /* ★ R13：区分"老师的回答"与"刚才那次没成功"。错误不再伪装成老师的回答。 */
+    aiError: '',
+    lastAsk: '',
     chatHistory: [],
     aiMode: false,
     aiLoading: false,
@@ -163,7 +166,8 @@ Page({
       content: h.content
     }));
     const chatHistory = this.data.chatHistory.concat([{ role: 'user', content: question }]);
-    this.setData({ aiReplyLoading: true, chatHistory, askText: '' });
+    /* lastAsk 留一份，供"重试"用；aiError 先清空（新一轮提问不该带着上一次的错误） */
+    this.setData({ aiReplyLoading: true, chatHistory, askText: '', lastAsk: question, aiError: '' });
     track('ai_interject', { itemId: this.data.item.id });
     wx.cloud.callFunction({
       name: 'aiInterject',
@@ -174,16 +178,39 @@ Page({
         history
       }
     }).then(res => {
-      const reply = (res.result && res.result.code === 0 && res.result.reply) || 'AI 暂不可用';
+      const r = (res && res.result) || {};
+      /* ★ 2026-09-23 修（外部审查 R13）：
+         原来失败时把「AI 暂不可用」当成**老师的回答**塞进 aiReply 与 chatHistory ——
+         学生看到的是"老师说了这句话"，而且它会作为上下文传给下一轮、被当成教学内容。
+         现在失败分开处理：显示可重试的错误气泡，message 明确说"这不是老师的回答"，
+         并且**不写进 chatHistory**（否则下一轮会把错误提示喂给模型）。 */
+      if (r.code !== 0 || !r.reply) {
+        this.setData({
+          aiReplyLoading: false,
+          aiError: r.msg || '老师暂时没能回答，请稍后再问一次'
+        });
+        track('ai_interject_failed', { itemId: this.data.item.id, code: r.code || 0 });
+        return;
+      }
+      const reply = r.reply;
       this.setData({
         aiReply: reply,
+        aiError: '',
         aiReplyLoading: false,
         chatHistory: this.data.chatHistory.concat([{ role: 'assistant', content: reply }])
       });
     }).catch(() => {
-      this.setData({ aiReplyLoading: false });
+      this.setData({ aiReplyLoading: false, aiError: '网络异常，请检查网络后重试' });
       wx.showToast({ title: '网络异常', icon: 'none' });
     });
+  },
+
+  /* 重试上一次提问（失败后给了可重试的入口，而不是让学生重新打一遍字） */
+  retryAsk() {
+    const q = this.data.lastAsk;
+    if (!q) return;
+    this.setData({ aiError: '' });
+    this.ask(q);
   },
 
   next() {
