@@ -42,7 +42,7 @@
     <!-- 统计 -->
     <view class="stat-grid">
       <view class="stat-item">
-        <view class="stat-num">{{stats.days}}</view>
+        <view class="stat-num">{{stats.days}}{{streakIsLowerBound ? '+' : ''}}</view>
         <view class="stat-label">连续学习天数</view>
       </view>
       <view class="stat-item">
@@ -54,10 +54,13 @@
         <view class="stat-label">待复习错题</view>
       </view>
       <view class="stat-item">
-        <view class="stat-num">{{accuracy}}%</view>
+        <!-- ★ R11：没有作答记录时显示 "—"，不显示 0%。
+             0% 是"做过题且全错"，与实际含义不同。 -->
+        <view class="stat-num">{{accuracy === null ? '—' : accuracy + '%'}}</view>
         <view class="stat-label">答题正确率</view>
       </view>
     </view>
+    <view class="stat-note" wx:if="{{accuracyNote}}">{{accuracyNote}}</view>
 
     <!-- 学情周报（对标学而思学情周报推送） -->
     <view class="weekly-card">
@@ -77,7 +80,8 @@
             <view class="weekly-label">学习天数</view>
           </view>
           <view class="weekly-item">
-            <view class="weekly-num">{{weekly.accuracy}}%</view>
+            <!-- ★ R11：本周没有判定过的作答时，正确率是"暂无"，不是 0% -->
+            <view class="weekly-num">{{weekly.accuracy === null || weekly.accuracy === undefined ? '—' : weekly.accuracy + '%'}}</view>
             <view class="weekly-label">正确率</view>
           </view>
           <view class="weekly-item">

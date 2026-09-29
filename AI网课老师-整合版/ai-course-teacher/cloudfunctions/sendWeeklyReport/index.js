@@ -102,33 +102,40 @@ exports.main = async (event) => {
 /* ------------------------- 周报内容生成 ------------------------- */
 
 async function buildWeeklyReport(openid, weekStart, now, weekKey) {
-  const [progress, wrongs, checkins, learner] = await Promise.all([
+  /* ★ R11（2026-09-29）：本周的学习天数与正确率改由**作答事实事件**派生。
+     原来读的是 checkins —— 那个集合全仓没有任何写入路径，
+     所以 studyDays 恒为 0；正确率则拿 wrong_books 的当前状态反推历史
+     （首次答对不在样本内、毕业错题被排除、再次答错会重置 rightCount）。
+     两个数在订阅消息里直接推给学生，不能是"看起来像真的"的 0。 */
+  const [progress, wrongs, events, learner] = await Promise.all([
     db.collection('progress')
       .where({ openid, updateTime: _.gte(weekStart) })
       .limit(1000).get().catch(() => ({ data: [] })),
     db.collection('wrong_books')
       .where({ openid }).limit(500).get().catch(() => ({ data: [] })),
-    db.collection('checkins')
-      .where({ openid, createTime: _.gte(weekStart) })
-      .limit(200).get().catch(() => ({ data: [] })),
+    db.collection('answer_events')
+      .where({ openid, ts: _.gte(weekStart.getTime()) })
+      .limit(1000).get().catch(() => ({ data: [] })),
     db.collection('learners').doc(openid).get().catch(() => null)
   ]);
 
   // 本周新学知识点
   const learnedThisWeek = progress.data.length;
-  // 本周打卡天数（去重）
+
+  // 本周学习天数（按北京时间自然日去重；事件的 dayKey 已在写入时算好）
   const daySet = {};
-  checkins.data.forEach(c => {
-    const d = new Date(c.createTime);
-    daySet[`${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`] = true;
+  events.data.forEach(e => {
+    const k = e.dayKey || bjDayKey(e.ts || Date.now());
+    daySet[k] = true;
   });
   const studyDays = Object.keys(daySet).length;
 
-  // 本周正确率：取 wrong_books 中本周有更新的记录
-  const weekWrongs = wrongs.data.filter(w => isInWeek(w.updateTime || w.createTime, weekStart));
-  const attempts = weekWrongs.reduce((s, w) => s + (w.wrongCount || 0) + (w.rightCount || 0), 0);
-  const correct = weekWrongs.reduce((s, w) => s + (w.rightCount || 0), 0);
-  const accuracy = attempts > 0 ? Math.round(correct / attempts * 100) : 0;
+  // 本周正确率：只算服务端判定过的作答（graded !== false），自评不进分子分母
+  const gradedEvents = events.data.filter(e => e.graded !== false);
+  const attempts = gradedEvents.length;
+  const correct = gradedEvents.filter(e => e.correct).length;
+  // 没有作答记录时返回 null，由调用方决定怎么显示 —— 不谎报 0%
+  const accuracy = attempts > 0 ? Math.round(correct / attempts * 100) : null;
 
   // 待复习错题 + 薄弱点
   const pending = wrongs.data.filter(w => w.status === 'reviewing');
@@ -155,6 +162,9 @@ async function buildWeeklyReport(openid, weekStart, now, weekKey) {
     learnedThisWeek,
     studyDays,
     accuracy,
+    // 把样本量一起落库：只给一个百分数，读到的人无法判断它有没有依据
+    attempts,
+    correctAttempts: correct,
     pendingWrongs: pending.length,
     level,
     levelName,
@@ -245,10 +255,14 @@ async function saveReport(openid, weekKey, report) {
   }
 }
 
-function isInWeek(t, weekStart) {
-  if (!t) return false;
-  const d = new Date(t);
-  return d.getTime() >= weekStart.getTime();
+/* ★ R11：北京时间日键。
+   云函数跑在 UTC，事件里的 dayKey 在写入时已按 +8 算好；
+   这里只对少数没有 dayKey 的旧数据兜底，口径必须与写入端一致。 */
+function bjDayKey(ms) {
+  const bj = new Date(ms + 8 * 3600 * 1000);
+  return bj.getUTCFullYear() + '-' +
+    String(bj.getUTCMonth() + 1).padStart(2, '0') + '-' +
+    String(bj.getUTCDate()).padStart(2, '0');
 }
 
 // 本周一 00:00（北京时间）

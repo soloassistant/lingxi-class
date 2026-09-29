@@ -3,6 +3,51 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const coll = db.collection('wrong_books');
 
+/* ===== ★ R11（2026-09-29）：复习作答也留作答事实事件 =====
+   只有**真正被计入**的作答才落事件，与服务端状态机保持一致：
+     · duplicated（同一次作答重放）→ 不落，否则重试会把正确率刷高；
+     · tooEarly（没到复习时间，本次不计入晋级）→ 不落，
+       否则连点就能把"答对率"刷成 100%。
+   也就是说：正确率统计的是**被接受为评分依据的作答**，
+   这与产品的评分口径一致，而不是"点了几次按钮"。 */
+const BJ_OFFSET_MS = 8 * 3600 * 1000;
+
+function bjDayKey(ms) {
+  const bj = new Date(ms + BJ_OFFSET_MS);
+  return bj.getUTCFullYear() + '-' +
+    String(bj.getUTCMonth() + 1).padStart(2, '0') + '-' +
+    String(bj.getUTCDate()).padStart(2, '0');
+}
+
+async function recordAnswerEvent(ev) {
+  const now = Date.now();
+  const data = {
+    openid: ev.openid,
+    itemId: ev.itemId || '',
+    courseId: ev.courseId || '',
+    correct: !!ev.correct,
+    graded: ev.graded !== false,
+    source: ev.source || 'review',
+    attemptId: ev.attemptId || '',
+    dayKey: bjDayKey(now),
+    ts: now,
+    createTime: db.serverDate()
+  };
+  try {
+    await db.collection('answer_events').add({ data });
+    return true;
+  } catch (e) {
+    await db.createCollection('answer_events').catch(() => {});
+    try {
+      await db.collection('answer_events').add({ data });
+      return true;
+    } catch (e2) {
+      console.error('[answer_events] 写入失败，本次作答未计入统计:', e2 && e2.message);
+      return false;
+    }
+  }
+}
+
 // 间隔重复阶梯：答对一次晋级，到 30 天视为已掌握（对标 Anki/扇贝 遗忘曲线）
 const INTERVALS = [1, 3, 7, 15, 30];
 
@@ -69,6 +114,10 @@ exports.main = async (event) => {
             lastReviewTime: db.serverDate()
           }
         });
+        await recordAnswerEvent({
+          openid: OPENID, itemId, courseId: doc.courseId || '', correct: true,
+          source: 'review', attemptId
+        });
         return { code: 0, resolved: true, interval };
       }
       const nextMs = Date.now() + interval * 86400000;
@@ -82,6 +131,10 @@ exports.main = async (event) => {
           lastReviewTime: db.serverDate(),
           nextReviewTime: new Date(nextMs)
         }
+      });
+      await recordAnswerEvent({
+        openid: OPENID, itemId, courseId: doc.courseId || '', correct: true,
+        source: 'review', attemptId
       });
       return { code: 0, resolved: false, interval };
     }
@@ -128,5 +181,9 @@ exports.main = async (event) => {
       }
     });
   }
+  await recordAnswerEvent({
+    openid: OPENID, itemId, courseId: (doc && doc.courseId) || event.courseId || '',
+    correct: false, source: 'review', attemptId
+  });
   return { code: 0, resolved: false };
 };

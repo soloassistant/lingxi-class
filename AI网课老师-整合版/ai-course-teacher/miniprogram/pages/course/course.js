@@ -41,9 +41,12 @@ Page({
 
   markLearned(e) {
     const knowledgeId = e.currentTarget.dataset.id;
+    /* ★ R11：这是**学生自评**"我已掌握"，不是客观判定。
+       graded:false 把它挡在正确率之外 —— 自评是学习信号，不是答对证据。
+       否则学生点几下"我已掌握"就能把答题正确率刷满。 */
     wx.cloud.callFunction({
       name: 'saveProgress',
-      data: { itemId: knowledgeId, courseId: this.data.courseId }
+      data: { itemId: knowledgeId, courseId: this.data.courseId, graded: false, source: 'self_mark' }
     });
   }
 });

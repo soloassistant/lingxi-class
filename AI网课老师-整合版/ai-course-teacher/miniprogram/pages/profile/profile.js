@@ -168,9 +168,11 @@ Page({
         wx.hideLoading();
         if (res.result && res.result.code === 0) {
           const d = res.result;
+          // ★ R11：不再报"打卡 N 条"——checkins 没有任何写入路径，那个数恒为 0。
+          //   改成真正在写的作答事实事件，并区分"客观判定"与"自评"。
           wx.showModal({
             title: '导出完成',
-            content: `学习进度 ${d.summary.progressCount} 条、错题 ${d.summary.wrongCount} 条、打卡 ${d.summary.checkinCount} 条、作业 ${d.summary.homeworkCount} 条。已生成导出数据。`,
+            content: `学习进度 ${d.summary.progressCount} 条、错题 ${d.summary.wrongCount} 条、作答记录 ${d.summary.answerEventCount} 条（其中判定作答 ${d.summary.gradedAttemptCount} 条、自评 ${d.summary.selfMarkCount} 条）、作业 ${d.summary.homeworkCount} 条。已生成导出数据。`,
             confirmText: '复制',
             success: (r) => {
               if (r.confirm) {

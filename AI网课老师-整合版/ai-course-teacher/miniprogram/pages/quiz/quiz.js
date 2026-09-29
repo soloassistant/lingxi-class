@@ -150,6 +150,11 @@ Page({
     let correctCount = 0;
     const wrongList = [];
 
+    /* ★ R11：一次提交 = 一个作答令牌。
+       服务端据此做幂等：弱网重发 / 重试不会把同一题算两次，
+       正确率的样本量就不会因为网络重试而虚高。 */
+    const attemptId = 'q_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+
     questions.forEach((q, i) => {
       const a = answers[i];
       if (a === q.answerIndex) {
@@ -157,7 +162,7 @@ Page({
         if (app.globalData.hasLogin) {
           wx.cloud.callFunction({
             name: 'saveProgress',
-            data: { itemId: q.id, courseId: q.courseId }
+            data: { itemId: q.id, courseId: q.courseId, graded: true, source: 'quiz', attemptId }
           }).catch(() => {});
         }
       } else {
@@ -174,7 +179,9 @@ Page({
               answerIndex: q.answerIndex,
               userAnswer: a,
               explanation: q.explanation,
-              wrongType: '测评错题'
+              wrongType: '测评错题',
+              source: 'quiz',
+              attemptId
             }
           }).catch(() => {});
         }

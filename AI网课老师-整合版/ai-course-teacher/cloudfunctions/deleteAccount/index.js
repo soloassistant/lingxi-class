@@ -7,7 +7,10 @@ const db = cloud.database();
 const USER_COLLECTIONS = [
   'progress',            // 学习进度
   'wrong_books',         // 错题本
-  'checkins',            // 打卡记录
+  'answer_events',       // ★ R11：作答事实事件（每次作答一条）—— 必须随账号删除
+  'checkins',            // 打卡记录（仓内无写入路径，保留以清除历史遗留数据）
+  'analytics',           // ★ R04/R11：行为埋点（含 event/props/openid）—— 原列表漏了它，
+                         //   结果"真正在写的集合"反而不随账号删除
   'homework',            // 作业提交
   'homework_reviews',    // AI 作业讲评
   'learners',            // 学习者画像（体系/目标/定级）

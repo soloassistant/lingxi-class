@@ -3,6 +3,56 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const coll = db.collection('wrong_books');
 
+/* ===== ★ R11（2026-09-29）：本次答错也要留一条作答事实事件 =====
+   wrong_books 只保留"这道题错了几次"的**当前状态**：再次答错会重置 rightCount、
+   答对毕业会把 status 改成 resolved 从而被正确率分母排除。
+   所以它不是历史，不能用来反推正确率。每次作答一条的 answer_events 才是。
+   dayKey 在服务端按北京时间算好（云函数跑在 UTC），保证与仪表盘/周报口径一致。 */
+const BJ_OFFSET_MS = 8 * 3600 * 1000;
+
+function bjDayKey(ms) {
+  const bj = new Date(ms + BJ_OFFSET_MS);
+  return bj.getUTCFullYear() + '-' +
+    String(bj.getUTCMonth() + 1).padStart(2, '0') + '-' +
+    String(bj.getUTCDate()).padStart(2, '0');
+}
+
+async function recordAnswerEvent(ev) {
+  const now = Date.now();
+  const data = {
+    openid: ev.openid,
+    itemId: ev.itemId || '',
+    courseId: ev.courseId || '',
+    correct: !!ev.correct,
+    graded: ev.graded !== false,
+    source: ev.source || '',
+    attemptId: ev.attemptId || '',
+    dayKey: bjDayKey(now),
+    ts: now,
+    createTime: db.serverDate()
+  };
+  try {
+    // 带 attemptId 时幂等：同一次提交重放不能把"答错"重复计入（正确率会被拉低）
+    if (data.attemptId) {
+      const dup = await db.collection('answer_events')
+        .where({ openid: data.openid, itemId: data.itemId, attemptId: data.attemptId })
+        .limit(1).get().catch(() => ({ data: [] }));
+      if (dup.data && dup.data.length > 0) return true;
+    }
+    await db.collection('answer_events').add({ data });
+    return true;
+  } catch (e) {
+    await db.createCollection('answer_events').catch(() => {});
+    try {
+      await db.collection('answer_events').add({ data });
+      return true;
+    } catch (e2) {
+      console.error('[answer_events] 写入失败，本次作答未计入统计:', e2 && e2.message);
+      return false;
+    }
+  }
+}
+
 exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext();
   if (!OPENID) return { code: 1, msg: '未登录' };
@@ -57,7 +107,14 @@ exports.main = async (event) => {
         }
       });
     }
-    return { code: 0 };
+
+    // 事实事件：这次判定为"错"。attemptId 缺省为空串（quiz 页一次提交不重放，
+    // 幂等由调用方决定；带了就如实存下来，便于日后核对重复计数）。
+    const recorded = await recordAnswerEvent({
+      openid: OPENID, itemId, courseId, correct: false,
+      source: event.source || 'quiz', attemptId: event.attemptId || ''
+    });
+    return { code: 0, recorded };
   } catch (e) {
     return { code: 500, msg: e.message };
   }

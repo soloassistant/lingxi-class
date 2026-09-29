@@ -6,7 +6,11 @@ Page({
   data: {
     hasLogin: false,
     stats: { days: 0, done: 0, wrongs: 0 },
-    accuracy: 0,
+    // null = 还没有作答记录（不是 0%）
+    accuracy: null,
+    accuracySample: 0,
+    accuracyNote: '',
+    streakIsLowerBound: false,
     totalKnowledge: 0,
     mastery: 0,
     level: '',
@@ -94,9 +98,17 @@ Page({
       const learned = d.learned || 0;
       const total = this.data.totalKnowledge || 1;
       const mastery = Math.round(learned / total * 100);
+      /* ★ R11：正确率可能真的是"没有数据"。服务端此刻返回 null，
+         界面必须显示"—"，不能 `|| 0` 把它变成 0% ——
+         "答对率 0%" 和 "还没有作答记录" 是两句完全不同的话，
+         后者才是事实。同理，连续天数在被截断时只是下界。 */
+      const accuracy = (d.accuracy === null || d.accuracy === undefined) ? null : d.accuracy;
       this.setData({
         stats: { days: d.streak || 0, done: learned, wrongs: d.wrongCount || 0 },
-        accuracy: d.accuracy || 0,
+        accuracy,
+        accuracySample: d.accuracySample || 0,
+        accuracyNote: d.metricsNote || '',
+        streakIsLowerBound: !!d.streakIsLowerBound,
         mastery,
         achievements: d.achievements || [],
         weakPoints: d.weakPoints || [],

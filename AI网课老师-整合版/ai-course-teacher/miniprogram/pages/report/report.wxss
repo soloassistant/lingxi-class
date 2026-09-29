@@ -285,6 +285,18 @@
   margin-top: 8rpx;
 }
 
+/* ★ R11：正确率口径说明（样本量/为什么是"—"）。
+   指标必须能自解释，否则"正确率 0%"会被当成学习结果而不是"没有数据"。 */
+.stat-note {
+  margin-top: 16rpx;
+  padding: 14rpx 18rpx;
+  font-size: 24rpx;
+  line-height: 1.6;
+  color: #7a7f8a;
+  background: rgba(0, 229, 255, 0.06);
+  border-radius: 8rpx;
+}
+
 .section-title {
   font-size: 30rpx;
   font-weight: 600;

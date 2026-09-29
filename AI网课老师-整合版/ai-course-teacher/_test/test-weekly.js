@@ -53,6 +53,15 @@ function assert(cond, msg) {
 }
 function resetSend() { sentMessages.length = 0; }
 
+/* ★ R11：与云函数同口径的北京时间日键 + 事件序号（造作答事实事件用） */
+function bjDayKey(ms) {
+  const bj = new Date(ms + 8 * 3600 * 1000);
+  return bj.getUTCFullYear() + '-' +
+    String(bj.getUTCMonth() + 1).padStart(2, '0') + '-' +
+    String(bj.getUTCDate()).padStart(2, '0');
+}
+let evSeq = 0;
+
 // 本周一 00:00（北京时间）——与云函数同算法
 function weekStartMs() {
   const d = new Date();
@@ -83,7 +92,19 @@ async function run() {
   assert(r.code === 401, '未登录返回 401');
 
   console.log('\n=== 2. sendWeeklyReport：生成 + 推送 + 幂等 ===');
-  // 造数据：本周学 2 个知识点、打卡 2 天、3 道待复习错题（正确率 3/6）
+  /* ★ R11 更新：本周学习天数与正确率改由**作答事实事件**派生。
+     老 fixture 是照着旧口径造的（从 checkins 数天数、从 wrong_books 的
+     rightCount/wrongCount 反推正确率），这里换成造 answer_events，
+     并**故意保留** checkins 与 wrong_books 的旧数据做反向对照：
+     新口径必须完全忽略它们（见下面的反向断言）。 */
+  const evDay1 = bjDayKey(inWeek.getTime() + 12 * 3600 * 1000);
+  const evDay2 = bjDayKey(inWeek.getTime() + 86400000 + 12 * 3600 * 1000);
+  const mkEvent = (dayKey, correct, opts) => Object.assign({
+    openid: 'o_userA', itemId: 'ev_' + (++evSeq), courseId: 'math',
+    correct, graded: true, source: 'quiz', attemptId: '',
+    dayKey, ts: Date.parse(dayKey + 'T04:00:00Z'), createTime: new Date()
+  }, opts || {});
+
   db = createDb({
     subscriptions: [
       { openid: 'o_userA', templateId: 'TPL_WEEKLY', status: 'pending', createTime: new Date() },
@@ -94,20 +115,29 @@ async function run() {
       { openid: 'o_userA', itemId: 'k2', courseId: 'math', updateTime: inWeek },
       { openid: 'o_userA', itemId: 'k3', courseId: 'old', updateTime: lastWeek } // 上周，不计入
     ],
+    answer_events: [
+      // 两天、6 次判定作答、3 次对 → 正确率 50%，学习天数 2
+      mkEvent(evDay1, true), mkEvent(evDay1, true), mkEvent(evDay1, false),
+      mkEvent(evDay2, true), mkEvent(evDay2, false), mkEvent(evDay2, false),
+      // 自评：不进分子分母（否则正确率会变成 4/7）
+      mkEvent(evDay2, true, { graded: false, source: 'self_mark' })
+    ],
+    // 旧数据源，保留以证明新口径不再读它们
     checkins: [
       { openid: 'o_userA', createTime: inWeek },
       { openid: 'o_userA', createTime: new Date(inWeek.getTime() + 86400000) },
       { openid: 'o_userA', createTime: new Date(inWeek.getTime() + 86400000) } // 同天重复，去重
     ],
     wrong_books: [
-      // 3 道 reviewing：各 wrong1/right1 → 6 次作答、3 次对 = 50%
-      { openid: 'o_userA', courseId: 'math', courseName: '数学', status: 'reviewing', wrongCount: 1, rightCount: 1, updateTime: inWeek },
-      { openid: 'o_userA', courseId: 'math', courseName: '数学', status: 'reviewing', wrongCount: 1, rightCount: 1, updateTime: inWeek },
-      { openid: 'o_userA', courseId: 'eng', courseName: '英语', status: 'reviewing', wrongCount: 1, rightCount: 1, updateTime: inWeek },
-      // resolved 且上周更新：既不计入正确率，也不计入待复习
+      // 3 道 reviewing。这里**故意**把计数写成全对（right10/wrong0）：
+      // 老口径会据此报 100%，新口径必须仍报事件里的 50% —— 这就是判别点。
+      { openid: 'o_userA', courseId: 'math', courseName: '数学', status: 'reviewing', wrongCount: 0, rightCount: 10, updateTime: inWeek },
+      { openid: 'o_userA', courseId: 'math', courseName: '数学', status: 'reviewing', wrongCount: 0, rightCount: 10, updateTime: inWeek },
+      { openid: 'o_userA', courseId: 'eng', courseName: '英语', status: 'reviewing', wrongCount: 0, rightCount: 10, updateTime: inWeek },
+      // resolved：不计入"待复习"
       { openid: 'o_userA', courseId: 'phy', courseName: '物理', status: 'resolved', wrongCount: 5, rightCount: 5, updateTime: lastWeek }
     ],
-    learners: [{ _id: 'o_userA', level: 'S', levelName: '提升', system: 'A-Level' }]
+    learners: [{ _id: 'o_userA', lastLevel: 'S', lastLevelName: '提升', lastLevelCourseId: 'alevel_math', lastLevelCourseName: 'A-Level数学', system: 'A-Level' }]
   });
 
   currentCtx = { OPENID: 'o_userA' };
@@ -120,11 +150,16 @@ async function run() {
   const report = db._store.weekly_reports.rows[0];
   assert(!!report, 'weekly_reports 落库');
   assert(report.learnedThisWeek === 2, '本周新学 = 2（排除上周那条）');
-  assert(report.studyDays === 2, '学习天数 = 2（同天打卡去重）');
-  assert(report.accuracy === 50, '本周正确率 = 50%（3/6 对，resolved 不计入）');
+  assert(report.studyDays === 2, '学习天数 = 2（来自作答事件的北京时间自然日去重）');
+  assert(report.accuracy === 50, '本周正确率 = 50%（事件里 3/6 对；自评不进分子分母）');
+  assert(report.attempts === 6 && report.correctAttempts === 3, '同时落库样本量 6 / 答对 3（百分数可追溯）');
+  // 判别性反向断言：wrong_books 的计数是"全对"，老口径会报 100%
+  assert(report.accuracy !== 100, '正确率不再从 wrong_books 的 rightCount/wrongCount 反推（老口径会报 100%）');
+  assert(report.studyDays !== 0, '学习天数不再依赖没有任何写入路径的 checkins');
   assert(report.pendingWrongs === 3, '待复习错题 = 3（resolved 不计）');
   assert(report.pushed === true, '推送成功后 pushed = true');
   assert(report.level === 'S' && report.levelName === '提升', '等级 S/提升 带入周报');
+  assert(report.levelCourseName === 'A-Level数学', 'R16：周报带上等级所属课程');
   assert(sentMessages[0].touser === 'o_userA', '推送对象 openid 正确');
   assert(sentMessages[0].data.thing1.value.length <= 20, 'thing1 字段已截断 ≤ 20 字');
   assert(sentMessages[0].data.number2.value === 2, 'number2 = 本周新学数');

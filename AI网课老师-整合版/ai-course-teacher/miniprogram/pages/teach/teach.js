@@ -87,7 +87,7 @@ Page({
       // 答对：上报学习进度
       wx.cloud.callFunction({
         name: 'saveProgress',
-        data: { itemId: this.data.item.id, courseId: this.data.item.courseId || '' }
+        data: { itemId: this.data.item.id, courseId: this.data.item.courseId || '', graded: true, source: 'lesson' }
       }).catch(() => {});
     } else {
       // 答错才记错题（带完整字段）
@@ -102,7 +102,8 @@ Page({
           answerIndex: this.data.currentQuiz.answerIndex,
           userAnswer: index,
           explanation: this.data.currentQuiz.explanation || '',
-          wrongType: '概念不清'
+          wrongType: '概念不清',
+          source: 'lesson'
         }
       }).catch(() => {});
     }

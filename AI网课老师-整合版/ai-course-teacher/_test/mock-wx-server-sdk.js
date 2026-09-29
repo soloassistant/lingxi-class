@@ -139,6 +139,17 @@ function createDb(initial) {
         const hit = filterDocs(ensure(name).rows, w);
         hit.forEach(r => applyPatch(r, data));
         return { stats: { updated: hit.length } };
+      },
+      /* ★ 2026-09-29 补：条件删除（`where(...).remove()`）。
+         真实云数据库返回 `stats.removed = 实际删除行数`。
+         桩里缺这个方法时，deleteAccount 的 remove 会抛错并被它自己的
+         `catch { removed[name] = -1 }` 吞掉 —— 测试看到一片 -1 却以为是"集合不存在"，
+         完全掩盖了"到底有没有删干净"。 */
+      async remove() {
+        const c2 = ensure(name);
+        const before = c2.rows.length;
+        c2.rows = c2.rows.filter(r => !filterDocs([r], w).length);
+        return { stats: { removed: before - c2.rows.length } };
       }
     };
     return q;
@@ -153,6 +164,9 @@ function createDb(initial) {
          真实环境里"值完全相同"也可能报 0，所以 0 不代表文档不存在。 */
     _updateMissingThrows: true,
     _updateExistingUpdated: 1,
+    /* 指定集合的 add 一律失败。用来验证"记事件失败不能拖垮主流程"这类韧性要求：
+       作答本身已经成功了，统计写不进去只能如实回传 recorded:false，不能假装记上了。 */
+    _addDenied: [],
     serverDate,
     command: { gte: (v) => cmd('gte', v), lte: (v) => cmd('lte', v), gt: (v) => cmd('gt', v), lt: (v) => cmd('lt', v), eq: (v) => cmd('eq', v) },
     collection(name) {
@@ -162,6 +176,7 @@ function createDb(initial) {
         orderBy(f, d) { return makeQuery(name, null, { field: f, dir: d }, Infinity); },
         limit(n) { return makeQuery(name, null, null, n); },
         async add({ data }) {
+          if (db._addDenied.indexOf(name) >= 0) throw new Error('add denied: ' + name);
           const id = name + '_' + (++c.seq);
           c.rows.push(Object.assign({ _id: id }, deepClone(data)));
           return { _id: id };
