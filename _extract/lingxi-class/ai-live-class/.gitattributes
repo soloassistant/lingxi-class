@@ -1,0 +1,26 @@
+# 统一行尾为 LF
+#
+# 起因（两份独立审查都报告过同一个现象）：
+#   Windows 上跑 `npm test` 会出现 2 条"假失败"——
+#   测试里用 `indexOf('...\\n...')` 在**源码字符串**上做字面匹配，
+#   而 checkout 出来的是 CRLF，字面 `\n` 永远匹配不到，断言必然失败。
+#   这类失败会被误读成"语音暖机/设备提示功能坏了"，每次都要重新解释一遍。
+#
+# 修法就是把行尾固定下来：checkout 一律 LF，跨平台、跨机器结果一致，
+# 测试写法也不必各自处理换行。本文件对 `core.autocrlf` 有更高优先级。
+* text=auto eol=lf
+
+# 二进制：不要做任何行尾转换
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.gif    binary
+*.ico    binary
+*.pdf    binary
+*.pptx   binary
+*.zip    binary
+*.gz     binary
+*.woff   binary
+*.woff2  binary
+*.ttf    binary
+*.otf    binary
