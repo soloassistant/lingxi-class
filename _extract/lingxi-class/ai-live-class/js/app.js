@@ -88,32 +88,84 @@ const FACT_KINDS = {
   context: { label: '背景', cls: 'k-preference' },
 };
 
-/* 知识点掌握度：把散落的记忆事实按 topic 聚合成「掌握度」。
-   定级取"最需要关注"的信号（易错点 > 薄弱点 > 进度 > 优势），
-   而不是简单平均 —— 一个知识点哪怕有 3 条优势、只要有 1 条易错点，就不能算已掌握。
-   preference / context 与掌握度无关，不参与。 */
 const MASTERY_LEVELS = {
   need: { label: '待巩固', cls: 'm-need' },
   learning: { label: '学习中', cls: 'm-learning' },
   mastered: { label: '已掌握', cls: 'm-mastered' },
 };
+
+/* 知识点掌握度：把散落的记忆事实按 topic 聚合成「掌握度」。
+   定级取"最需要关注"的信号（易错点 > 薄弱点 > 进度 > 优势），
+   而不是简单平均 —— 一个知识点哪怕有 3 条优势、只要有 1 条易错点，就不能算已掌握。
+   preference / context 与掌握度无关，不参与。
+
+   ★ 2026-09-29 修（外部审查 R07，P2）。原文的判据只有"取最差"，导致：
+     · 只用 topic 分组、**不含学科** —— "分数"在数学和物理里被算成同一个知识点；
+     · 早期任何一条 weak/misconception 会**永久**压过后来的 strength：
+       实测"旧 weak（置信度 1）+ 10 次命中的新 strength"仍然显示"待巩固"。
+       只要那条旧事实还在加载集合里，老师就会一直被它带偏截止。
+   改法：
+     · 分组键带上学科；
+     · 引入**退役规则** —— 负面结论之后出现了足够的"已掌握"证据（时间更晚 + 次数达标），
+       就把它降级为**历史**，不再压着当前掌握度；
+     · 同时把 wasWeak 暴露出去，让学生看到"曾经薄弱、现已掌握"（结论不能被悄悄抹掉）。
+   为什么要有次数门槛：一次答对可能只是蒙对，不足以退役一条错因结论。 */
+const MASTERY_SUPERSEDE_HITS = 3;
+
+/* 取事实的时间点。字段来源不统一（last_seen 是 ISO 串，其余可能是毫秒数），
+   这里统一成可比较的毫秒；取不到就当 0（最旧）。 */
+function factTime(f) {
+  if (!f) return 0;
+  const t = (f.last_seen != null ? f.last_seen : (f.updatedAt != null ? f.updatedAt : (f.createdAt != null ? f.createdAt : f.at)));
+  if (t == null) return 0;
+  if (typeof t === 'number') return isFinite(t) ? t : 0;
+  const ms = Date.parse(String(t));
+  return isNaN(ms) ? 0 : ms;
+}
+
 function buildMastery(facts) {
   const agg = {};
   (facts || []).forEach((f) => {
     if (!f) return;
-    const topic = String(f.topic || '').trim();
-    if (!topic) return;
     const rank = { misconception: 0, weak: 1, progress: 2, strength: 3 }[f.kind];
     if (rank === undefined) return;      // 非掌握度相关的事实（偏好/背景）不计入
-    const t = agg[topic] || (agg[topic] = { topic, rank: 3, conf: 0, hits: 0 });
-    if (rank < t.rank) t.rank = rank;
+    const topic = String(f.topic || '').trim();
+    if (!topic) return;
+    /* ★ 分组键必须带学科（R07）：原来只用 topic，跨学科同名知识点互相污染 */
+    const subject = String(f.subject || '').trim();
+    const key = subject + '｜' + topic;
+    const t = agg[key] || (agg[key] = {
+      topic, subject, rank: 3, conf: 0, hits: 0,
+      posAt: 0, posHits: 0,      // 最近的"已掌握"证据：时间 + 累计命中
+      negAt: 0, posHistoric: false,
+    });
+    const at = factTime(f);
+    const hits = Number(f.hits || 0);
     if (Number(f.confidence || 0) > t.conf) t.conf = Number(f.confidence || 0);
-    t.hits += Number(f.hits || 0);
+    t.hits += hits;
+    if (rank <= 1 && at > t.negAt) t.negAt = at;
+    if (rank === 3) { if (at > t.posAt) t.posAt = at; t.posHits += hits; }
+    if (rank < t.rank) t.rank = rank;
   });
+
+  Object.keys(agg).forEach((k) => {
+    const t = agg[k];
+    /* ★ 退役规则：负面结论之后有足够的"已掌握"证据 → 降级为历史，不再压着当前定级。
+       三个条件缺一不可：时间更晚、次数达标、确实存在过负面结论。 */
+    if (t.negAt && t.posAt > t.negAt && t.posHits >= MASTERY_SUPERSEDE_HITS) {
+      t.posHistoric = true;
+      t.rank = 3;
+    }
+  });
+
   const levelOf = (rank) => (rank <= 1 ? 'need' : rank === 2 ? 'learning' : 'mastered');
   const ord = { need: 0, learning: 1, mastered: 2 };
   return Object.keys(agg)
-    .map((k) => ({ topic: k, level: levelOf(agg[k].rank), conf: agg[k].conf, hits: agg[k].hits }))
+    .map((k) => ({
+      topic: agg[k].topic, subject: agg[k].subject,
+      level: levelOf(agg[k].rank), conf: agg[k].conf, hits: agg[k].hits,
+      wasWeak: agg[k].posHistoric,     // 曾经薄弱、现已掌握
+    }))
     .sort((a, b) => ord[a.level] - ord[b.level] || b.conf - a.conf);
 }
 
@@ -601,6 +653,14 @@ async function saveProfile(patch) {
 async function saveFacts(facts) {
   if (!memReady() || !Array.isArray(facts) || !facts.length) return 0;
   const db = state.cloud.database;
+  /* ★ R07 的一条未竟事项（如实记下，不猜）：报告建议给事实补上
+     「课程体系（system）」和「知识点 ID」，这样跨体系同名知识点也能分开、
+     并且能精确地"用新证据退役旧结论"。
+     但**业务表的建表语句与迁移不在仓库里**（仓库 SQL 只有设备/手机号台账），
+     盲加列会让 insert 直接失败、把整条记忆写入打断。
+     所以这里只用**已有字段**做退役判定：`last_seen`（时间）+ `hits`（次数）——
+     这两个字段已经足够支撑 buildMastery 的新规则，不依赖 schema 变更。
+     补列这件事要连迁移脚本一起交付，见 README 的部署前置条件。 */
   const list = facts
     .filter((f) => f && f.content && String(f.content).trim())
     .map((f) => ({
@@ -5254,6 +5314,10 @@ async function streamChat({ messages, temperature = 0.7, conversationId, respons
        用户只能刷新页面（这节课等于白等）。网关侧 400/断流都不会触发 onerror。
        这里加"无进展"看门狗：只要 STALL_BUDGET 内没有新内容，就判定卡死、主动中断，
        交给上面的重试/报错链路（可自动换模型或提示用户重试）。 */
+    /* ★ R18：这两个提到 try 之外 —— catch 里的"中止"分支也要能拿到已生成的部分文本。
+       原来它们在 try 内部，catch 里只能返回空串，等于把学生刚看到的讲解抹掉。 */
+    let full = '';
+    let thinking = '';
     let lastProgressAt = Date.now();
     let stalled = false;
     const stall = setInterval(() => {
@@ -5262,8 +5326,8 @@ async function streamChat({ messages, temperature = 0.7, conversationId, respons
 
     try {
       params.signal = ac.signal;
-      let full = '';
-      let thinking = '';
+      full = '';
+      thinking = '';
       for await (const chunk of state.cloud.llm.chat.completions.create(params)) {
         const delta = chunk.choices && chunk.choices[0] && chunk.choices[0].delta;
         if (!delta) continue;
@@ -5300,10 +5364,15 @@ async function streamChat({ messages, temperature = 0.7, conversationId, respons
         await healSession();
         continue;
       }
-      // ② 个别模型不支持 response_format 时降级重试一次
+      /* ② 个别模型不支持 response_format 时降级重试一次 */
       const code = String((e && e.error && e.error.code) || '');
       if (useFormat && code.startsWith('request_')) { useFormat = null; continue; }
-      if (signal && signal.aborted) { aiGateRecord(true); return ''; }
+      /* ★ 2026-09-29 修（外部审查 R18）：这里原来返回**空串**。
+         而上面 try 里那条"中止后正常结束"的分支返回的是 `full`（部分文本）——
+         同一个"用户点了打断"，两条路径给出完全不同的结果，这就是缺陷本身。
+         现在两条路径等价：都把已经生成的部分交回去。
+         调用方用自己手里的 signal.aborted 判断"这是被打断"（见 sendLive）。 */
+      if (signal && signal.aborted) { aiGateRecord(true); return full || ''; }
       // ③ 首字超时是我们自己掐的：中止请求后，流的落地方式**有两种**——
       //    有时 async generator 直接"正常结束"（走下面 try 里那条 timedOut 分支），
       //    有时抛出 AbortError（Node/undici 侧还会变成 message="terminated" 的错）。
@@ -5791,9 +5860,14 @@ function renderMastery(facts) {
   }
   el.innerHTML = list.map((m) => {
     const L = MASTERY_LEVELS[m.level] || MASTERY_LEVELS.need;
+    /* ★ R07：曾经薄弱、后来靠新证据掌握了 —— 明确说出来。
+       直接显示"已掌握"会把学习过程抹掉，学生看不到"我确实进步了"。 */
+    const hist = m.wasWeak ? '<span class="mastery-was" title="早期曾是薄弱点，后来被多次答对的证据覆盖">曾薄弱</span>' : '';
     return '<div class="mastery-item">' +
       '<span class="mastery-dot ' + L.cls + '"></span>' +
       '<b>' + esc(m.topic) + '</b>' +
+      (m.subject ? '<span class="mastery-sub">' + esc(m.subject) + '</span>' : '') +
+      hist +
       '<span class="mastery-tag ' + L.cls + '">' + L.label + '</span>' +
       '</div>';
   }).join('');
@@ -8799,6 +8873,37 @@ function appendTyping() {
   return div;
 }
 
+/* 把"这段讲解被学生打断"这件事落进历史与界面。
+   ★ 2026-09-29 新增（外部审查 R18）：原来这段逻辑只写在 `catch (AbortError)` 里，
+     而用户点"打断"时 SDK 的取消有**两条落地路径** ——
+       ① async generator 直接正常结束 → streamChat 正常 return；
+       ② 抛出 AbortError。
+     只有 ② 会走进那段逻辑；① 会被当成"老师正常讲完"，
+     拿一个**空字符串**去覆盖气泡与历史（回放也不保存）。
+     现在两条路径都调这一个函数，行为不可能再走散。
+   另外：无论已生成多少内容都要补一条 assistant 轮次，
+   否则连续插话会留下两条相邻的 user 消息、破坏角色交替。 */
+function finishInterruptedSegment(bubbleDiv, bubbleEl, seg) {
+  const live = state.live;
+  if (!live) return;
+  const text = String(seg || '');
+  if (live.curHidden && !text) {
+    // 被隐藏指令触发的段落不产生学生可见的气泡，但必须补占位保证 user/assistant 成对
+    live.messages.push({ role: 'assistant', content: '（未及回答，学生已插话）' });
+    try { if (bubbleDiv) bubbleDiv.remove(); } catch (_) {}
+  } else if (text) {
+    live.messages.push({ role: 'assistant', content: text + '\n（讲解被学生打断）' });
+    if (bubbleEl) bubbleEl.innerHTML = mdLite(text) + '<span class="sys-note">（学生插话，老师已停下）</span>';
+    try { addFixButton(bubbleDiv, text); } catch (_) {}
+    try { if (bubbleDiv) bubbleDiv.classList.add('interrupted'); } catch (_) {}
+  } else {
+    live.messages.push({ role: 'assistant', content: '（老师刚开口就被打断了）' });
+    if (bubbleEl) bubbleEl.innerHTML = '<span class="sys-note">已停下，老师正在听你说…</span>';
+    try { if (bubbleDiv) bubbleDiv.classList.add('interrupted'); } catch (_) {}
+  }
+  live.interruptedSeg = false;
+}
+
 async function sendLive(text, opts = {}) {
   const live = state.live;
   if (!live || live.ended) return;
@@ -8834,14 +8939,16 @@ async function sendLive(text, opts = {}) {
   live.curHidden = !!opts.hidden;   // 记录本段是否由隐藏指令触发
 
   let full = '';
+  let partial = '';    // ★ R18：onDelta 同步保存的部分文本 —— 万一 full 没拿到也能兜底
   let spokenLen = 0;   // 已送入朗读队列的字符数（保证不重不漏）
   try {
-    full = await streamChat({
+    const r = await streamChat({
       messages: buildLiveMessages(ivCtx),
       temperature: 0.8,
       conversationId: live.conversationId,
       signal: controller.signal,
       onDelta: (_d, acc) => {
+        partial = String(acc);       // ★ R18：每来一段就同步存下"已经显示出来的内容"
         bubbleEl.innerHTML = mdLite(acc);
         const wrap = $('#chat-messages');
         wrap.scrollTop = wrap.scrollHeight;
@@ -8868,7 +8975,17 @@ async function sendLive(text, opts = {}) {
       },
       onNotice: (msg) => { bubbleEl.innerHTML = '<span class="teach-thinking">' + esc(msg) + '</span>'; },
     });
-    // 若这段被学生打断（abort），走 catch 分支单独处理；此处只处理正常讲完
+    /* ★ R18：把"已经生成的部分"接住。streamChat 在两条取消路径上都返回 partial，
+       这里再用 onDelta 存下的 partial 兜一层底（避免 SDK 在某条路径上给空）。 */
+    full = String(r || partial || '');
+    /* ★★ R18 的核心修法：被打断时 streamChat 是**正常返回**的（不是抛 AbortError），
+       所以必须自己看 signal —— 否则"被打断"会被当成"正常讲完"，
+       把刚显示出来的讲解用空内容覆盖掉，而且会继续做"讲完"才该做的事
+       （记因果标记、自动翻页、收尾朗读）。 */
+    if (controller.signal.aborted) {
+      finishInterruptedSegment(bubbleDiv, bubbleEl, full);
+      return;                       // finally 里仍会按 full 录制回放，这段讲解不会消失
+    }
     live.messages.push({ role: 'assistant', content: full });
     bubbleEl.innerHTML = mdLite(full);
     addFixButton(bubbleDiv, full);
@@ -8881,25 +8998,12 @@ async function sendLive(text, opts = {}) {
     }
   } catch (e) {
     if (e && e.name === 'AbortError') {
-      // 关键：无论已生成多少内容，都要写入一条 assistant 消息，
-      // 否则连续插话时会留下两条相邻的 user 消息，破坏角色交替
-      const partial = full || '';
-      // 被隐藏指令触发的段落不产生学生可见的气泡，但必须补一条 assistant 占位，
-      // 保证 live.messages 里 user/assistant 成对（否则下一轮 buildLiveMessages 会错位）
-      if (live.curHidden && !partial) {
-        live.messages.push({ role: 'assistant', content: '（未及回答，学生已插话）' });
-        bubbleDiv.remove();   // 隐藏指令不留残留气泡
-      } else if (partial) {
-        live.messages.push({ role: 'assistant', content: partial + '\n（讲解被学生打断）' });
-        bubbleEl.innerHTML = mdLite(partial) + '<span class="sys-note">（学生插话，老师已停下）</span>';
-        addFixButton(bubbleDiv, partial);
-        bubbleDiv.classList.add('interrupted');
-      } else {
-        live.messages.push({ role: 'assistant', content: '（老师刚开口就被打断了）' });
-        bubbleEl.innerHTML = '<span class="sys-note">已停下，老师正在听你说…</span>';
-        bubbleDiv.classList.add('interrupted');
-      }
-      live.interruptedSeg = false;
+      /* ★ R18：这条是"另半条"取消路径（SDK 抛 AbortError）。
+         与上面正常返回那条走**同一个函数** —— 两条路径行为必须完全一致。
+         `full || partial`：即使 streamChat 在这条路径上没来得及把文本带出来，
+         也用 onDelta 存下的部分文本兜底，绝不让已经显示出来的讲解消失。 */
+      full = full || partial;      // ★ R18：finally 里按 full 录制回放 —— 这条路径也要能录上
+      finishInterruptedSegment(bubbleDiv, bubbleEl, full);
     } else {
       // 出错也要占位，否则同样会造成角色错位
       live.messages.push({ role: 'assistant', content: '（讲解中断：' + mapLLMError(e) + '）' });
@@ -9303,13 +9407,21 @@ function renderMemoryDiag(facts) {
     return;
   }
 
-  // 按 topic 归组，取"最需要关注"的那条（weak > strength）
+  /* 按 **学科 + 知识点** 归组，取"最需要关注"的那条。
+     ★ 2026-09-29 修（外部审查 R07 的第二处同构聚合点）：
+       ① 原来只用 topic 当键，跨学科同名知识点会混在一起；
+       ② 原来 levelOf 只认 weak / strength 两档 —— 只存在 `misconception`（易错点）
+          的知识点掉进第三档 'info'，被显示成"评估记录"，
+          而不是如实标成"起点薄弱"。误解本来就是薄弱的一种，不该有兜底档位把它藏起来。
+       （两处聚合必须一起改 —— 只修一处，起点画像和掌握度会给出互相矛盾的结论。） */
   const byTopic = {};
   const order = [];
   list.forEach((f) => {
-    const key = String(f.topic || '').trim() || '综合评估';
+    const topicName = String(f.topic || '').trim() || '综合评估';
+    const subjectName = String(f.subject || '').trim();
+    const key = subjectName + '｜' + topicName;
     if (!byTopic[key]) {
-      byTopic[key] = { topic: key, subject: f.subject || '', kinds: [], when: f.last_seen || '' };
+      byTopic[key] = { topic: topicName, subject: subjectName, kinds: [], when: f.last_seen || '' };
       order.push(key);
     }
     if (byTopic[key].kinds.indexOf(f.kind) < 0) byTopic[key].kinds.push(f.kind);
@@ -9317,7 +9429,7 @@ function renderMemoryDiag(facts) {
   });
 
   const levelOf = (kinds) => {
-    if (kinds.indexOf('weak') >= 0) return 'need';
+    if (kinds.indexOf('weak') >= 0 || kinds.indexOf('misconception') >= 0) return 'need';
     if (kinds.indexOf('strength') >= 0) return 'ok';
     return 'info';
   };
@@ -12245,6 +12357,8 @@ if (document.readyState === 'loading') {
 try {
   Object.assign(window, {
     state, GUIDE_PROFILES, TTS, FACT_KINDS, MASTERY_LEVELS, buildMastery, renderMastery,
+    /* R07：掌握度的退役判定 —— 时间解析与门槛都是可测的纯逻辑 */
+    factTime, MASTERY_SUPERSEDE_HITS,
     ERROR_CAUSES, ERROR_CAUSE_KEYS, ERROR_CAUSE_MAX, normErrorCause, cleanErrorCauses,
     buildErrorProfile, renderCauses, renderErrorProfile,
     noteCauseSignals, flushLiveCauses, CAUSE_SIGNALS, setAIStatus,
@@ -12341,6 +12455,8 @@ try {
     /* R02：待同步队列 / 墓碑 / 冲突判定 —— 都要能被行为测试直接驱动 */
     SYNC_QUEUE_BASE, syncQueueKey, loadSyncQueue, saveSyncQueue, pendingSyncCount,
     markCourseDirty, markCourseDeleted, renderSyncStatus, saveCourse,
+    /* R18：流式取消的两条路径必须等价 —— 直接驱动 streamChat 来验 */
+    streamChat, finishInterruptedSegment,
     /* 登录门禁：测试要能直接驱动它（登出后是否重新上锁等） */
     isSignedIn, enforceLoginGate, releaseLoginGate, syncLoginGate, requireSignedIn,
     getGateState,

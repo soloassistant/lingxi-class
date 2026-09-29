@@ -637,6 +637,204 @@ function makeSyncDb(initialRows) {
     t('O16 ★ 注销清掉该账号的待同步队列', W.localStorage.getItem(W.syncQueueKey('u_sync3')) === null);
   }
 
+  /* ────────────────────────────────────────────────
+     Q 组：掌握度 —— 新证据要能退役旧结论（R07）
+     ──────────────────────────────────────────────── */
+  sec('Q 组：掌握度可被新证据更新（R07）');
+
+  const iso = (ms) => new Date(ms).toISOString();
+  const T0 = Date.parse('2026-09-01T00:00:00Z');
+  const T1 = Date.parse('2026-09-20T00:00:00Z');
+
+  // Q1 报告里的复现用例：旧 weak（置信度 1） + 10 次命中的新 strength
+  {
+    const facts = [
+      { kind: 'weak', topic: '分数', subject: '数学', content: '早期薄弱结论', confidence: 1, hits: 1, last_seen: iso(T0) },
+      { kind: 'strength', topic: '分数', subject: '数学', content: '后来多次答对', confidence: 0.9, hits: 10, last_seen: iso(T1) },
+    ];
+    const m = W.buildMastery(facts);
+    t('Q1 ★★ 旧的 weak 不再永久压着后来的 strength（修复前恒为"待巩固"）',
+      m.length === 1 && m[0].level === 'mastered');
+    t('Q2 ★ 但过程没被抹掉：仍标出"曾经薄弱"', m[0].wasWeak === true);
+  }
+
+  // Q3 门槛：命中次数不够时**不许**退役（一次答对可能只是蒙对）
+  {
+    const few = W.buildMastery([
+      { kind: 'weak', topic: '分数', subject: '数学', content: '旧', confidence: 1, hits: 1, last_seen: iso(T0) },
+      { kind: 'strength', topic: '分数', subject: '数学', content: '新', confidence: 0.9, hits: W.MASTERY_SUPERSEDE_HITS - 1, last_seen: iso(T1) },
+    ]);
+    t('Q3 ★★ 新证据次数不够时不退役（一次答对不足以推翻错因结论）',
+      few[0].level === 'need' && few[0].wasWeak === false);
+  }
+
+  // Q4 时间必须在后：只有"更晚的"正面证据才能退役旧的负面结论
+  {
+    const older = W.buildMastery([
+      { kind: 'strength', topic: '分数', subject: '数学', content: '早的优势', confidence: 0.9, hits: 10, last_seen: iso(T0) },
+      { kind: 'misconception', topic: '分数', subject: '数学', content: '后来出现了误解', confidence: 0.9, hits: 2, last_seen: iso(T1) },
+    ]);
+    t('Q4 ★★ 更晚出现的误解不会被更早的优势退役（时间判反就白判了）',
+      older[0].level === 'need');
+  }
+
+  // Q5 学科必须参与分组：同名知识点不该跨学科互相污染
+  {
+    const bySubject = W.buildMastery([
+      { kind: 'weak', topic: '力', subject: '物理', content: '物理的力不会', confidence: 0.9, hits: 1, last_seen: iso(T1) },
+      { kind: 'strength', topic: '力', subject: '语文', content: '语文的力字会写', confidence: 0.9, hits: 9, last_seen: iso(T1) },
+    ]);
+    t('Q5 ★★ 同一 topic、不同学科要分成两条（修复前被并成一条互相污染）',
+      bySubject.length === 2);
+    t('Q6 两条各自定级正确',
+      bySubject.find((x) => x.subject === '物理').level === 'need' &&
+      bySubject.find((x) => x.subject === '语文').level === 'mastered');
+  }
+
+  // Q7 没有 topic 的事实不参与聚合；偏好/背景类不参与
+  {
+    const m = W.buildMastery([
+      { kind: 'weak', topic: '', subject: '数学', content: '没有知识点', confidence: 0.9, hits: 1, last_seen: iso(T1) },
+      { kind: 'preference', topic: '分数', subject: '数学', content: '喜欢画图', confidence: 0.9, hits: 1, last_seen: iso(T1) },
+    ]);
+    t('Q7 无 topic 与偏好类事实都不进掌握度', m.length === 0);
+  }
+
+  // Q8 时间解析：字段来源不统一（ISO 串 / 毫秒数 / 缺失），都要能比较
+  t('Q8 factTime 能解析 ISO 串', W.factTime({ last_seen: iso(T1) }) === T1);
+  t('Q9 factTime 能吃毫秒数', W.factTime({ updatedAt: T1 }) === T1);
+  t('Q10 factTime 缺失时给 0（当最旧处理，不会误判成最新）',
+    W.factTime({}) === 0 && W.factTime(null) === 0 && W.factTime({ last_seen: '不是时间' }) === 0);
+
+  /* Q11–Q13 报告特别提示的**第二处同构聚合**（起点画像）。
+     它原来只认 weak / strength 两档，只存在 misconception 的知识点被显示成"评估记录"。
+     ★ 这里必须复用页面上**已有的** #mem-diag：它本来就在 index.html 里，
+       自己再造一个同 id 的元素，querySelector 拿到的仍是原来那个（空壳），
+       于是测试会红在"文档里有两个同 id 节点"这件事上，而不是被测逻辑上。 */
+  sec('Q 组（续）：起点画像的第二处同构聚合（R07）');
+  const diagEl = W.document.querySelector('#mem-diag');
+  t('Q11-前置 页面上确实有 #mem-diag（复用真实节点，不自造）', !!diagEl);
+  {
+    W.renderMemoryDiag([
+      { kind: 'misconception', topic: '函数', subject: '数学', content: '起点就把函数搞混了', confidence: 0.9, last_seen: iso(T0), source: 'diagnostic' },
+    ]);
+    const html = diagEl.innerHTML;
+    t('Q11 ★★ 只有"易错点"的知识点必须标成起点薄弱（修复前显示"评估记录"）',
+      /起点薄弱/.test(html) && !/评估记录/.test(html));
+  }
+  {
+    W.renderMemoryDiag([
+      { kind: 'weak', topic: '力', subject: '物理', content: '物理不会', confidence: 0.9, last_seen: iso(T1), source: 'diagnostic' },
+      { kind: 'strength', topic: '力', subject: '语文', content: '语文会', confidence: 0.9, last_seen: iso(T1), source: 'diagnostic' },
+    ]);
+    const html = diagEl.innerHTML;
+    t('Q12 ★★ 起点画像同样按学科分组（两条都渲染出来，没有被并成一条）',
+      /物理/.test(html) && /语文/.test(html));
+    t('Q13 起点薄弱与起点已会同时出现（各自定级正确）',
+      /起点薄弱/.test(html) && /起点已会/.test(html));
+  }
+  {
+    // 负样本：把 kind 换成纯粹的中性记录 → 才允许落到"评估记录"
+    W.renderMemoryDiag([
+      { kind: 'context', topic: '综合', subject: '数学', content: 'x', confidence: 0.9, last_seen: iso(T1), source: 'diagnostic' },
+    ]);
+    t('Q14 负样本：中性记录才落到"评估记录"（证明上面那条不是恒真）',
+      /评估记录/.test(diagEl.innerHTML));
+  }
+
+  /* ────────────────────────────────────────────────
+     Z 组：流式取消 —— 两条路径必须等价（R18）
+     ──────────────────────────────────────────────── */
+  sec('Z 组：取消时不能丢掉已生成的讲解（R18）');
+
+  /* 造一个"取消落地方式可控"的流：
+     yield 两段正文之后，要么**正常结束**、要么**抛 AbortError** ——
+     这正是真实 SDK 的两种落地方式，也正是 R18 的成因。 */
+  const streamStub = (mode) => {
+    let n = 0;
+    return {
+      [Symbol.asyncIterator]: () => ({
+        next: async () => {
+          if (n < 2) { n++; return { done: false, value: { choices: [{ delta: { content: '第' + n + '段讲解内容。' } }] } }; }
+          if (mode === 'throw') { const e = new Error('aborted'); e.name = 'AbortError'; throw e; }
+          return { done: true };
+        },
+      }),
+    };
+  };
+
+  const runCancelCase = async (mode) => {
+    W.state.user = { id: 'u-cancel', anonymous: false };
+    W.state.model = { id: 'm1', name: 'M1' };
+    const ac = new W.AbortController();
+    let pushed = 0;
+    W.state.cloud = {
+      llm: {
+        models: { list: async () => [{ id: 'm1', name: 'M1', disabled: false }] },
+        chat: { completions: { create: () => {
+          // 第一段一出来就模拟"用户点了打断"
+          return (function () {
+            let k = 0;
+            return { [Symbol.asyncIterator]: () => ({
+              next: async () => {
+                if (k < 2) { k++; pushed++; if (k === 1) ac.abort(); return { done: false, value: { choices: [{ delta: { content: '第' + k + '段讲解内容。' } }] } }; }
+                if (mode === 'throw') { const e = new Error('aborted'); e.name = 'AbortError'; throw e; }
+                return { done: true };
+              },
+            }) };
+          })();
+        } } },
+      },
+      database: { from: () => ({ select: function () { return this; }, limit: function () { return this; }, order: function () { return this; }, eq: function () { return this; }, then: (r) => Promise.resolve({ data: [], error: null }).then(r), catch: (r) => Promise.resolve({ data: [], error: null }).catch(r) }) },
+      auth: { signOut: async () => ({}) },
+    };
+    const seen = [];
+    let ret = '';
+    let err = null;
+    try {
+      ret = await W.streamChat({
+        messages: [{ role: 'user', content: 'x' }],
+        signal: ac.signal,
+        onDelta: (_d, acc) => seen.push(String(acc)),
+      });
+    } catch (e) { err = e; }
+    return { ret, seen, err, pushed, aborted: ac.signal.aborted };
+  };
+
+  {
+    const normal = await runCancelCase('end');
+    t('Z1 前置：确实触发了取消', normal.aborted === true);
+    t('Z2 ★★ 取消（流正常结束路径）返回的是**已生成的部分文本**，不是空串',
+      typeof normal.ret === 'string' && normal.ret.indexOf('第1段') >= 0);
+  }
+  {
+    const thrown = await runCancelCase('throw');
+    t('Z3 ★★ 取消（抛 AbortError 路径）同样返回已生成的部分文本（修复前恒为空串）',
+      typeof thrown.ret === 'string' && thrown.ret.indexOf('第1段') >= 0);
+  }
+  {
+    /* ★ 两条路径必须给出**同样**的结果 —— 这就是"统一取消契约"的判据。
+       修复前一条给 partial、一条给 ''，行为随 SDK 的取消落地方式而变。 */
+    const a = await runCancelCase('end');
+    const b = await runCancelCase('throw');
+    t('Z4 ★★ 两条取消路径的返回内容完全一致（修复前一个有一段、一个是空串）',
+      a.ret === b.ret && a.ret.length > 0);
+    t('Z5 两条路径都没有把异常漏给调用方（取消不是错误）', a.err === null && b.err === null);
+  }
+
+  /* Z6–Z8 sendLive 侧：取消时必须按"被打断"处理，而不是当成"正常讲完"。
+     结构上判两件事：① 它自己看 controller.signal.aborted；
+     ② 两条取消路径调的是同一个函数（否则又会走散）。 */
+  {
+    const src = appJs;                        // 用原文（这三条是"必须存在某写法"，不是反向断言）
+    t('Z6 ★ sendLive 自己在 await 之后检查 controller.signal.aborted',
+      /if \(controller\.signal\.aborted\) \{[\s\S]{0,120}?finishInterruptedSegment\(/.test(src));
+    t('Z7 ★★ 两条取消路径调用同一个 finishInterruptedSegment（不可能再走散）',
+      (src.match(/finishInterruptedSegment\(bubbleDiv, bubbleEl,/g) || []).length >= 2);
+    t('Z8 ★ 用 onDelta 存下的 partial 兜底（即使 streamChat 那条路径没带出文本）',
+      /partial = String\(acc\)/.test(src) && /full = String\(r \|\| partial \|\| ''\)/.test(src));
+  }
+
   console.log('\nGATE_RESULT pass=' + pass + ' fail=' + fail);
   process.exit(fail ? 1 : 0);
 })().catch((e) => { console.log('GATE_ERROR ' + ((e && e.stack) || e)); process.exit(2); });
