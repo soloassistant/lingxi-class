@@ -7,6 +7,8 @@ Page({
     expandId: '',
     selectedMap: {},
     resultMap: {},
+    /* ★ R09：已作答的 itemId 集合 —— 一题只允许作答一次，连点不再重复提交 */
+    locked: {},
     variationMap: {},
     variationLoading: {},
     variationSelected: {},
@@ -78,11 +80,21 @@ Page({
 
   toggleExpand(e) {
     const id = e.currentTarget.dataset.id;
+    // 收起/展开同一题时重置作答状态 —— 锁也要一起放开，否则再展开就点不动了
+    const locked = { ...this.data.locked };
+    delete locked[id];
     this.setData({
       expandId: this.data.expandId === id ? '' : id,
       selectedMap: {},
-      resultMap: {}
+      resultMap: {},
+      locked
     });
+  },
+
+  /* 一次性作答令牌：同一题的一次作答只算一次。
+     服务端按 lastAttemptId 做幂等 —— 网络重试、快速连点都不会多升一级。 */
+  makeAttemptId(itemId) {
+    return itemId + ':' + Date.now() + ':' + Math.random().toString(36).slice(2, 8);
   },
 
   chooseAnswer(e) {
@@ -91,21 +103,41 @@ Page({
     const wrong = this.data.wrongs.find(w => w.itemId === id);
     if (!wrong) return;
 
+    /* ★ 2026-09-29 修（外部审查 R09，P1）：
+       原来这里没有任何"已作答"锁 —— 答对之后题目和选项原样留着，
+       反复点击会反复提交 `updateWrong`，而服务端当时也不看到期时间，
+       于是同一题连点 5 次就能把间隔推到 30 天、标记"已掌握"。
+       现在两道都补上：前端一题只允许作答一次（locked），
+       服务端也要求到期 + 幂等令牌（见 cloudfunctions/updateWrong）。 */
+    if (this.data.locked && this.data.locked[id]) return;
+
     const correct = index === wrong.answerIndex;
     const selectedMap = { ...this.data.selectedMap };
     const resultMap = { ...this.data.resultMap };
+    const locked = { ...(this.data.locked || {}) };
     selectedMap[id] = index;
     resultMap[id] = correct;
-    this.setData({ selectedMap, resultMap });
+    locked[id] = true;                    // 立刻上锁：连点不会再走到下面的提交
+    this.setData({ selectedMap, resultMap, locked });
 
     track('wrong_review', { itemId: id, correct });
+
+    const attemptId = this.makeAttemptId(id);
 
     if (app.globalData.hasLogin) {
       wx.cloud.callFunction({
         name: 'updateWrong',
-        data: { itemId: id, correct }
+        data: { itemId: id, correct, attemptId }
       }).then(res => {
-        if (res.result && res.result.code === 0 && res.result.resolved) {
+        const r = (res && res.result) || {};
+        // 服务端判定"还没到复习时间"或"这次已计入过"时要说清楚，
+        // 否则学生只会觉得答对了却没反应
+        if (r.tooEarly) {
+          wx.showToast({ title: r.msg || '还没到复习时间', icon: 'none' });
+          return;
+        }
+        if (r.duplicated) return;
+        if (r.code === 0 && r.resolved) {
           this.loadCloudWrongs();
         }
       }).catch(() => {});

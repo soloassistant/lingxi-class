@@ -96,6 +96,15 @@ function createDb(initial) {
       },
       async count() {
         return { total: filterDocs(ensure(name).rows, w).length };
+      },
+      /* ★ 2026-09-29 补：条件更新（`where(...).update({data})`）。
+         真实云数据库支持它，且**返回 stats.updated = 实际改到的行数** ——
+         reviewDraft 的"原子抢占"就是靠这个计数判断自己有没有抢到。
+         桩里必须如实模拟行数（一律返回 1 会让并发测试恒过，等于没测）。 */
+      async update({ data }) {
+        const hit = filterDocs(ensure(name).rows, w);
+        hit.forEach(r => Object.assign(r, data));
+        return { stats: { updated: hit.length } };
       }
     };
     return q;

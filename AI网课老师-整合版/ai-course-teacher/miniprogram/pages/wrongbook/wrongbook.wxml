@@ -11,8 +11,12 @@
         <view class="wrong-question">{{item.question}}</view>
 
         <view class="wrong-options">
+          <!-- ★ 2026-09-29 修（外部审查 R09）：
+               答过之后这一题的选项要**不可再点**（locked 里存已作答的 itemId）。
+               原来答对后题目与选项原样留着，连点几次就反复提交、
+               把间隔重复的晋级次数刷上去 —— 几秒就能变成"已掌握"。 -->
           <view
-            class="wrong-option {{selectedMap[item.itemId] === index ? 'selected' : ''}}"
+            class="wrong-option {{selectedMap[item.itemId] === index ? 'selected' : ''}} {{locked[item.itemId] ? 'locked' : ''}}"
             wx:for="{{item.options}}"
             wx:for-item="opt"
             wx:for-index="index"
