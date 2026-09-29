@@ -21,7 +21,9 @@ const fs = require('fs');
 const path = require('path');
 const zlib = require('zlib');
 
-const SITE = process.env.LINGXI_URL || 'https://lingxi-class.app.workbuddy.host/';
+/* ★ 2026-09-29 修：同 tests/selfcheck.js —— 默认站点改成当前的线上域名，
+   旧域名已经 404，留着会让这个工具默默跑在错误的目标上。 */
+const SITE = process.env.LINGXI_URL || 'https://bb6ae4d03fbd4b109cbbe6dbbc84502d.app.workbuddy.host/';
 const JSON_OUT = process.argv.indexOf('--json') >= 0;
 const OUT_DIR = process.env.QUALITY_OUT || path.join(__dirname, '..', '_quality');
 const CHROME_CANDIDATES = [

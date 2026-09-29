@@ -183,22 +183,35 @@ const session = (extra) => Object.assign({
   t(W.isAuthError({ error: { code: 'quota_exceeded' } }) === false, 'A7 额度不足不被误判为登录失效');
   t(W.isAuthError(null) === false, 'A8 null 安全');
 
-  /* ===== B. 残留失效会话 → 自愈 → AI 恢复 ===== */
-  sec('B. 残留失效会话（核心事故场景）');
+  /* ===== B. 残留失效会话 → 自愈后**重新上锁**，不再降级成访客 =====
+     ★ 本组期望随产品要求变更而改写（2026-09-29）：
+     原来是「凭据失效 → 清会话 → **以访客身份重试** → AI 恢复可用」。
+     但产品明确要求「没有游客模式 / 未登录不允许跑」，所以正确结果变成：
+     认出凭据已死 → 清掉假登录 → **重新上锁并停下**，不再拿匿名身份把 AI 拉回来。
+     这是把测试从旧要求更新到新要求，不是"改成能过"——
+     原有判据（刷新被调用、会话被清、state.user 被清空）一条都没放松。 */
+  sec('B. 残留失效会话 → 自愈并重新上锁（不再是"降级成访客"）');
   stub.session = session();               // 本地「看起来还有效」的会话
   stub.listFailures = 0; stub.chatFailures = 0;
   stub.refreshCalls = 0; stub.signOutCalls = 0; stub.listCalls = 0;
   stub.refreshResult = 'rejected';        // 服务端判废
-  W.state.user = { id: 'u1', email: 'stale@example.com' };
+
+  /* 前置：先把门禁弄成"已武装 + 已解除"，这样后面才谈得上证明它**重新**锁上了 */
+  W.enforceLoginGate();
+  W.state.user = { id: 'u1', email: 'stale@example.com', anonymous: false };
+  W.authUI();
+  const gB0 = W.getGateState();
+  t(gB0.armed === true && gB0.on === false, 'B0 前置：门禁已武装，且已登录时是解开的');
 
   const ok = await W.loadModels();
-  t(ok === true, 'B1 模型目录最终拉取成功（不再永久不可用）');
-  t(!!W.state.model && W.state.model.id === 'deepseek-v4.1-flash', 'B2 选出了实测最快的模型（而不是目录第一个 auto）');
-  t(statusText().indexOf('AI 已就绪') >= 0, 'B3 状态条显示「AI 已就绪」');
-  t(statusEl().classList.contains('is-retryable') === false, 'B4 成功状态不再显示为可重试');
-  t(stub.refreshCalls >= 1, 'B5 触发了会话刷新尝试');
-  t(stub.signOutCalls >= 1, 'B6 凭据被判废后清掉了本地会话');
-  t(W.state.user === null, 'B7 失效登录态被清除（不会保留假的登录）');
+  t(ok === false, 'B1 ★ 凭据失效后不再"降级成访客"把 AI 拉回来（返回 false）');
+  t(stub.listCalls <= 1, 'B2 ★ 没有发生那次匿名重试（只留下最初那一次 401）');
+  t(W.getGateState().on === true, 'B3 ★ 门禁被重新点亮（未登录不允许跑）');
+  t(W.getGateState().modalOpen === true, 'B4 ★ 登录界面重新弹出');
+  t(statusText().indexOf('AI 已就绪') < 0, 'B5 状态条不再显示「AI 已就绪」');
+  t(stub.refreshCalls >= 1, 'B6 触发了会话刷新尝试');
+  t(stub.signOutCalls >= 1, 'B7 凭据被判废后清掉了本地会话');
+  t(W.state.user === null, 'B8 失效登录态被清除（不会保留假的登录）');
 
   /* ===== C. 启动即自愈：不再先失败一次 ===== */
   sec('C. 启动时的会话校验');

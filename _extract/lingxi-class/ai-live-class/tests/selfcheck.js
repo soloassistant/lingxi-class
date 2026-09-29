@@ -17,7 +17,12 @@
 const fs = require('fs');
 const path = require('path');
 
-const SITE = process.env.LINGXI_URL || 'https://lingxi-class.app.workbuddy.host/';
+/* ★ 2026-09-29 修：默认站点原来是**旧域名** `lingxi-class.app.workbuddy.host`，
+   而那个域名现在已经是 404（部署形态翻转后域名被平台换成了沙箱域名）。
+   于是 `npm run test:online` 不带 LINGXI_URL 时，所谓"部署后自检"其实打在 404 上，
+   等于空跑 —— 而本文件开头的注释恰恰在强调"一定要跑部署后的产物"。
+   改成当前线上域名；换域名时改这一处即可，或用 LINGXI_URL 覆盖。 */
+const SITE = process.env.LINGXI_URL || 'https://bb6ae4d03fbd4b109cbbe6dbbc84502d.app.workbuddy.host/';
 const JSON_OUT = process.argv.indexOf('--json') >= 0;
 const CHROME_CANDIDATES = [
   'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',

@@ -22,6 +22,8 @@ const tests = [
   'legal-phone.test.js',
   'track-limit.test.js',
   'production.test.js',
+  /* 行为测试：走真实函数 + 真实 DOM，专门覆盖"grep 源码测不出来"的门禁/落盘/分句 */
+  'gate-behavior.test.js',
 ];
 
 let failed = 0;

@@ -97,6 +97,16 @@ function adjacentSameRole(msgs) {
 }
 
 setTimeout(async () => {
+  /* ★ 2026-09-29：先把当前测试用户置为「已登录」。
+     原因：产品要求已明确为「未登录不允许跑」——`startLive()` 里现在有一道
+     `requireSignedIn()` 的动作侧校验（不只是遮罩挡住按钮）。本文件驱动的是
+     "已登录学生进课堂"的完整流程，所以必须如实建模这个前提；
+     否则测的会是"游客能不能上课"这件事 —— 而那个答案现在应该是"不能"。
+     另外 `state.memLoaded=false` 让 needsPhone() 走"记忆未加载不拦"的既有分支，
+     避免本文件被手机号门禁干扰（手机号门禁本身由 legal-phone.test.js 覆盖）。 */
+  window.state.user = { id: 'u-live-test', email: 'live@example.com', anonymous: false };
+  window.state.memLoaded = false;
+
   console.log('=== 1. 进入直播间 ===');
   // enterLive 现在是 async：内部会用 await requireModel() 等 AI 就绪（手快点按钮不再被劝退）
   await window.enterLive(course);
@@ -2092,6 +2102,12 @@ setTimeout(async () => {
 
   console.log('\n=== 41. 引擎拒绝发声：点一下要能恢复（依据线上真实上报） ===');
   const srcTR = fs.readFileSync(path.join(dir, 'js', 'app.js'), 'utf8');
+  /* ★ 去注释版本，专供"某写法必须消失"这类**反向断言**。
+     教训（2026-09-29 连栽两次）：本轮修复里我写了大量"原来是 XXX"的解释性注释，
+     注释里当然含有那个被禁的写法 —— 裸 grep 会把"注释里提到了它"误判成"代码里还在用它"，
+     于是断言失败在我自己的说明文字上，看起来像"没改干净"。
+     正向断言（"必须存在某函数"）用 srcTR 没问题；反向断言一律用 srcNC。 */
+  const srcNC = srcTR.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1');
   /* 线上上报 `tts_unavailable{reason:'silent'}` 的含义：speak 调了、但 1.5s 内 onstart 不触发
      = **引擎拒绝发声**（浏览器要求用户手势等）。当时的处理是"提示一次 → 丢掉这句 → 永不重试"。
      而同一份上报里，用户在 2 分钟后**确实点过界面**（live_ask），产品却不理会
@@ -2257,15 +2273,18 @@ setTimeout(async () => {
     /id="btn-voice-tts-test"/.test(htmlCheck) && /id="voice-tts-result"/.test(htmlCheck));
   t('SC15 点它会把结果渲染在面板内（不是课堂里那个容器）',
     /\$\('#btn-voice-tts-test'\)/.test(srcTR) && /runTTSSelfCheck\(true\)/.test(srcTR));
-  t('SC16 自检支持两种落点（课堂提示区 / 设置面板）', (() => {
+  t('SC16 自检支持三种落点（课堂提示区 / 设置面板 / 登录界面）', (() => {
     const i = srcTR.indexOf('async function runTTSSelfCheck');
-    const seg = srcTR.slice(i, i + 900);
-    return /ttsCheckHost = fromModal/.test(seg) && /#voice-tts-result/.test(seg) && /#tts-notice-result/.test(seg);
+    const seg = srcTR.slice(i, i + 1200);
+    return /where === 'panel'/.test(seg) && /where === 'auth'/.test(seg) &&
+      /#voice-tts-result/.test(seg) && /#tts-notice-result/.test(seg) && /#au-soundtest-result/.test(seg);
   })());
   t('SC17 从面板进来时不篡改课堂 UI（标题/图标/"没声音"入口都不碰）', (() => {
     const i = srcTR.indexOf('function renderSelfCheck');
     const seg = srcTR.slice(i, i + 3000);
-    return /if \(!\(host && host\.fromModal\)\)/.test(seg) &&
+    /* 2026-09-29 更新：判据从 fromModal 改成 where —— 加了"登录界面"这第三个落点后，
+       原来 `host.ico || $('#tts-notice-ico')` 的兜底会**跨落点污染**课堂那块提示的图标。 */
+    return /if \(host && host\.where !== 'panel'\)/.test(seg) &&
       /if \(!\(host && host\.fromModal\)\) hideTTSCheckEntry\(\);/.test(seg);
   })());
   t('SC18 逐个确认那两道门确实存在（这是"看不到入口"的根因，别被以后改掉）',
@@ -2309,8 +2328,12 @@ setTimeout(async () => {
      老师的话根本发不出去 → 没文本 → **整节课没声音**，界面上却只显示一句"网络异常"。
      实测对照：跨源时真发声 0 次；改到同源后真发声 5 次。 */
   t('CN1 endpoint 不再写死域名，而是跟随当前 origin', (() => {
+    /* 2026-09-29 更新：判定逻辑抽成了纯函数 resolveCloudEndpoint，
+       这样 file:// 下 location.origin === "null"（真值！）这个坑才能被**行为测试**覆盖
+       （见 gate-behavior.test.js 的 C3/C4）。 */
     const seg = srcTR.slice(0, 4000);
-    return /const CLOUD_ENDPOINT = [\s\S]{0,200}?window\.location\.origin/.test(seg) &&
+    return /function resolveCloudEndpoint\(origin\)/.test(seg) &&
+      /const CLOUD_ENDPOINT = resolveCloudEndpoint\(_origin\)/.test(seg) &&
       /endpoint:\s*CLOUD_ENDPOINT/.test(seg);
   })());
   t('CN2 没有把旧域名硬编码进 endpoint', (() => {
@@ -2358,13 +2381,47 @@ setTimeout(async () => {
     /id="au-gate-tip"/.test(htmlCheck) && /需要登录后使用/.test(htmlCheck));
   t('GK6 ★ 登录成功后自动解除门禁（否则登录完还锁着）',
     /if \(isSignedIn\(\)\) \{ releaseLoginGate\(\); try \{ closeAuthModal\(\); \} catch \(_\) \{\} \}/.test(srcTR));
-  t('GK7 ★ 门禁在 initAuth() 之后才判定（会话恢复是异步的，提前弹会让已登录用户闪一下登录界面）',
-    /finally\(\(\) => \{ try \{ enforceLoginGate\(\)/.test(srcTR) &&
-    /initAuth\(\)\.catch\([\s\S]{0,200}?\.finally\(\(\) => \{ try \{ enforceLoginGate\(\)/.test(srcTR));
+  t('GK7 ★ 门禁：同步先锁 → 会话恢复后同步一次 → 开屏等判定完才收（既不闪登录框也不留空窗）', (() => {
+    /* 2026-09-29 重写。原判据是"门禁只许在 initAuth().finally 里判定一次"——
+       那条判据本身**就是 R05 的成因**：只判一次，登出后就再也没人管了。
+       现在的设计是"先同步锁上（消除老用户刷新时的无门禁窗口），
+       再在 finally 里同步一次（已登录就解开），开屏押到判定完成"。 */
+    const i = srcTR.indexOf("safeInit('authUI', authUI)");
+    const seg = srcTR.slice(i, i + 1400);
+    return /try \{ enforceLoginGate\(\); \}/.test(seg) &&
+      /\.finally\(\(\) => \{[\s\S]{0,300}?syncLoginGate\(\)/.test(seg) &&
+      /syncLoginGate\(\)[\s\S]{0,260}?hideSplash\(\)/.test(seg);
+  })());
   t('GK8 登录界面上保留了"先测设备能不能出声"（听不到声音与账号无关，不该被门禁挡住）',
     /id="au-soundtest"/.test(htmlCheck) && /\$\('#au-soundtest'\)/.test(srcTR));
-  t('GK9 试音入口写明它不构成绕过登录（只测设备，不提供产品功能）',
-    /不构成绕过登录/.test(srcTR) && /runTTSSelfCheck\(false\)/.test(srcTR));
+  t('GK9 ★ 试音结果就地渲染在登录界面（不搬课堂那块提示），并写明不构成绕过登录', (() => {
+    const i = srcTR.indexOf("const auSound = $('#au-soundtest')");
+    const seg = srcTR.slice(i, i + 900);
+    return /不构成绕过登录/.test(srcTR) && /runTTSSelfCheck\('auth'\)/.test(seg) &&
+      /#au-soundtest-result/.test(srcTR) &&
+      /* 反向断言：绝不能再出现把课堂那块 #tts-notice **搬**进弹窗的写法 ——
+         appendChild 是移动不是复制，搬走后课堂的"没声音"提示就再也回不去了。 */
+      !/appendChild\(notice\)/.test(seg);
+  })());
+  t('GK10 ★★ 门禁跟随身份变化，而不是只在启动时判一次（R05 的成因）',
+    /function syncLoginGate\(\)/.test(srcTR) &&
+    /try \{ syncLoginGate\(\); \}/.test(srcTR) &&
+    /state\.user = null;[^]*?authUI\(\)/.test(srcTR));
+  t('GK11 ★ 动作侧也有校验，不只是靠遮罩挡住按钮',
+    /function requireSignedIn\(\)/.test(srcTR) &&
+    /if \(!requireSignedIn\(\)\) return;/.test(srcTR));
+
+  console.log('\n=== 48. 外部审查报告里的几条 Web 修复守卫（R03 / R06 / R14）===');
+  /* 这几条真正的行为覆盖在 gate-behavior.test.js（走真实函数 + 真实 DOM）。
+     这里只留"不许改回去"的廉价守卫，防止后人无意中回滚。 */
+  t('R03-G 不再调用不存在的 saveCourses()（改成有返回值的 persistCourses()）',
+    !/\bsaveCourses\s*\(/.test(srcNC) && /if \(!persistCourses\(\)\)/.test(srcNC));
+  t('R06-G 增量分句认英文句号，且收尾会补最后那段没打标点的尾巴',
+    /SENT_END_BASIC/.test(srcTR) && /function sentencesWithTail/.test(srcTR) &&
+    /sentencesWithTail\(String\(full\)\)/.test(srcTR));
+  t('R14-G requireModel() 一律带 await（它返回 Promise，漏 await 等于门禁失效）',
+    !/[^t]if \(!requireModel\(\)\)/.test(srcNC) &&
+    (srcNC.match(/await requireModel\(\)/g) || []).length >= 5);
 
   console.log('\n=== 14. 结束课堂清理 ===');
   try { window.endLiveSilent(); t('endLiveSilent 无异常', true); }

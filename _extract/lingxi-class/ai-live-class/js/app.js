@@ -24,9 +24,20 @@
    云端调用都不会因为跨源而失效（这正是本次故障的根因）。
    本地用 `npm start` 跑时 origin 是 localhost、没有 `.cloud/*` 代理，云端功能本就用不了
    （会走"云服务未就绪"的既有降级路径），所以这里不需要为本地做特例。 */
-const CLOUD_ENDPOINT = (typeof window !== 'undefined' && window.location && window.location.origin)
-  ? window.location.origin
-  : 'https://lingxi-class.app.workbuddy.host';
+/* ★ 2026-09-29 修（检查 agent 复查查出）：
+   ① `file://` 下 `location.origin` 是**字符串 "null"**（真值！），会走 origin 分支，
+      于是兜底常量永远到不了，反而把 `endpoint: 'null'` 递给 SDK → 初始化直接抛错。
+      所以判真值之外还要排除 "null" 与非 http(s)。
+   ② 兜底**不再写死域名** —— 旧域名 `lingxi-class.app.workbuddy.host` 现在本身就是 404，
+      写死它只有坏处。改成空串：SDK 的 resolveEndpoint 对空值会自己回落到 location.origin。 */
+/* 判定云端 endpoint。抽成纯函数是为了**能被行为测试直接覆盖** ——
+   这段逻辑踩过一次坑（见下），靠 grep 源码是测不出来的。 */
+function resolveCloudEndpoint(origin) {
+  const o = String(origin == null ? '' : origin);
+  return (/^https?:\/\//.test(o) && o !== 'null') ? o : '';
+}
+const _origin = (typeof window !== 'undefined' && window.location) ? String(window.location.origin || '') : '';
+const CLOUD_ENDPOINT = resolveCloudEndpoint(_origin);
 
 const PUBLIC_CONFIG = {
   endpoint: CLOUD_ENDPOINT,
@@ -532,9 +543,11 @@ async function loadMemory(force) {
   } catch (e) {
     // 登录态失效会连带把记忆读取打成 401：清掉残留会话，避免"明明登录着却什么都不能用"
     if (isAuthError(e)) {
-      try {
-        if (await healSession()) toast('登录状态已过期，已切回访客模式，可以继续上课');
-      } catch (_) {}
+      /* ★ 2026-09-29 修：原来这里 healSession() 成功后又 toast 一次
+         「已切回访客模式，可以继续上课」—— 而 healSession 内部**已经**提示过
+         「登录状态已过期，请重新登录」，两句话自相矛盾；而且"可以继续上课"与
+         「没有游客模式 / 未登录不允许跑」直接冲突。这里不再补第二句。 */
+      try { await healSession(); } catch (_) {}
     }
     console.warn('[memory] 读取失败:', (e && e.message) || e);
     state.mem = { profile: null, facts: [], sessions: [], error: e };
@@ -961,6 +974,10 @@ function phoneMask(p) {
    ============================================================ */
 
 function authUI() {
+  /* ★ 身份一变就同步门禁（登录 → 解锁；登出 / 会话失效 → 重新上锁）。
+     authUI() 是"身份变化"的唯一收口：doSignOut / onAuthStateChange / healSession
+     三条失去登录态的路径都会调它 —— 挂在最前面，一处就覆盖全。 */
+  try { syncLoginGate(); } catch (e) { console.warn('[auth] 门禁同步失败:', e); }
   const btn = $('#btn-auth');
   if (!btn) return;
   const u = state.user;
@@ -1055,6 +1072,9 @@ function authErr(e) {
    同时要**堵掉三条绕过路径**：✕ 关闭、点遮罩关闭、以及「按访客继续」按钮
    （产品明确"没有游客模式"，这个后门必须隐藏 —— 只禁用不隐藏会让人以为还能用）。 */
 let loginGateOn = false;
+/* 门禁是否已"武装"（首次判定是否已完成）。init 之前为 false ——
+   会话恢复期间 authUI() 会被调用，那时候不能弹窗，否则老用户刷新会看到登录界面闪一下。 */
+let gateArmed = false;
 function isSignedIn() { return !!(state.user && !state.user.anonymous); }
 
 /* 清掉/恢复门禁态下的绕过入口可见性 */
@@ -1091,13 +1111,53 @@ function releaseLoginGate() {
   setGateBypassesHidden(false);
 }
 
-/* 未登录则亮出登录界面并锁住。登录成功后由 auth 回调调用 releaseLoginGate() 解除。
-   ★ 必须在 initAuth() **完成之后**再判断：会话恢复是异步的，
-     提前弹窗会让已登录用户在刷新时先看到一次登录界面（闪一下，很难看也很吓人）。 */
+/* ★ 2026-09-29 修（检查 agent 复查查出，P1）：
+   原来 `enforceLoginGate()` 全仓库**只在 init() 里被调用一次**。
+   后果：**登出之后门禁不再上锁** —— 用户点一次「退出登录」，就能在未登录状态下
+   把整节课跑完，正好和「未登录不允许跑」相反。三条会失去登录态的路径全都没接上：
+   `doSignOut()`、`onAuthStateChange('SIGNED_OUT')`、`healSession()` 凭据失效。
+   改法：不再"启动时判一次"，而是**跟着身份走** —— 统一收口在 authUI()（上面三处都会调它），
+   以后新增路径也不会漏。 */
 function enforceLoginGate() {
+  gateArmed = true;
   if (isSignedIn()) { releaseLoginGate(); return; }
+  const already = loginGateOn;
   loginGateOn = true;
-  openAuthModal();
+  setGateBypassesHidden(true);
+  if (!already) openAuthModal();      // 已经锁着就别重复弹、重复抢焦点
+}
+
+/* 身份一变就同步门禁。首次判定（init）之前不动 —— 会话恢复是异步的，
+   提前弹窗会让已登录用户在刷新时先看到一次登录界面。 */
+function syncLoginGate() {
+  if (!gateArmed) return;
+  if (isSignedIn()) releaseLoginGate();
+  else enforceLoginGate();
+}
+
+/* 门禁状态快照 —— 给测试用（行为断言要比"grep 源码里有没有 enforceLoginGate"可靠得多）。 */
+function getGateState() {
+  const m = $('#auth-modal');
+  return {
+    armed: !!gateArmed,
+    on: !!loginGateOn,
+    signedIn: isSignedIn(),
+    modalOpen: !!(m && !m.hidden),
+    skipHidden: !!($('#au-skip') || {}).hidden,
+    closeHidden: !!($('#btn-auth-close') || {}).hidden,
+    tipVisible: !!(($('#au-gate-tip') || {}).hidden === false),
+  };
+}
+
+/* ★ 动作侧的硬校验（不只是 UI 遮住）。
+   检查 agent 指出：门禁只靠"遮罩盖住按钮"，处理函数里没有任何校验 ——
+   只要有一条路径能触发 click（脚本、快捷键、将来新增的入口），门禁就形同虚设。
+   这里给"生成课程 / 进直播间"两个真正消耗算力的动作补上同一条判据。 */
+function requireSignedIn() {
+  if (isSignedIn()) return true;
+  try { enforceLoginGate(); } catch (_) {}
+  try { toast('请先登录后再开始上课', 'err'); } catch (_) {}
+  return false;
 }
 
 function switchAuthTab(name) {
@@ -1306,20 +1366,16 @@ function bindAuthEvents() {
     auSound._bound = true;
     auSound.addEventListener('click', (ev) => {
       ev.preventDefault();
-      runTTSSelfCheck(false);        // 复用课堂那条的渲染落点（提示区），
-                                     // 登录界面本身也会显示结果，用户不必进课堂
-      const box = $('#tts-notice-result');
-      if (box) {
-        try { box.scrollIntoView({ block: 'nearest' }); box.style.display = ''; } catch (_) {}
-      }
-      /* 提示区在登录弹窗**后面**，会被遮住 → 把结果搬到登录界面里显示。
-         做法：把整块提示区临时移到弹窗内（测完不影响其它逻辑，因为选择器都还在）。 */
-      const notice = $('#tts-notice');
-      const slot = $('#au-soundtest-result');
-      if (notice && slot && notice.parentNode !== slot) {
-        slot.hidden = false;
-        slot.appendChild(notice);
-      }
+      /* ★ 2026-09-29 修（检查 agent 复查查出，P1）：
+         原来这里把课堂的 #tts-notice 用 appendChild **搬**进登录弹窗。
+         appendChild 是移动不是复制 —— 搬走之后课堂里那块常驻的「老师的声音没出来」
+         提示（含自检 / 再试一次 / ✕ 三个按钮）就永远回不到 #live-room 了，
+         而 #live-room 全程只切 hidden、从不重建。等于"用户在登录页点过一次试音，
+         之后在课堂里再也看不到那条提示"。
+         改成就地渲染：结果直接落进登录界面自己的容器，课堂那块一个字节都不动。 */
+      const box = $('#au-soundtest-box');
+      if (box) { box.hidden = false; try { box.scrollIntoView({ block: 'nearest' }); } catch (_) {} }
+      runTTSSelfCheck('auth');
     });
   }
   const c1 = $('#btn-auth-close');
@@ -2330,16 +2386,52 @@ function initTTS() {
   } catch (e) { console.warn('TTS 初始化失败，已降级为无语音', e); }
 }
 
-/* 提取文本中"已完整结束"的句子（末尾标点闭合），用于增量朗读 */
-function completeSentences(text) {
+/* 提取文本中"已完整结束"的句子（末尾标点闭合），用于增量朗读。
+    ★ 2026-09-29 修（外部审查 R06）：原来只认中文句末 + !?;，**不认英文句号** ——
+      而实时课堂走的正是这个函数（`splitSentences` 虽然认英文，但它在完整文本上工作，
+      实时路径根本到不了那里）。后果：**用英文讲课、句子以 `.` 结尾时，文本进不了朗读队列，
+      表现为"老师不开口"**；这正是"没声音"的一类独立成因。
+    ★ 增量契约：每次传入**累积文本**，只返还"结尾标点已闭合"的句子；
+      不完整的尾巴必须留到下一次调用（调用方用 spokenLen 计数，多返或少返都会串音）。
+    ★ 排除项：小数点（3.14）与常见缩写（Mr. / e.g. / i.e.）不能当句末。 */
+const SENT_END_BASIC = '。！？!?；;';
+/* 缩写：点号前是这些词就不算句末 */
+const SENT_ABBR_RE = /(?:^|[\s(（])(?:mr|mrs|ms|dr|prof|st|vs|etc|e\.g|i\.e|a\.m|p\.m|no|fig|approx|inc|ltd)\.$/i;
+function scanSentences(text) {
+  const src = String(text || '');
   const out = [];
-  const re = /[^。！？!?；;\n]*[。！？!?；;]/g;
-  let m;
-  while ((m = re.exec(String(text || ''))) !== null) {
-    const s = m[0].replace(/[*#`>_~]/g, '').trim();
-    if (s.length > 1) out.push(s);
+  let buf = '';
+  for (let i = 0; i < src.length; i++) {
+    const ch = src[i];
+    /* 换行只是"屏障"不是句末 —— 保持原有语义（原文里 \n 被排除在内容类之外） */
+    if (ch === '\n') { buf = ''; continue; }
+    buf += ch;
+    let isEnd = SENT_END_BASIC.indexOf(ch) >= 0;
+    if (!isEnd && ch === '.') {
+      const prev = src[i - 1] || '';
+      const next = src[i + 1] || '';
+      const isDecimal = /\d/.test(prev) && /\d/.test(next);   // 3.14
+      const isAbbr = SENT_ABBR_RE.test(buf);                  // Mr. / e.g.
+      const nextIsWord = /[A-Za-z]/.test(next);               // "e.g. the" 里的第一个点
+      if (!isDecimal && !isAbbr && !nextIsWord) isEnd = true;
+    }
+    if (isEnd) {
+      const s = buf.replace(/[*#`>_~]/g, '').trim();
+      if (s.length > 1) out.push(s);
+      buf = '';
+    }
   }
-  return out;
+  const clean = (x) => x.replace(/[*#`>_~]/g, '').trim();
+  const rawTail = clean(buf);
+  return { done: out, tail: rawTail.length > 1 ? rawTail : '' };
+}
+function completeSentences(text) { return scanSentences(text).done; }
+/* 讲完后补读"最后那段没打标点的尾巴"。
+   ★ 2026-09-29 修（外部审查 R06 后半）：模型收尾不写标点很常见，
+     原来这里只取 completeSentences()，尾巴被**静默丢掉** —— 最后一个字永远读不出来。 */
+function sentencesWithTail(text) {
+  const r = scanSentences(text);
+  return r.tail ? r.done.concat([r.tail]) : r.done;
 }
 
 /* 朗读前的文本清洗 —— 屏幕上好看的，念出来未必好听。
@@ -3084,29 +3176,39 @@ function ttsHealth() {
   }
 
   /* 自检主流程：先读环境 → 再实测一句 → 再问用户听到没有 → 给结论
-     fromModal=true 时渲染在声音设置面板里（不需要登录/进课堂），否则渲染在课堂提示区。 */
+     `where` 决定结果渲染到哪儿，三个落点：
+       · 'class'（默认，传空）→ 课堂提示区 #tts-notice-result
+       · 'panel'（传 true）  → 声音设置面板 #voice-tts-result
+       · 'auth'（传 'auth'） → 登录界面的试音结果区 #au-soundtest-result
+     ★ 2026-09-29：新增 'auth' 落点，用来替掉原来"把课堂提示区搬进弹窗"的野路子。 */
   async function runTTSSelfCheck(fromModal) {
+    const where = (fromModal === 'auth') ? 'auth' : (fromModal ? 'panel' : 'class');
     /* 先把"结果渲染到哪儿"定下来，后面几个函数都用它 */
-    ttsCheckHost = fromModal
+    ttsCheckHost = (where === 'panel')
       ? {
-        box: $('#voice-tts-result'), title: $('#voice-tts-title'),
+        where: 'panel', box: $('#voice-tts-result'), title: $('#voice-tts-title'),
         why: $('#voice-tts-why'), ico: null, acts: null, fromModal: true,
       }
-      : {
-        box: $('#tts-notice-result'), title: $('#tts-notice-title'),
-        why: $('#tts-notice-why'), ico: $('#tts-notice-ico'),
-        acts: document.querySelector('.tts-notice-acts'), fromModal: false,
-      };
+      : (where === 'auth')
+        ? {
+          where: 'auth', box: $('#au-soundtest-result'), title: $('#au-soundtest-title'),
+          why: $('#au-soundtest-why'), ico: null, acts: null, fromModal: true,
+        }
+        : {
+          where: 'class', box: $('#tts-notice-result'), title: $('#tts-notice-title'),
+          why: $('#tts-notice-why'), ico: $('#tts-notice-ico'),
+          acts: document.querySelector('.tts-notice-acts'), fromModal: false,
+        };
 
-    /* 课堂那条提示：只在课堂入口触发时才去动它（从设置面板进来时不该影响课堂 UI） */
-    if (!fromModal) showTTSNotice('checking');
+    /* 课堂那条提示：只在课堂入口触发时才去动它（从设置面板/登录界面进来时不该影响课堂 UI） */
+    if (where === 'class') showTTSNotice('checking');
     const title = ttsCheckHost.title;
     const why = ttsCheckHost.why;
     const box = ttsCheckHost.box;
     const acts = ttsCheckHost.acts;
     if (title) {
-      /* 设置面板里的标题是固定的小标题，不自作主张改它；课堂提示区才改 */
-      if (!fromModal) title.textContent = '语音自检中…';
+      /* 设置面板里的标题是固定的小标题，不自作主张改它；课堂提示区与登录界面才改 */
+      if (where !== 'panel') title.textContent = '语音自检中…';
     }
     if (why) why.textContent = '会念一句给你听，大约 3 秒。请先把系统音量调到一半以上。';
     if (box) { box.hidden = false; box.innerHTML = ''; }
@@ -3195,11 +3297,13 @@ function ttsHealth() {
       todo = ['点「再试一次」听一句；仍没声就再来一次自检'];
     }
 
-    /* 课堂提示区的标题/图标由我们掌管；设置面板里那个是固定的小标题，不改它 */
-    if (!(host && host.fromModal)) {
+    /* 课堂提示区 / 登录界面的标题、图标由我们掌管；设置面板里那个是固定的小标题，不改它。
+       ★ 注意 `ico` 的兜底：原来是 `host.ico || $('#tts-notice-ico')` —— 在登录界面这条
+       路径上会把**课堂**那块提示的图标改掉（跨落点污染）。现在按 where 精确分开。 */
+    if (host && host.where !== 'panel') {
       if (title) title.textContent = ok ? '语音正常 ✅' : '语音自检结果';
       if (why) why.textContent = '';
-      const ico = host && host.ico ? host.ico : $('#tts-notice-ico');
+      const ico = (host && host.ico) || (host && host.where === 'class' ? $('#tts-notice-ico') : null);
       if (ico) ico.textContent = ok ? '🔊' : '🔇';
     }
 
@@ -4719,7 +4823,10 @@ function mapLLMError(e) {
   const status = (e && e.status) || 0;
   // 本地闸门拦下的请求：文案已经写好了，原样透出，不要被下面的英文兜底覆盖
   if (code === 'local_ai_gate') return (e && e.message) || 'AI 调用已达上限，请稍后再试。';
-  if (isAuthError(e)) return '登录状态已过期，已切回访客模式，请重试一次。';
+  /* ★ 2026-09-29 修：原来是「已切回访客模式，请重试一次」——
+     "切回访客模式"这个说法已经不成立（产品没有游客模式），且会让用户以为
+     "不用登录也能接着用"。改成明确要求重新登录。 */
+  if (isAuthError(e)) return '登录状态已过期，请重新登录后再试。';
   if (code === 'client_model_slow') return '当前模型响应太慢，可换个模型再试（右上角状态条 / 生成页的模型选择）。';
   if (code === 'client_empty_answer') return '模型这次没返回内容，请重试一次。';
   // 流到一半断掉（生成卡住，已由看门狗中断）：不是用户的错，要明确说"再试一次"
@@ -4909,10 +5016,11 @@ async function loadModels() {
         return true;
       } catch (e) {
         lastErr = e;
-        // ① 登录态失效 → 清掉残留会话后匿名重试（「AI 服务不可用」最常见的原因）
+        // ① 登录态失效 → ★ 2026-09-29 改：原来靠"匿名重试"接着跑，等于把用户**降级成游客继续用**，
+        //    与「没有游客模式 / 未登录不允许跑」直接冲突。现在确认凭据失效就重新上锁并停下。
         if (attempt === 0 && isAuthError(e)) {
-          const healed = await healSession();
-          if (healed) toast('登录状态已过期，已切回访客模式，可以继续上课');
+          const healed = await healSession();   // 内部会清会话、并提示"请重新登录"
+          if (healed) { try { enforceLoginGate(); } catch (_) {} break; }
           continue;
         }
         // ② 网络/后端抖动 → 退避重试
@@ -6066,6 +6174,9 @@ function onGenerateClick() {
     try { if (genController) genController.abort(); } catch (_) {}
     return;
   }
+  /* ★ 2026-09-29 加：动作侧硬校验。门禁原来只靠"遮罩盖住按钮"，
+     检查 agent 指出处理函数里没有任何判据 —— 一旦有别的路径能触发 click 就形同虚设。 */
+  if (!requireSignedIn()) return;
   generateCourse();
 }
 
@@ -6139,7 +6250,10 @@ async function ensureCourseFigures(course) {
 }
 
 async function generateCourse() {
-  if (!requireModel()) return;
+  /* ★ 2026-09-29 修（外部审查 R14）：`requireModel()` 是 async，原来写成
+     `if (!requireModel()) return;` —— Promise 对象永远为真，这道门禁**从来没生效过**。
+     冷启动（模型列表还没加载回来）时会带着空模型直接发请求。 */
+  if (!(await requireModel())) return;
   if (!ensurePhone('生成课程')) return;      // 手机号是要求项：没登记就先补
   const btn = $('#btn-generate');
   genBusy = true;
@@ -6505,7 +6619,8 @@ function bindDiagEvents() {
 
 /* 生成诊断卷（LLM） */
 async function generateDiagnostic() {
-  if (!requireModel()) return;
+  /* ★ 2026-09-29 修（外部审查 R14）：同 generateCourse，漏了 await。 */
+  if (!(await requireModel())) return;
   const btn = $('#btn-diag-gen');
   const box = $('#gen-diag');
   if (btn) { btn.disabled = true; btn.textContent = '诊断卷生成中…'; }
@@ -7840,6 +7955,8 @@ async function enterLive(course) {
 }
 
 async function startLive(course) {
+  /* ★ 2026-09-29 加：进直播间同样要过登录校验（动作侧，不依赖遮罩）。 */
+  if (!requireSignedIn()) return;
   if (!(await requireModel())) {
     switchView('courses');
     return;
@@ -8450,9 +8567,9 @@ async function sendLive(text, opts = {}) {
     addFixButton(bubbleDiv, full);
     noteCauseSignals(full);
     maybeAdvanceSlide(full);
-    // 收尾：朗读剩余的半句
+    // 收尾：朗读剩余内容（含"最后一段没打标点的尾巴"，见 sentencesWithTail 注释）
     if (TTS.enabled) {
-      const done = completeSentences(String(full));
+      const done = sentencesWithTail(String(full));
       if (done.length > spokenLen) speak(done.slice(spokenLen));
     }
   } catch (e) {
@@ -8492,8 +8609,8 @@ async function sendLive(text, opts = {}) {
     if (full) {
       const segs = String(full).split(/[\n。！？!?]/).filter((s) => s.trim());
       if (segs.length) setCaptions(segs[segs.length - 1].trim());
-      // 录制：按句记时间轴，回放可逐句还原讲解
-      const spoken = completeSentences(full);
+      // 录制：按句记时间轴，回放可逐句还原讲解（含收尾那段没打标点的尾巴，与实际发声一致）
+      const spoken = sentencesWithTail(full);
       const now = (Date.now() - live.recStart) / 1000;
       const span = Math.min(now - lastRecT, 24);   // 本段讲解占用的时间
       const each = spoken.length ? span / spoken.length : 0;
@@ -9819,7 +9936,10 @@ function runSelfCheck() {
        与其继续猜，不如把"当前身份 + 到底哪道门会拦你"直接显示出来 ——
        这类"为什么又要我登录"的问题以后不用再靠问。 */
     const acc = (() => {
-      if (!state.user) return { id: 'guest', label: '访客（未登录）', needPhone: false, detail: '不需要登录也不需要手机号就能生成课程、进直播间；登录后额外获得跨设备长期记忆' };
+      /* ★ 2026-09-29 修：这段文案原来写的是「不需要登录也不需要手机号就能生成课程、进直播间」——
+         那是**旧策略**（还允许游客）。现在产品明确"未登录不允许跑"，这段话会在自检报告里
+         自相矛盾地告诉用户"不用登录也能用"。改成如实描述当前门禁。 */
+      if (!state.user) return { id: 'guest', label: '访客（未登录）', needPhone: false, detail: '未登录会被登录门禁拦住（登录界面弹出并锁住）—— 生成课程 / 进直播间都必须先登录。登录后额外获得跨设备长期记忆' };
       const phone = (typeof currentPhone === 'function') ? currentPhone() : '';
       const hasEmail = !!state.user.email;
       const need = (function () { try { return needsPhone(); } catch (_) { return false; } })();
@@ -11344,8 +11464,20 @@ function buildProgressSnapshot() {
   Object.keys(PROGRESS_PREF_KEYS).forEach((k) => {
     try { const v = localStorage.getItem(PROGRESS_PREF_KEYS[k]); if (v != null) prefs[k] = v; } catch (_) {}
   });
-  const sessions = courses.reduce((a, c) => a + ((c && c.sessions && c.sessions.length) || 0), 0);
-  const done = courses.filter((c) => c && Number(c.progress) >= 100).length;
+  /* ★ 2026-09-29 修（外部审查 R08）：两处口径都错了。
+     ① 完成课数：`progress` 全站都是 **0–1** 的比例（写入处一律 `Math.min(1, …)`，见录制与检查点），
+        这里却拿 `>= 100` 比 —— 恒为假，导出摘要里"已完成课程"**永远是 0**。
+     ② 课次：课程对象上根本没有 `sessions` 字段（课堂记录存的是 `replay`），
+        所以 `sessions` 也永远是 0。改成"优先用 sessions，缺失时按是否有回放计一节"，
+        与卡片/小结里判断"这节课上过没有"的既有口径（`c.replay.events.length`）保持一致。 */
+  const isFinished = (c) => c && Number(c.progress) >= 0.999;
+  const courseSessions = (c) => {
+    if (!c) return 0;
+    if (Array.isArray(c.sessions)) return c.sessions.length;
+    return (c.replay && Array.isArray(c.replay.events) && c.replay.events.length) ? 1 : 0;
+  };
+  const sessions = courses.reduce((a, c) => a + courseSessions(c), 0);
+  const done = courses.filter(isFinished).length;
   const snapshot = {
     format: PROGRESS_FORMAT,
     version: PROGRESS_VERSION,
@@ -11483,8 +11615,14 @@ function applyProgressImport(snapshot, mode) {
     } catch (_) {}
   });
 
-  // 落盘课程
-  try { saveCourses(false); } catch (_) {}
+  /* 落盘课程。
+     ★ 2026-09-29 修（外部审查 R03）：原来这里调的是 `saveCourses(false)` ——
+     这个函数**根本不存在**，异常被空 catch 吞掉，然后**照样返回 ok:true**。
+     用户看到"导入成功"，实际课程只在内存里，一刷新就没了（题库倒是真存了，所以是半成功）。
+     真实的保存函数是 `persistCourses()`，并且它有返回值，必须检查。 */
+  if (!persistCourses()) {
+    return { ok: false, error: '课程没能写入本机（可能是本机存储已满）。题库已导入，课程未保存，请清理空间后重试。' };
+  }
   if (typeof currentTheme === 'function') { try { loadTheme(); } catch (_) {} }
   return { ok: true, result: result };
 }
@@ -11496,7 +11634,11 @@ function undoProgressImport() {
   state.courses = b.courses;
   const r = saveBank(Array.isArray(b.bank) ? b.bank : []);
   if (!r.ok) return { ok: false, error: '恢复题库失败：' + (r.err || '') };
-  try { saveCourses(false); } catch (_) {}
+  /* ★ 2026-09-29 修（外部审查 R03）：同 applyProgressImport，`saveCourses` 不存在。
+     失败时不删备份键 —— 让用户还能再撤一次，而不是把退路也一起丢掉。 */
+  if (!persistCourses()) {
+    return { ok: false, error: '课程没能恢复到本机（可能是本机存储已满）。题库已恢复，可清理空间后重试撤销。' };
+  }
   try { localStorage.removeItem(PROGRESS_PRE_IMPORT_KEY); } catch (_) {}
   return { ok: true, at: b.at };
 }
@@ -11757,15 +11899,25 @@ function init() {
   safeInit('restoreGuidePref', restoreGuidePref);
   // 账号与长期记忆：异步恢复会话，失败不影响页面
   safeInit('authUI', authUI);
-  initAuth().catch((e) => { console.warn('[init] initAuth 失败:', e); renderMemoryView(); })
-    /* ★ 登录门禁：等会话恢复**结束之后**再判定，否则已登录用户刷新时会先闪一下登录界面。
-       要求原话：「未登录不允许跑（跳出登录界面）」—— 未登录就亮出登录界面并锁住。 */
-    .finally(() => { try { enforceLoginGate(); } catch (e) { console.warn('[init] 登录门禁失败:', e); } });
 
-  /* 开屏收尾：页面该绑的都绑好了，立刻把开屏收掉，让用户进得来。
-     云服务/模型目录是异步的，**不能拿它当"加载完成"的门槛**（慢网下会很晚），
-     而"云服务未连接"本来就由右上角 #ai-status 如实显示 —— 不在这里重复。 */
-  try { hideSplash(); } catch (_) {}
+  /* ★ 登录门禁（2026-09-29 重做，检查 agent 查出两处问题）：
+     ① 必须在**同步阶段**先锁上。「未登录不允许跑」不能等异步的会话恢复 ——
+        检查 agent 实测：老用户回来时 SDK 要先打一次 token 刷新，那段时间页面无门禁，
+        未登录也能点到「生成课程」。同步锁**不会误伤已登录用户**，因为开屏这时还盖着。
+     ② 开屏必须等门禁判定完再收 —— 否则上面那次同步锁会让老用户刷新时
+        看到登录界面闪一下（这正是当初把判定推到 finally 的原因，现在两个诉求都满足了）。
+     ③ 兜底：CSS 的 splash-auto-out 在 7 秒后强制淡出，auth 挂住也不会永久遮屏。 */
+  try { enforceLoginGate(); } catch (e) { console.warn('[init] 登录门禁失败:', e); }
+  initAuth()
+    .catch((e) => { console.warn('[init] initAuth 失败:', e); renderMemoryView(); })
+    .finally(() => {
+      /* 会话恢复结束后再同步一次：已登录 → 解锁（开屏还没收，用户看不到这一下） */
+      try { syncLoginGate(); } catch (e) { console.warn('[init] 登录门禁同步失败:', e); }
+      /* 开屏收尾：门禁判定已定，现在把开屏收掉。
+         云服务/模型目录是异步的，**不能拿它当"加载完成"的门槛**（慢网下会很晚），
+         而"云服务未连接"本来就由右上角 #ai-status 如实显示 —— 不在这里重复。 */
+      try { hideSplash(); } catch (_) {}
+    });
   reportBootTime();
 }
 
@@ -11863,6 +12015,15 @@ try {
     /* 语音朗读（听不到老师讲课的修复 + 听感优化） */
     ttsHealth, ensureVoiceReady, notifyTTSProblem, syncVoiceBtn, ttsPrefOff,
     speakableText, splitSentences, SPEECH_RATES, cycleSpeechRate, loadSpeechRate, bindSpeakRateLongPress,
+    /* 增量分句：实时朗读的入口，必须有行为测试（之前全是 grep 源码，等于没测） */
+    completeSentences, scanSentences, sentencesWithTail,
+    /* 云端 endpoint 判定（含 file:// 兜底） */
+    resolveCloudEndpoint,
+    /* 课程读写：导入/撤销"有没有真的落盘"要靠这两支来做行为断言 */
+    persistCourses, loadCourses,
+    /* 登录门禁：测试要能直接驱动它（登出后是否重新上锁等） */
+    isSignedIn, enforceLoginGate, releaseLoginGate, syncLoginGate, requireSignedIn,
+    getGateState,
     checkpointLive, startLiveCheckpoint, stopLiveCheckpoint,
     setSpeechRate, rateLabel, TEACH_LANGS, teachLang, teachLangProfile, setTeachLang, loadTeachLang,
     langNote,

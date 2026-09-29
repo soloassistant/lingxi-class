@@ -847,8 +847,16 @@
       <p class="auth-note auth-soundtest">
         <a href="#" id="au-soundtest">🔈 先测一下这台设备能不能出声</a>
       </p>
-      <!-- 试音结果就显示在这里（运行时会把语音提示区临时搬进来） -->
-      <div id="au-soundtest-result" hidden></div>
+      <!-- ★ 试音结果**就地**渲染在这里（2026-09-29 修）。
+           原来的做法是把课堂的 #tts-notice 整块 appendChild 搬进来 ——
+           但 appendChild 是"移动"不是"复制"，搬走之后课堂里那块
+           常驻的「老师的声音没出来」提示（带自检/再试一次/✕ 三个按钮）
+           就再也回不去 #live-room 了。检查 agent 复查时实测出这个回退。 -->
+      <div class="auth-soundtest-box" id="au-soundtest-box" hidden>
+        <span class="voice-tts-title" id="au-soundtest-title"></span>
+        <span class="voice-tts-why" id="au-soundtest-why"></span>
+        <div class="tts-notice-result" id="au-soundtest-result" hidden></div>
+      </div>
     </div>
   </div>
 </div>
