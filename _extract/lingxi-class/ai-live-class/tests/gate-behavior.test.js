@@ -46,13 +46,10 @@ const sec = (s) => console.log('\n=== ' + s + ' ===');
 
 const SITE = 'https://bb6ae4d03fbd4b109cbbe6dbbc84502d.app.workbuddy.host/';
 
-(async () => {
-  const dom = new JSDOM(html, { url: SITE, runScripts: 'outside-only', pretendToBeVisual: true });
-  const W = dom.window;
-  W.confirm = () => true;
-  W.alert = () => {};
-
-  /* 云服务桩：只提供"够跑通、不炸"的最小面。真实行为不在本文件验证。 */
+/* 云服务桩：只提供"够跑通、不炸"的最小面。真实行为不在本文件验证。
+   抽成函数是为了能开**第二个页面实例**（有些行为只在"首次加载"时发生一次，
+   在同一个实例里复用会因为已经发生过而测不出来 —— 见 M1 组）。 */
+function makeCloudStub() {
   const noopChain = () => ({
     select() { return this; }, limit() { return this; }, order() { return this; },
     eq() { return this; }, maybeSingle() { return this; }, update() { return this; },
@@ -60,25 +57,39 @@ const SITE = 'https://bb6ae4d03fbd4b109cbbe6dbbc84502d.app.workbuddy.host/';
     then: (r) => Promise.resolve({ data: [], error: null }).then(r),
     catch: (r) => Promise.resolve({ data: [], error: null }).catch(r),
   });
-  W.WorkBuddyCloud = {
-    createWorkBuddyCloud() {
-      return {
-        llm: {
-          models: { list: async () => [{ id: 'm1', name: 'M1', disabled: false }] },
-          chat: { completions: { create: () => ({ [Symbol.asyncIterator]() { let d = false; return { next: async () => d ? { done: true } : (d = true, { done: false, value: { choices: [{ delta: { content: '你好。' } }] } }) }; } }) } },
-        },
-        auth: {
-          getSession: async () => ({ data: null, error: null }),
-          getUser: async () => ({ data: null, error: { kind: 'unauthenticated' } }),
-          signOut: async () => ({ error: null }),
-          onAuthStateChange: () => () => {},
-        },
-        database: { from: noopChain, rpc: async () => ({ data: null, error: null }) },
-      };
+  return {
+    llm: {
+      models: { list: async () => [{ id: 'm1', name: 'M1', disabled: false }] },
+      chat: { completions: { create: () => ({ [Symbol.asyncIterator]() { let d = false; return { next: async () => d ? { done: true } : (d = true, { done: false, value: { choices: [{ delta: { content: '你好。' } }] } }) }; } }) } },
     },
+    auth: {
+      getSession: async () => ({ data: null, error: null }),
+      getUser: async () => ({ data: null, error: { kind: 'unauthenticated' } }),
+      signOut: async () => ({ error: null }),
+      onAuthStateChange: () => () => {},
+    },
+    database: { from: noopChain, rpc: async () => ({ data: null, error: null }) },
   };
+}
+/* 开一个全新的页面实例（干净的脚本作用域 + 干净的 localStorage） */
+function freshApp() {
+  const d = new JSDOM(html, { url: SITE, runScripts: 'outside-only', pretendToBeVisual: true });
+  const w = d.window;
+  w.confirm = () => true; w.alert = () => {}; w.prompt = () => '确认注销';
+  w.WorkBuddyCloud = { createWorkBuddyCloud: () => makeCloudStub() };
+  return w;
+}
+
+(async () => {
+  const dom = new JSDOM(html, { url: SITE, runScripts: 'outside-only', pretendToBeVisual: true });
+  const W = dom.window;
+  W.confirm = () => true;
+  W.alert = () => {};
+
+  W.WorkBuddyCloud = { createWorkBuddyCloud: () => makeCloudStub() };
 
   W.eval(appJs);
+  W.prompt = () => '确认注销';        // jsdom 不实现 prompt，必须自己给
   await new Promise((r) => setTimeout(r, 30));   // 让 init() 里的微任务跑完
 
   const vis = (sel) => {
@@ -214,13 +225,17 @@ const SITE = 'https://bb6ae4d03fbd4b109cbbe6dbbc84502d.app.workbuddy.host/';
 
   W.localStorage.clear();
   W.state.courses = [];
+  /* ★ 2026-09-29：课程现在落在**按账号命名**的键里（R01），
+     断言跟着改成"读当前账号那个键"。判据本身（"真的写进了 localStorage，
+     不是只在内存里"）没有放松一个字。 */
+  const curCoursesKey = () => W.scopedContentKey(W.CONTENT_KEYS.courses);
   const inc = [{ id: 'c-inc-1', title: '导入的课', progress: 0.5, slides: [] }];
   const r1 = W.applyProgressImport({ data: { courses: inc, bank: [], prefs: {} } }, 'replace');
   t('P1 导入返回成功', r1 && r1.ok === true);
   // ★ 修复前：调的是不存在的 saveCourses()，异常被空 catch 吞掉，照样返回 ok:true，
   //   课程只在内存里 —— 刷新就没了。这里直接读 localStorage 定生死。
   t('P2 ★ 导入的课程真的写进了 localStorage（修复前只在内存）',
-    /c-inc-1/.test(W.localStorage.getItem('lingxi_courses_v1') || ''));
+    /c-inc-1/.test(W.localStorage.getItem(curCoursesKey()) || ''));
 
   // 模拟"刷新页面"：清掉内存状态后再从 localStorage 读回来
   W.state.courses = [];
@@ -233,7 +248,7 @@ const SITE = 'https://bb6ae4d03fbd4b109cbbe6dbbc84502d.app.workbuddy.host/';
   W.applyProgressImport({ data: { courses: inc, bank: [], prefs: {} } }, 'replace');
   const r2 = W.undoProgressImport();
   t('P4 撤销返回成功', r2 && r2.ok === true);
-  t('P5 ★ 撤销后的课程也真的落盘了', /c-old-1/.test(W.localStorage.getItem('lingxi_courses_v1') || ''));
+  t('P5 ★ 撤销后的课程也真的落盘了', /c-old-1/.test(W.localStorage.getItem(curCoursesKey()) || ''));
   W.state.courses = [];
   W.loadCourses();
   t('P6 ★ 模拟刷新后撤销结果仍在', W.state.courses.some((c) => c.id === 'c-old-1'));
@@ -305,6 +320,159 @@ const SITE = 'https://bb6ae4d03fbd4b109cbbe6dbbc84502d.app.workbuddy.host/';
     !/切回访客模式/.test(codeOnly));
   t('T5 自检面板如实说明会被门禁拦住',
     /未登录会被登录门禁拦住/.test(codeOnly));
+
+  /* ────────────────────────────────────────────────
+     M 组：内容存储按账号隔离（R01）
+     ──────────────────────────────────────────────── */
+  sec('M 组：切账号不串课程（R01）');
+
+  const CK = W.CONTENT_KEYS;
+  const keyFor = (base, owner) => W.scopedContentKey(base, owner);
+  const raw = (k) => W.localStorage.getItem(k);
+
+  W.localStorage.clear();
+  W.state.courses = [];
+  W.state.user = null;
+  W.authUI();                                  // 归位到未登录
+
+  /* M1–M4 必须用一个**全新的页面实例**来测"旧版全局键的认领"：
+     认领按设计**只做一次**，而上面的 G 组已经登录过（那一刻就消耗掉了这次机会）。
+     在同一个实例里再塞旧键，已经不会被认领 —— 那不是缺陷，是"一次性"本身。
+     用干净实例才测得到真实场景（老用户第一次打开新版页面）。 */
+  {
+    const W2 = freshApp();
+    W2.localStorage.setItem(CK.courses, JSON.stringify([{ id: 'legacy-1', title: '旧版遗留课程' }]));
+    W2.eval(appJs);
+    await new Promise((r) => setTimeout(r, 30));
+    t('M-L1 未登录时不认领（身份未定，这时认领会把数据记到 guest 名下）',
+      W2.localStorage.getItem(CK.courses) !== null);
+    W2.state.user = { id: 'A', anonymous: false };
+    W2.authUI();
+    t('M-L2 ★ 登录后旧版全局键被认领进当前账号',
+      /legacy-1/.test(W2.localStorage.getItem(keyFor(CK.courses, 'u_A')) || ''));
+    t('M-L3 ★ 认领后旧全局键被删除（否则下一个账号会再继承一次）',
+      W2.localStorage.getItem(CK.courses) === null);
+    t('M-L4 认领后的课程真的进了内存', W2.state.courses.some((c) => c.id === 'legacy-1'));
+  }
+
+  // M4 A 建课并落盘 → 进 A 的命名空间
+  W.state.user = { id: 'A', anonymous: false };
+  W.authUI();                                  // 身份切到 A（命名空间随之切换）
+  W.state.courses = [{ id: 'cA', title: 'A 的课', progress: 0.3 }];
+  W.persistCourses();
+  t('M4 A 的课程写进 u_A 命名空间', /cA/.test(raw(keyFor(CK.courses, 'u_A')) || ''));
+  t('M5 不写进 B 的命名空间', raw(keyFor(CK.courses, 'u_B')) === null);
+
+  // M6 ★ 切到 B：绝不能看到 A 的课程 —— 这是 R01 的核心
+  W.state.user = { id: 'B', anonymous: false };
+  W.authUI();
+  t('M6 ★★ B 登录后看不到 A 的课程（修复前 state.courses 里还是 A 那批）',
+    !W.state.courses.some((c) => c.id === 'cA'));
+  t('M7 B 的课程列表是空的', W.state.courses.length === 0);
+
+  // M8 A 的键没被 B 的操作破坏
+  W.state.courses = [{ id: 'cB', title: 'B 的课' }];
+  W.persistCourses();
+  t('M8 B 落盘写进自己的命名空间', /cB/.test(raw(keyFor(CK.courses, 'u_B')) || ''));
+  t('M9 ★ A 的课程原样保留，没被 B 覆盖', /cA/.test(raw(keyFor(CK.courses, 'u_A')) || ''));
+  t('M10 B 的命名空间里没有 A 的课', !/cA/.test(raw(keyFor(CK.courses, 'u_B')) || ''));
+
+  // M11 切回 A：课程回来
+  W.state.user = { id: 'A', anonymous: false };
+  W.authUI();
+  t('M11 ★ 切回 A 后自己的课程回来了', W.state.courses.some((c) => c.id === 'cA'));
+  t('M12 切回 A 时没有混进 B 的课', !W.state.courses.some((c) => c.id === 'cB'));
+
+  // M13 题库同样隔离
+  W.state.user = { id: 'A', anonymous: false };
+  W.authUI();
+  W.saveBank([{ stem: 'A 导入的题', type: 'choice' }]);
+  W.state.user = { id: 'B', anonymous: false };
+  W.authUI();
+  t('M13 ★ 题库也隔离：B 读不到 A 导入的题',
+    !W.loadBank().some((q) => q.stem === 'A 导入的题'));
+  t('M14 A 的题库键仍在', /A 导入的题/.test(raw(keyFor(CK.bank, 'u_A')) || ''));
+
+  // M15 ★ 同步上传的必须是**当前账号**的课程（R01 的实质后果）
+  {
+    const inserted = [];
+    W.state.user = { id: 'B', anonymous: false };
+    W.authUI();
+    W.state.cloud = W.WorkBuddyCloud.createWorkBuddyCloud();
+    W.state.cloud.database = {
+      from: () => ({
+        select: function () { return this; }, limit: function () { return this; },
+        order: function () { return this; }, eq: function () { return this; },
+        update: function () { return this; }, insert: function (row) { inserted.push(row); return this; },
+        then: (r) => Promise.resolve({ data: [], error: null }).then(r),
+        catch: (r) => Promise.resolve({ data: [], error: null }).catch(r),
+      }),
+    };
+    await W.syncCourses();
+    const ids = inserted.map((r) => r && r.course_id);
+    t('M15 ★★ 同步上传的载荷里没有别的账号的课程（R01 的实质）', ids.indexOf('cA') < 0);
+    t('M16 ★★ 上传的确实是 B 自己的课程', ids.indexOf('cB') >= 0);
+  }
+
+  // M17 偏好类键**不**隔离（换账号不该把主题也换掉）
+  t('M17 主题/语速这类偏好不属于内容键', Object.keys(CK).every((n) => CK[n].indexOf('theme') < 0 && CK[n].indexOf('tts') < 0));
+  W.localStorage.setItem('lingxi_theme', 'dark');
+  W.state.user = { id: 'A', anonymous: false };
+  W.authUI();
+  W.state.user = { id: 'B', anonymous: false };
+  W.authUI();
+  t('M18 ★ 切账号后主题仍是同一个（偏好不隔离）', raw('lingxi_theme') === 'dark');
+
+  /* ────────────────────────────────────────────────
+     N 组：注销的完整性（R04）
+     ──────────────────────────────────────────────── */
+  sec('N 组：注销不谎报、不漏项（R04）');
+
+  const covered = W.CLOUD_USER_TABLES.map((x) => x.t);
+  const used = ['student_facts', 'student_sessions', 'student_profiles', 'courses', 'analytics_events'];
+  t('N1 ★ 注销覆盖代码里实际用到的全部云端表', used.every((x) => covered.indexOf(x) >= 0));
+  t('N2 ★ courses（课程与课堂回放）不再被遗漏', covered.indexOf('courses') >= 0);
+  t('N3 ★ 埋点表 analytics_events 也在删除范围内', covered.indexOf('analytics_events') >= 0);
+
+  // N4/N5 云端删失败 → 不谎报成功、不登出（否则没有会话可以重试）
+  {
+    W.prompt = () => '确认注销';
+    W.confirm = () => true;
+    W.localStorage.setItem('lingxi_consent_v1', JSON.stringify({ version: 'v', at: 1 }));
+    const tried = [];
+    W.state.user = { id: 'u-del', anonymous: false };
+    W.authUI();
+    W.state.cloud = W.WorkBuddyCloud.createWorkBuddyCloud();
+    W.state.cloud.auth = { signOut: async () => ({ error: null }) };
+    W.state.cloud.database = {
+      from: (t) => ({ delete: () => ({ eq: () => ({ select: async () => { tried.push(t); return { data: [], error: { message: 'boom' } }; } }) }) }),
+    };
+    await W.deleteMyAccount();
+    t('N4 ★★ 删除失败时不登出（登出就没法重试了）', !!(W.state.user && W.state.user.id === 'u-del'));
+    t('N5 ★★ 删除失败时保留同意标记（setConsent(false) 会把它删掉 = 装作已注销）',
+      W.localStorage.getItem('lingxi_consent_v1') !== null);
+    t('N6 每张表都重试过一次（5 表 × 2 次）', tried.length === used.length * 2);
+  }
+
+  // N7/N8 云端删成功 → 本机该账号的课程/题库/备份一起清掉
+  {
+    W.state.user = { id: 'u-del2', anonymous: false };
+    W.authUI();
+    W.state.courses = [{ id: 'del-c' }];
+    W.persistCourses();
+    W.saveBank([{ stem: '待删的题' }]);
+    W.localStorage.setItem(W.scopedContentKey(CK.preImport), JSON.stringify({ courses: [{ id: 'old' }] }));
+    let signOutCalls2 = 0;
+    W.state.cloud.auth = { signOut: async () => { signOutCalls2++; return { error: null }; } };
+    W.state.cloud.database = {
+      from: () => ({ delete: () => ({ eq: () => ({ select: async () => ({ data: [], error: null }) }) }) }),
+    };
+    await W.deleteMyAccount();
+    t('N7 ★★ 注销成功后本机该账号的课程键被删除', raw(keyFor(CK.courses, 'u_del2')) === null);
+    t('N8 ★★ 题库键与导入前备份也一起清掉（修复前只清了课程）',
+      raw(keyFor(CK.bank, 'u_del2')) === null && raw(keyFor(CK.preImport, 'u_del2')) === null);
+    t('N9 注销成功后确实登出了', signOutCalls2 >= 1 && W.state.user === null);
+  }
 
   console.log('\nGATE_RESULT pass=' + pass + ' fail=' + fail);
   process.exit(fail ? 1 : 0);

@@ -210,12 +210,17 @@ const has = (hay, needle, m) => ok(String(hay).indexOf(needle) >= 0, m);
   store.student_facts = [{ id: 'f1', owner_id: 'u1' }];
   store.student_sessions = [{ id: 's1', owner_id: 'u1' }];
   calls.del.length = 0; calls.eq.length = 0;
+  /* ★ 2026-09-29 更新（外部审查 R04）：删除范围从 3 张表扩到 5 张 ——
+     原来漏了 `courses`（课程与课堂回放就存在这里）和 `analytics_events`（埋点），
+     于是"全部个人数据已删除"是假的。判据只是跟着如实扩大，没有放松：
+     依然要求每张表都按本人 owner_id 删、且一张不漏。 */
   await W.deleteMyAccount();
-  ok(calls.del.length === 3, 'G1 注销时删除三张表的个人数据');
+  ok(calls.del.length === 5, 'G1 注销时删除全部 5 张表的个人数据（原来只有 3 张）');
   const delTables = calls.del.map((d) => d.table).sort().join(',');
-  ok(delTables === 'student_facts,student_profiles,student_sessions', 'G2 覆盖画像/记忆/课堂记录');
+  ok(delTables === 'analytics_events,courses,student_facts,student_profiles,student_sessions',
+    'G2 覆盖画像/记忆/课堂记录/课程与回放/埋点');
   const ownerEq = calls.eq.filter((e) => e.k === 'owner_id' && e.v === 'u1');
-  ok(ownerEq.length === 3, 'G3 删除条件限定本人 owner_id');
+  ok(ownerEq.length === 5, 'G3 每张表的删除条件都限定本人 owner_id');
   ok(W.state.user === null, 'G4 注销后登录态清空');
   ok(W.state.mem === null, 'G5 注销后记忆缓存清空');
   ok(W.hasConsent() === false, 'G6 注销后同意状态清除');

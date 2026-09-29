@@ -48,13 +48,13 @@
   nav=memory -> OK
 == 6. 重复的 function 声明 ==
   (无)
-  function 声明总数=409
+  function 声明总数=416
 == 7. 规模 ==
-  app.js 482561 字符 / 12033 行
+  app.js 488318 字符 / 12180 行
   index.html 53551 字符 / 1162 行
   style.css 123334 字符 / 2694 行
 == 8. 可疑模式（需人工判断，非自动判定失败）==
   console.log 残留: 0
   TODO/FIXME: 0
   innerHTML 赋值（逐个核对 esc()）: 103
-  空 catch: 160
+  空 catch: 166

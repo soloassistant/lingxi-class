@@ -522,9 +522,15 @@ const t = (name, cond) => {
   t('V4 已登录时提示区分（不吓人）', /本地缓存没能更新/.test(srcStore));
   t('V5 只提示一次（不会每 30 秒刷屏）', /if \(!storageWarned\)/.test(srcStore));
   t('V6 有埋点便于排查', /track\('storage_full'/.test(srcStore));
-  // 所有课程写入都应走统一入口
-  const rawWrites = (srcStore.match(/localStorage\.setItem\('lingxi_courses_v1'/g) || []).length;
-  t('V7 课程写入只剩统一入口一处', rawWrites === 1, 'rawWrites=' + rawWrites);
+  /* 所有课程写入都应走统一入口。
+     ★ 2026-09-29 更新：课程键现在带 `::<owner>` 后缀（R01 按账号隔离），
+       所以字面 `setItem('lingxi_courses_v1'` 应该是 **0** 处 ——
+       真正要守的是"没有任何一处**绕过** scopedContentKey 直接写全局键"。
+       写成 1 反而是错的：那说明还有人往无归属的键里写。 */
+  const rawUnscoped = (srcStore.match(/localStorage\.setItem\('lingxi_courses_v1'/g) || []).length;
+  const viaScoped = (srcStore.match(/localStorage\.setItem\(scopedContentKey\(/g) || []).length;
+  t('V7 课程写入不绕过归属命名空间（无裸全局键写入）', rawUnscoped === 0, '裸写入=' + rawUnscoped);
+  t('V8 课程/题库/备份的写入都经 scopedContentKey', viaScoped >= 2, '经命名空间=' + viaScoped);
   // 极端长课堂：回放事件有上限，且裁剪后有时间轴标记
   t('V8 回放事件有上限常量', typeof W.REC_MAX_EVENTS === 'number' && W.REC_MAX_EVENTS >= 1000);
   t('V9 超限时裁剪并留下"被裁掉"标记', /_recTrimmed/.test(srcStore) && /只保留最近的部分/.test(srcStore));

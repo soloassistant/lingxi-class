@@ -978,6 +978,10 @@ function authUI() {
      authUI() 是"身份变化"的唯一收口：doSignOut / onAuthStateChange / healSession
      三条失去登录态的路径都会调它 —— 挂在最前面，一处就覆盖全。 */
   try { syncLoginGate(); } catch (e) { console.warn('[auth] 门禁同步失败:', e); }
+  /* ★ 身份一变就切换内容存储的命名空间（R01）。
+     必须在这里、且必须**早于** syncCourses() —— 否则上传的仍是上一个账号的课程。
+     authUI() 是身份变化的唯一收口，所以放这一处就够。 */
+  try { switchStorageOwner(); } catch (e) { console.warn('[auth] 存储归属切换失败:', e); }
   const btn = $('#btn-auth');
   if (!btn) return;
   const u = state.user;
@@ -1076,6 +1080,108 @@ let loginGateOn = false;
    会话恢复期间 authUI() 会被调用，那时候不能弹窗，否则老用户刷新会看到登录界面闪一下。 */
 let gateArmed = false;
 function isSignedIn() { return !!(state.user && !state.user.anonymous); }
+
+/* ============================================================
+   内容存储的归属隔离（外部审查 R01，P1）
+   ------------------------------------------------------------
+   问题：课程 / 题库 / 导入前备份原先都存在**全局键**里，没有任何归属信息：
+     · lingxi_courses_v1          ← 含学生提问、课堂回放
+     · lingxi_question_bank_v1
+     · lingxi_progress_pre_import
+   同一台电脑上 A 退出、B 登录时，syncCourses() 会把**内存里 A 的课程**
+   当作 B 的课程上传。云端 RLS 本身是对的（只能写自己的行），但它没法判断
+   "这次写入的载荷属于谁" —— B 合法写自己的行时，RLS 没有理由拒绝。
+   所以串数据**完全在客户端**，必须在这里修。共享电脑（家庭 / 学校）尤其明显。
+
+   做法：内容类键加 `::<owner>` 后缀，身份一变就切换命名空间。
+   ★ 偏好类键（主题 / 教学语言 / 语速 / 模型 / 形象）是"这台设备"的属性，
+     **不隔离** —— 换个账号连主题都变掉反而更奇怪。
+
+   owner 前缀用 `u_<userId>` / `guest`，**不用邮箱或手机号** ——
+   键名在开发者工具里一眼可见，不该把 PII 写进去。
+   ============================================================ */
+const CONTENT_KEYS = {
+  courses: 'lingxi_courses_v1',
+  bank: 'lingxi_question_bank_v1',
+  preImport: 'lingxi_progress_pre_import',
+};
+function storageOwnerKey() {
+  const u = state.user;
+  return (u && !u.anonymous && u.id) ? ('u_' + String(u.id)) : 'guest';
+}
+function scopedContentKey(base, owner) { return base + '::' + (owner || storageOwnerKey()); }
+
+/* 读内容：**只读本账号命名空间**，读不到时不回落到别处 —— 那正是要修的缺陷。 */
+function readContentRaw(base, fallbackRaw) {
+  try {
+    const v = localStorage.getItem(scopedContentKey(base));
+    return v == null ? fallbackRaw : v;
+  } catch (_) { return fallbackRaw; }
+}
+function writeContentRaw(base, raw) {
+  try { localStorage.setItem(scopedContentKey(base), raw); return true; } catch (_) { return false; }
+}
+
+/* 旧版全局键的一次性认领。
+   ★ 必须等身份确定（已登录）之后再认领：init 早期 state.user 还是 null，
+     那时认领会把上一个账号留下的数据记到 guest 名下，真正的账号反而拿不到。
+   ★ 认领后**立刻删掉旧键** —— 否则下一个登录的账号会再继承一次，等于没修。 */
+let legacyContentClaimed = false;
+function claimLegacyContent() {
+  if (legacyContentClaimed) return;
+  if (!isSignedIn()) return;
+  legacyContentClaimed = true;
+  Object.keys(CONTENT_KEYS).forEach((name) => {
+    const base = CONTENT_KEYS[name];
+    try {
+      const legacy = localStorage.getItem(base);
+      if (legacy == null) return;
+      const k = scopedContentKey(base);
+      if (localStorage.getItem(k) == null) localStorage.setItem(k, legacy);
+      localStorage.removeItem(base);
+    } catch (_) {}
+  });
+}
+
+/* 身份变化时切换命名空间。挂在 authUI() 里 ——
+   登录成功 / doSignOut / SIGNED_OUT / healSession 四条路径都会走到那里。 */
+let activeStorageOwner = null;
+function switchStorageOwner() {
+  const next = storageOwnerKey();
+  if (activeStorageOwner === next) { claimLegacyContent(); return; }
+  const prev = activeStorageOwner;
+  /* 先把**旧 owner 的**内容取出来（此刻 activeStorageOwner 还是 prev，读的就是旧键） */
+  const prevBank = (prev === null) ? null : loadBank();
+  const prevPreImport = (prev === null) ? null : readJson(CONTENT_KEYS.preImport, null);
+  activeStorageOwner = next;
+  claimLegacyContent();
+  if (prev === null) return;                  // 首次只是记录，还没有"旧内容"要存回
+  /* ① 内存里的内容属于 prev —— 存回 prev 的命名空间（期间的修改不能丢） */
+  try {
+    if (Array.isArray(state.courses) && state.courses.length) {
+      localStorage.setItem(scopedContentKey(CONTENT_KEYS.courses, prev), JSON.stringify(state.courses));
+    }
+    if (prevBank && prevBank.length) {
+      localStorage.setItem(scopedContentKey(CONTENT_KEYS.bank, prev), JSON.stringify(prevBank));
+    }
+    if (prevPreImport) {
+      localStorage.setItem(scopedContentKey(CONTENT_KEYS.preImport, prev), JSON.stringify(prevPreImport));
+    }
+  } catch (_) {}
+  /* ② 载入 next 的内容。★ 这一步必须**早于** syncCourses()，
+        否则上传的还是上一个账号的课程（这正是 R01 的成因）。 */
+  state.courses = [];
+  loadCourses();
+  try { renderCourses(); } catch (_) {}
+  try { renderBank(); } catch (_) {}
+}
+
+/* 清掉**指定账号**留在本机的全部内容（注销用）。偏好类键不动 —— 那些不归账号管。 */
+function clearContentForOwner(owner) {
+  Object.keys(CONTENT_KEYS).forEach((name) => {
+    try { localStorage.removeItem(scopedContentKey(CONTENT_KEYS[name], owner)); } catch (_) {}
+  });
+}
 
 /* 清掉/恢复门禁态下的绕过入口可见性 */
 function setGateBypassesHidden(hidden) {
@@ -1708,14 +1814,33 @@ async function exportMyData() {
   }
 }
 
-/* 注销：删除云端全部个人数据（画像/记忆/课堂记录），并清空本机课程 */
+/* 注销：删除云端全部个人数据 + 本机该账号的全部内容。
+   ★ 外部审查 R04（P1）修了什么：
+     ① 云端删除列表原来只有 student_facts / student_sessions / student_profiles，
+        **遗漏了 courses**（课程与课堂回放就存在那里）和 **analytics_events**（埋点）。
+        于是"全部个人数据已删除"这句话是假的 —— 同一登录方式再登录，云端课程会重新下载。
+        现在按"代码里实际用到的全部表"逐个删（见 CLOUD_USER_TABLES）。
+     ② 本机只清了课程键，**题库与导入前备份都还在**。现在按账号命名空间整体清。
+     ③ 原来是"删失败也照样提示成功"。现在逐个重试一次，仍失败就**不谎报成功**，
+        并且**不把用户登出**（登出后就没有会话可以重试了），把还剩哪些数据如实说出来。 */
+const CLOUD_USER_TABLES = [
+  { t: 'student_facts', label: '老师记住的事' },
+  { t: 'student_sessions', label: '上课记录' },
+  { t: 'student_profiles', label: '学生画像' },
+  { t: 'courses', label: '课程与课堂回放' },
+  { t: 'analytics_events', label: '使用埋点' },
+];
+
 async function deleteMyAccount() {
   if (!state.user) { acctMsg('请先登录'); return; }
   const ok1 = window.confirm(
     '⚠️ 注销将永久删除以下数据，且不可恢复：\n\n' +
     '· 学生画像与全部「老师记住的事」\n' +
     '· 全部上课记录与课堂回放\n' +
-    '· 本机保存的课程\n\n' +
+    '· 全部课程（含课件与你的提问）\n' +
+    '· 本机的课程、题库与导入前备份\n' +
+    '· 使用埋点\n\n' +
+    '（设备与手机号的风控台账会按平台合规要求保留，不含你的学习内容。）\n\n' +
     '注销后仍可用同一登录方式重新登录，但那将是一个没有任何学习记录的空白账号。\n' +
     '如需连同登录方式本身一并删除，请在注销后联系我们。\n\n' +
     '确定要继续吗？'
@@ -1726,23 +1851,41 @@ async function deleteMyAccount() {
 
   acctMsg('正在删除你的数据…', 'ok');
   const db = state.cloud && state.cloud.database;
-  const errs = [];
+  const owner = state.user.id;
+  const failed = [];
+
   if (db) {
-    for (const t of ['student_facts', 'student_sessions', 'student_profiles']) {
-      try {
-        const res = await db.from(t).delete().eq('owner_id', state.user.id).select('id');
-        // 空数组说明没有可删的行（或已被 RLS 挡下）；不当成错误，但记录下来便于排查
-        if (res && res.error) errs.push(t + ': ' + (res.error.message || 'error'));
-      } catch (e) { errs.push(t + ': ' + (e && e.message || e)); }
+    for (const item of CLOUD_USER_TABLES) {
+      let done = false, lastErr = '';
+      /* 每个表重试一次：网络抖动不该让用户看到"部分删除"这种半吊子结果 */
+      for (let attempt = 0; attempt < 2 && !done; attempt++) {
+        try {
+          const res = await db.from(item.t).delete().eq('owner_id', owner).select('id');
+          if (res && res.error) lastErr = res.error.message || 'error';
+          else done = true;
+        } catch (e) { lastErr = (e && e.message) || String(e); }
+      }
+      if (!done) failed.push(item.label + '（' + item.t + '）' + (lastErr ? '：' + lastErr : ''));
     }
   } else {
-    errs.push('云端未连接');
+    failed.push('云端未连接 —— 一条都没删成');
   }
 
-  // 清空本机数据
-  try { localStorage.removeItem('lingxi_courses_v1'); } catch (_) {}
+  if (failed.length) {
+    /* 云端没删干净 → 本机内容**先不删**，也**不登出**：
+       本机删了、云端还在，用户下次登录又会看到，只会更混乱；
+       不登出才留着会话让他能重试。 */
+    acctMsg('部分数据删除失败，已保留本机数据与会话以便重试', 'err');
+    toast('注销未完成：还有 ' + failed.length + ' 项没删掉，请重试', 'err');
+    try { console.warn('[account] 删除失败明细:', failed); } catch (_) {}
+    return;
+  }
+
+  // 云端干净了 —— 再清本机该账号的全部内容（课程 / 题库 / 导入前备份）
+  clearContentForOwner(owner);
   state.courses = [];
   try { renderCourses(); } catch (_) {}
+  try { renderBank(); } catch (_) {}
 
   // 撤销同意标记
   setConsent(false);
@@ -1751,13 +1894,7 @@ async function deleteMyAccount() {
   state.user = null; state.mem = null; state.memLoaded = false;
   authUI(); renderMemoryView();
   closeAccountModal();
-
-  if (errs.length) {
-    toast('本机数据已清除，云端部分数据删除失败，请重试', 'err');
-    console.warn('[account] 删除异常:', errs);
-  } else {
-    toast('账号已注销，全部个人数据已删除', 'ok');
-  }
+  toast('账号已注销，云端与本机的个人数据都已删除', 'ok');
 }
 
 
@@ -7366,7 +7503,8 @@ async function exportPPTX(course, btn) {
 let storageWarned = false;
 function persistCourses() {
   try {
-    localStorage.setItem('lingxi_courses_v1', JSON.stringify(state.courses));
+    /* ★ R01：写进当前账号的命名空间 */
+    localStorage.setItem(scopedContentKey(CONTENT_KEYS.courses), JSON.stringify(state.courses));
     return true;
   } catch (_) {
     if (!storageWarned) {
@@ -7398,7 +7536,9 @@ function saveCourse(course, notify) {
 
 function loadCourses() {
   try {
-    state.courses = normalizeCourses(JSON.parse(localStorage.getItem('lingxi_courses_v1') || '[]'));
+    /* ★ R01：按当前账号的命名空间读。读不到就是空 ——
+       绝不回落到"上一个账号留下的那份"，那正是要修的串数据缺陷。 */
+    state.courses = normalizeCourses(JSON.parse(readContentRaw(CONTENT_KEYS.courses, '[]') || '[]'));
   } catch (_) { state.courses = []; }
 }
 
@@ -11055,13 +11195,14 @@ const BANK_DIFF = { easy: '基础', mid: '中等', hard: '较难' };
 
 function loadBank() {
   let list = [];
-  try { list = JSON.parse(localStorage.getItem(BANK_KEY) || '[]'); } catch (_) { list = []; }
+  /* ★ R01：题库同样按账号隔离（里面是学生自己导入的题） */
+  try { list = JSON.parse(readContentRaw(BANK_KEY, '[]') || '[]'); } catch (_) { list = []; }
   return Array.isArray(list) ? list.filter((x) => x && x.stem) : [];
 }
 function saveBank(list) {
   const arr = Array.isArray(list) ? list : [];
   try {
-    localStorage.setItem(BANK_KEY, JSON.stringify(arr));
+    localStorage.setItem(scopedContentKey(BANK_KEY), JSON.stringify(arr));
     return { ok: true, n: arr.length };
   } catch (e) {
     /* 写失败必须说出来 —— 这个项目里"存储满静默失败导致课程丢失"已经踩过一次 */
@@ -11570,7 +11711,8 @@ function applyProgressImport(snapshot, mode) {
   // ① 先给当前数据留一份（可撤销）
   let backupOk = true;
   try {
-    localStorage.setItem(PROGRESS_PRE_IMPORT_KEY, JSON.stringify({
+    /* ★ R01：导入前备份同样按账号隔离 —— 它整份含课程与回放 */
+    localStorage.setItem(scopedContentKey(PROGRESS_PRE_IMPORT_KEY), JSON.stringify({
       at: Date.now(),
       courses: Array.isArray(state.courses) ? state.courses : [],
       bank: loadBank(),
@@ -11629,7 +11771,7 @@ function applyProgressImport(snapshot, mode) {
 
 /* 撤销上次导入 */
 function undoProgressImport() {
-  const b = readJson(PROGRESS_PRE_IMPORT_KEY, null);
+  const b = readJson(scopedContentKey(PROGRESS_PRE_IMPORT_KEY), null);
   if (!b || !Array.isArray(b.courses)) return { ok: false, error: '没有可撤销的导入记录。' };
   state.courses = b.courses;
   const r = saveBank(Array.isArray(b.bank) ? b.bank : []);
@@ -11639,12 +11781,12 @@ function undoProgressImport() {
   if (!persistCourses()) {
     return { ok: false, error: '课程没能恢复到本机（可能是本机存储已满）。题库已恢复，可清理空间后重试撤销。' };
   }
-  try { localStorage.removeItem(PROGRESS_PRE_IMPORT_KEY); } catch (_) {}
+  try { localStorage.removeItem(scopedContentKey(PROGRESS_PRE_IMPORT_KEY)); } catch (_) {}
   return { ok: true, at: b.at };
 }
 
 function hasProgressBackup() {
-  const b = readJson(PROGRESS_PRE_IMPORT_KEY, null);
+  const b = readJson(scopedContentKey(PROGRESS_PRE_IMPORT_KEY), null);
   return !!(b && Array.isArray(b.courses));
 }
 
@@ -11966,6 +12108,9 @@ try {
     LEGAL_VERSION, LEGAL_EFFECTIVE, LEGAL_REVISION, PRIVACY_DOC, TERMS_DOC, DOCS, hasConsent, setConsent, consentChecked, requireConsent,
     openDoc, closeDoc, agreeDoc, normalizeCNPhone, phoneMask, smsErr, signInFromPhone,
     openAccountModal, closeAccountModal, exportMyData, deleteMyAccount, acctMsg, bindLegalEvents, CONSENT_KEY,
+    /* 内容存储的归属隔离（R01/R04）：测试要能直接驱动"切账号"这件事 */
+    CONTENT_KEYS, CLOUD_USER_TABLES, storageOwnerKey, scopedContentKey,
+    readContentRaw, writeContentRaw, claimLegacyContent, switchStorageOwner, clearContentForOwner,
     /* 手机号登记（应用层） */
     currentPhone, registerPhone, renderAcctPhone, bindPhoneEvents,
     /* 成本闸门与埋点 */
@@ -12021,6 +12166,8 @@ try {
     resolveCloudEndpoint,
     /* 课程读写：导入/撤销"有没有真的落盘"要靠这两支来做行为断言 */
     persistCourses, loadCourses,
+    /* 同步：R01 的实质断言要验"上传的载荷里有没有别的账号的课程" */
+    syncCourses,
     /* 登录门禁：测试要能直接驱动它（登出后是否重新上锁等） */
     isSignedIn, enforceLoginGate, releaseLoginGate, syncLoginGate, requireSignedIn,
     getGateState,

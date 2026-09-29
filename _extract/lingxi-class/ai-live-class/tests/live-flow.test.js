@@ -1631,12 +1631,12 @@ setTimeout(async () => {
   })());
   t('BK7 入库去重（同一份卷子拆两次不会灌两遍）', (() => {
     if (typeof window.bankAdd !== 'function') return false;
-    try { window.localStorage.removeItem(window.BANK_KEY); } catch (_) {}
+    try { window.localStorage.removeItem(window.scopedContentKey(window.BANK_KEY)); } catch (_) {}
     const one = window.cleanBankItems([{ stem: '一道用于测试去重的题目内容足够长', topic: 'A', type: 'calc' }], { source: 's1' });
     const first = window.bankAdd(one);
     const second = window.bankAdd(one);
     const n = window.bankAll().length;
-    try { window.localStorage.removeItem(window.BANK_KEY); } catch (_) {}
+    try { window.localStorage.removeItem(window.scopedContentKey(window.BANK_KEY)); } catch (_) {}
     return first.added === 1 && second.added === 0 && second.dup === 1 && n === 1;
   })());
   t('BK8 有条目上限且超出时如实报告（不静默丢数据）',
@@ -1714,7 +1714,7 @@ setTimeout(async () => {
 
   // 运行验证：统计 / 筛选 / 渲染（不靠读代码）
   if (typeof window.bankAdd === 'function') {
-    try { window.localStorage.removeItem(window.BANK_KEY); } catch (_) {}
+    try { window.localStorage.removeItem(window.scopedContentKey(window.BANK_KEY)); } catch (_) {}
     const demo = window.cleanBankItems([
       { stem: '求 3x + 7 = 22 中 x 的值', topic: '一元一次方程', type: 'calc', difficulty: 'easy', marks: 3, source: 's' },
       { stem: '解方程 x^2 - 5x + 6 = 0', topic: '一元二次方程', type: 'calc', difficulty: 'mid', marks: 5, source: 's' },
@@ -1762,7 +1762,7 @@ setTimeout(async () => {
     t('BK25 题目结构带重练所需的字段（tries/right，为"重做原题"打基础）',
       demo.every((q) => q.id && q.topic && q.type && q.difficulty && typeof q.tries === 'number' && typeof q.right === 'number'));
     wrap.remove();
-    try { window.localStorage.removeItem(window.BANK_KEY); } catch (_) {}
+    try { window.localStorage.removeItem(window.scopedContentKey(window.BANK_KEY)); } catch (_) {}
   }
 
   console.log('\n=== 37. 学习进度：保存 + 导入导出 ===');
@@ -1854,9 +1854,11 @@ setTimeout(async () => {
 
   // 运行验证：快照 / 校验 / 预览 / 合并 / 撤销（不靠读代码）
   if (typeof window.buildProgressSnapshot === 'function') {
-    const BK = window.BANK_KEY;
-    const CK = 'lingxi_courses_v1';
-    const PRE = 'lingxi_progress_pre_import';
+    /* ★ 2026-09-29：内容类键现在带 `::<owner>` 后缀（R01 按账号隔离）。
+       这里统一取**当前账号的**物理键名 —— 断言本身（快照/合并/撤销是否真的读写对了）没变。 */
+    const BK = window.scopedContentKey(window.BANK_KEY);
+    const CK = window.scopedContentKey(window.CONTENT_KEYS.courses);
+    const PRE = window.scopedContentKey(window.CONTENT_KEYS.preImport);
     // 造一份"本机数据"
     try { window.localStorage.removeItem(BK); window.localStorage.removeItem(PRE); } catch (_) {}
     const oldCourses = [{ id: 'c1', title: '旧课', progress: 100, createdAt: 1000 }];

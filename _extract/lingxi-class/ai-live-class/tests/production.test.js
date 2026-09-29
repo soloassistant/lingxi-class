@@ -62,7 +62,8 @@ setTimeout(async () => {
   window.state.courses = [];
   window.saveCourse({ id: 'x1', title: '课A', subject: '数学', grade: '高一', level: '提高', duration: '45 分钟' }, false);
   t('保存后 state.courses 有 1 条', window.state.courses.length === 1);
-  t('课程已持久化到 localStorage', (window.localStorage.getItem('lingxi_courses_v1') || '').indexOf('x1') >= 0);
+  t('课程已持久化到 localStorage',
+    (window.localStorage.getItem(window.scopedContentKey(window.CONTENT_KEYS.courses)) || '').indexOf('x1') >= 0);
   window.saveCourse({ id: 'x1', title: '课A-改' }, false);
   t('同 id 再次保存是更新而非新增', window.state.courses.length === 1 && window.state.courses[0].title === '课A-改');
   window.saveCourse({ id: 'x2', title: '课B' }, false);
