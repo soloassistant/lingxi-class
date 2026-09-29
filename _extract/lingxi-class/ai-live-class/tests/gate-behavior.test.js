@@ -80,6 +80,52 @@ function freshApp() {
   return w;
 }
 
+/* 可记录的同步用云桩：要能**按操作类型**单独制造失败，
+   否则没法验"删云端失败时墓碑要留着、但拉取仍然成功"这条守卫。 */
+function makeSyncDb(initialRows) {
+  const rec = {
+    rows: (initialRows || []).slice(),
+    inserts: [], updates: [], deletes: [],
+    fail: { select: false, insert: false, update: false, delete: false },
+  };
+  const db = {
+    from: () => {
+      const p = { _op: 'select', _eq: null, _row: null, _patch: null };
+      p.select = () => { p._op = 'select'; return p; };
+      p.limit = () => p;
+      p.order = () => p;
+      p.eq = (k, v) => { p._eq = { k, v }; return p; };
+      p.insert = (row) => { p._op = 'insert'; p._row = row; return p; };
+      p.update = (patch) => { p._op = 'update'; p._patch = patch; return p; };
+      p.delete = () => { p._op = 'delete'; return p; };
+      const run = () => {
+        if (rec.fail[p._op]) throw new Error('offline:' + p._op);
+        if (p._op === 'insert') {
+          rec.inserts.push(p._row);
+          rec.rows.push({ id: 'row-' + p._row.course_id, course_id: p._row.course_id, data: p._row.data });
+          return { data: [], error: null };
+        }
+        if (p._op === 'update') {
+          rec.updates.push({ id: p._eq && p._eq.v, data: p._patch && p._patch.data });
+          const r = rec.rows.find((x) => x.id === (p._eq && p._eq.v));
+          if (r) r.data = p._patch.data;
+          return { data: [], error: null };
+        }
+        if (p._op === 'delete') {
+          rec.deletes.push(p._eq && p._eq.v);
+          rec.rows = rec.rows.filter((x) => x.id !== (p._eq && p._eq.v));
+          return { data: [], error: null };
+        }
+        return { data: rec.rows.map((x) => ({ id: x.id, course_id: x.course_id, data: x.data })), error: null };
+      };
+      p.then = (res, rej) => Promise.resolve().then(run).then(res, rej);
+      p.catch = (rej) => Promise.resolve().then(run).catch(rej);
+      return p;
+    },
+  };
+  return { rec, db };
+}
+
 (async () => {
   const dom = new JSDOM(html, { url: SITE, runScripts: 'outside-only', pretendToBeVisual: true });
   const W = dom.window;
@@ -472,6 +518,123 @@ function freshApp() {
     t('N8 ★★ 题库键与导入前备份也一起清掉（修复前只清了课程）',
       raw(keyFor(CK.bank, 'u_del2')) === null && raw(keyFor(CK.preImport, 'u_del2')) === null);
     t('N9 注销成功后确实登出了', signOutCalls2 >= 1 && W.state.user === null);
+  }
+
+  /* ────────────────────────────────────────────────
+     O 组：课程同步（R02）
+     ──────────────────────────────────────────────── */
+  sec('O 组：同步不丢、不覆盖新进度、删除不复活（R02）');
+
+  const setLocalCourses = (list) => {
+    W.localStorage.setItem(W.scopedContentKey(W.CONTENT_KEYS.courses), JSON.stringify(list));
+    W.loadCourses();                       // 基线与 state.courses 一致，且**不打脏**
+  };
+
+  W.state.user = { id: 'u-sync', anonymous: false };
+  W.authUI();
+  W.localStorage.removeItem(W.syncQueueKey());
+
+  // O1 保存课程必须进待同步队列（原来：云端调用数恒为 0）
+  {
+    const { db } = makeSyncDb([]);
+    W.state.cloud = { database: db, auth: { signOut: async () => ({}) } };
+    setLocalCourses([]);
+    W.saveCourse({ id: 'ns1', title: '新课', subject: '数学' }, false);
+    t('O1 ★ 保存课程会记入待同步队列（修复前正常 saveCourse 一次云端都不发）',
+      W.pendingSyncCount() >= 1);
+    await new Promise((r) => setTimeout(r, 1900));    // 等节流的自动 flush 跑完
+  }
+
+  /* O2–O4 是最核心的一条：**旧设备不能覆盖云端更新的进度**。
+     修复前 syncCourses() 是"先把本地全部覆盖到云端"，于是云端 90% 会被本机 20% 抹掉。 */
+  {
+    const cloud90 = { id: 'c-old', title: '同一节课', progress: 0.9, updatedAt: 2000 };
+    const { rec, db } = makeSyncDb([{ id: 'r-old', course_id: 'c-old', data: cloud90 }]);
+    W.state.cloud = { database: db, auth: { signOut: async () => ({}) } };
+    // 本机是另一台旧设备留下的 20%，**没有**未同步标记（它就是上次同步下来的）
+    setLocalCourses([{ id: 'c-old', title: '同一节课', progress: 0.2, updatedAt: 1000 }]);
+    W.localStorage.removeItem(W.syncQueueKey());
+    t('O2 前置：此时没有待同步项（本地那份就是上次同步下来的）', W.pendingSyncCount() === 0);
+
+    await W.syncCourses();
+    const c = W.state.courses.find((x) => x.id === 'c-old');
+    t('O3 ★★ 云端较新的 90% 没有被本机旧的 20% 覆盖', !!c && c.progress === 0.9);
+    t('O4 ★★ 也没有反过来把 20% 推上云端', rec.inserts.length === 0 && rec.updates.length === 0);
+
+    // O5 但本地**真的改过**时，本地要赢（否则新改动永远推不上去）
+    const local = W.state.courses.find((x) => x.id === 'c-old');
+    local.progress = 1;
+    W.markCourseDirty(local);
+    await W.syncCourses();
+    t('O5 ★ 本地有未同步改动时，本地版本会推上云端', rec.updates.length >= 1 || rec.inserts.length >= 1);
+    t('O6 推送成功后队列清空', W.pendingSyncCount() === 0);
+  }
+
+  // O7/O8 断网 → 改动留在队列；恢复后自动重试成功
+  {
+    const { rec, db } = makeSyncDb([]);
+    W.state.cloud = { database: db, auth: { signOut: async () => ({}) } };
+    setLocalCourses([{ id: 'c-off', title: '离线课', progress: 0.1, updatedAt: 10 }]);
+    const c = W.state.courses[0];
+    c.progress = 0.5;
+    W.markCourseDirty(c);
+    rec.fail.insert = true; rec.fail.update = true; rec.fail.select = true;
+    await W.syncCourses();
+    t('O7 ★ 断网时改动留在队列里（可重试，不丢）', W.pendingSyncCount() >= 1);
+    rec.fail.insert = false; rec.fail.update = false; rec.fail.select = false;
+    await W.syncCourses();
+    t('O8 ★ 恢复网络后重试成功，队列清空', W.pendingSyncCount() === 0);
+  }
+
+  // O9/O10 删除：真删云端 + 墓碑守卫（即使云端那行还返回也不复活）
+  {
+    const { rec, db } = makeSyncDb([{ id: 'r-del', course_id: 'c-del', data: { id: 'c-del', title: '待删', updatedAt: 1000 } }]);
+    W.state.cloud = { database: db, auth: { signOut: async () => ({}) } };
+    setLocalCourses([{ id: 'c-del', title: '待删', updatedAt: 1000 }]);
+    W.state.courses = W.state.courses.filter((x) => x.id !== 'c-del');
+    W.markCourseDeleted('c-del');
+    await W.syncCourses();
+    t('O9 ★★ 删除会真的删云端（原来只删本地）', rec.deletes.length >= 1);
+    t('O10 ★★ 删除后重新拉取不会复活', !W.state.courses.some((x) => x.id === 'c-del'));
+  }
+  {
+    /* 墓碑守卫单独验：让"删云端"这一步失败，于是墓碑留在队列里，
+       而"拉取"成功 —— 此时云端那一行还在，但**绝不能**被拉回本地。 */
+    const { rec, db } = makeSyncDb([{ id: 'r-g', course_id: 'c-ghost', data: { id: 'c-ghost', title: '幽灵课', updatedAt: 1 } }]);
+    W.state.cloud = { database: db, auth: { signOut: async () => ({}) } };
+    setLocalCourses([]);
+    const q = W.loadSyncQueue(); q.d['c-ghost'] = Date.now(); W.saveSyncQueue(q);
+    rec.fail.delete = true;
+    await W.syncCourses();
+    t('O11 ★★ 墓碑存在时，云端那一行不会被拉回本地（复活守卫）',
+      !W.state.courses.some((x) => x.id === 'c-ghost'));
+    t('O12 删除失败时墓碑保留在队列里（下次还会重试删云端）', W.pendingSyncCount() >= 1);
+  }
+
+  // O13 同步状态行：未登录隐藏、有积压时提示
+  {
+    W.state.user = null;
+    W.authUI();
+    W.renderSyncStatus();
+    t('O13 未登录时不同步状态行（那时谈"同步到云端"会误导）',
+      W.document.querySelector('#sync-status').hidden === true);
+    W.state.user = { id: 'u-sync2', anonymous: false };
+    W.authUI();
+    const q2 = W.loadSyncQueue(); q2.u['x1'] = Date.now(); W.saveSyncQueue(q2);
+    W.renderSyncStatus();
+    const el = W.document.querySelector('#sync-status');
+    t('O14 ★ 有积压时状态行如实说明（而不是只闪一个 toast）',
+      el.hidden === false && el.classList.contains('is-pending') && /待同步/.test(el.textContent));
+  }
+
+  // O15 注销要连待同步队列一起清（否则下次登录会去推一批早该删的课）
+  {
+    W.state.user = { id: 'u-sync3', anonymous: false };
+    W.authUI();
+    const q3 = W.loadSyncQueue(); q3.u['zombie'] = Date.now(); W.saveSyncQueue(q3);
+    t('O15 前置：队列里有待同步项', W.pendingSyncCount() >= 1);
+    W.clearContentForOwner('u_sync3');
+    t('O16 ★ 注销清掉该账号的待同步队列', W.localStorage.getItem(W.syncQueueKey('u_sync3')) === null);
   }
 
   console.log('\nGATE_RESULT pass=' + pass + ' fail=' + fail);

@@ -982,6 +982,8 @@ function authUI() {
      必须在这里、且必须**早于** syncCourses() —— 否则上传的仍是上一个账号的课程。
      authUI() 是身份变化的唯一收口，所以放这一处就够。 */
   try { switchStorageOwner(); } catch (e) { console.warn('[auth] 存储归属切换失败:', e); }
+  /* R02：同步状态行也跟着身份走（未登录时隐藏 —— 那时谈"同步到云端"会误导） */
+  try { renderSyncStatus(); } catch (_) {}
   const btn = $('#btn-auth');
   if (!btn) return;
   const u = state.user;
@@ -1181,6 +1183,10 @@ function clearContentForOwner(owner) {
   Object.keys(CONTENT_KEYS).forEach((name) => {
     try { localStorage.removeItem(scopedContentKey(CONTENT_KEYS[name], owner)); } catch (_) {}
   });
+  /* ★ R02：待同步队列也归账号，注销时要一起清 ——
+     留着的话，下次这个账号登录会去推一批早已删除的课程。 */
+  try { localStorage.removeItem(syncQueueKey(owner)); } catch (_) {}
+  try { localStorage.removeItem(SYNC_QUEUE_BASE); } catch (_) {}   // 旧版无归属的队列键
 }
 
 /* 清掉/恢复门禁态下的绕过入口可见性 */
@@ -4116,6 +4122,7 @@ function persistRecording(course, recording, durationSec) {
   };
   const idx = state.courses.findIndex((c) => c.id === course.id);
   if (idx >= 0) { state.courses[idx] = course; }
+  markCourseDirty(course);          // ★ R02：下课存回放也是一次本地改动
   persistCourses();
 }
 
@@ -4534,6 +4541,7 @@ async function generateAvatarVideo() {
   course.avatarVideo = { url: url, poster: AVATAR.photo, createdAt: Date.now() };
   const i = state.courses.findIndex((c) => c.id === course.id);
   if (i >= 0) { state.courses[i] = course; }
+  markCourseDirty(course);          // ★ R02
   persistCourses();
 
   applyAvatarVideo(course);
@@ -7501,10 +7509,128 @@ async function exportPPTX(course, btn) {
    未登录用户的课程只在本机，这等于"以为存好了，刷新就没了"。
    现在写入失败会（只）提示一次，并区分登录/未登录：未登录必须说清会丢。 */
 let storageWarned = false;
+/* ============================================================
+   课程同步：待同步队列 + 冲突判定 + 删除不复活（外部审查 R02，P1）
+   ------------------------------------------------------------
+   原实现三个问题（都能复现）：
+     ① 新课程 / 课堂检查点 / 下课保存**只写本地**；syncCourses() 只在登录与
+        会话初始化时调用 —— 正常 saveCourse() 一次云端请求都不发。
+     ② 同步时"先把本地全部覆盖到云端，再拉回来"，**没有任何版本判定**：
+        旧设备上那份 20% 会把云端已经 90% 的进度覆盖成 20%。
+     ③ 删除只删本地，下一次拉取云端会把课程**复活**。
+
+   改法：
+     · 每门课带 `updatedAt` —— **本地修改时刻**，不是上传时刻。
+       （上传时重写时间戳再拿它当"较新"的证据，等于永远本地赢，那就白判了。）
+     · 本地改动进"待同步队列"（按账号存），可重试；离线 / 失败都不丢。
+     · 合并规则：**只有确实有未同步改动的本地副本才有资格盖掉云端**；
+       其余情况比 `updatedAt`，新的赢；两边一样新时保持本地。
+     · 删除记墓碑（tombstone），同步时真删云端；拉取时按墓碑时间决定是否复活。
+     · 脏检测用"显式标脏 + id 集合差异"两手：
+       显式标脏覆盖已知的修改点；id 集合差异兜住新增 / 删除 ——
+       这样**将来新增的落盘路径也不会漏**（不依赖每个调用点都记得调 markCourseDirty）。
+   ============================================================ */
+const SYNC_QUEUE_BASE = 'lingxi_sync_queue';
+function syncQueueKey(owner) { return SYNC_QUEUE_BASE + '::' + (owner || storageOwnerKey()); }
+function loadSyncQueue() {
+  let q = null;
+  try { q = JSON.parse(localStorage.getItem(syncQueueKey()) || 'null'); } catch (_) { q = null; }
+  if (!q || typeof q !== 'object') return { u: {}, d: {} };
+  return {
+    u: (q.u && typeof q.u === 'object' && !Array.isArray(q.u)) ? q.u : {},
+    d: (q.d && typeof q.d === 'object' && !Array.isArray(q.d)) ? q.d : {},
+  };
+}
+function saveSyncQueue(q) {
+  try { localStorage.setItem(syncQueueKey(), JSON.stringify(q)); return true; } catch (_) { return false; }
+}
+function pendingSyncCount() {
+  const q = loadSyncQueue();
+  return Object.keys(q.u).length + Object.keys(q.d).length;
+}
+
+/* 上一轮落盘时的课程 id 集合，用来做差异检测（见文件头注释） */
+let lastPersistedCourseIds = null;
+
+/* 显式标脏：这门课的本地内容变了，盖上修改时刻并进队列 */
+function markCourseDirty(course) {
+  if (!course || !course.id) return;
+  course.updatedAt = Date.now();
+  course.syncState = 'pending';
+  const q = loadSyncQueue();
+  q.u[course.id] = course.updatedAt;
+  delete q.d[course.id];                 // 又被改回来了 → 撤掉墓碑
+  saveSyncQueue(q);
+  scheduleSyncFlush();
+  renderSyncStatus();
+}
+
+/* 标墓碑：这门课在本地被删了，云端也要删；同步前不能被拉取复活 */
+function markCourseDeleted(id) {
+  if (!id) return;
+  const q = loadSyncQueue();
+  delete q.u[id];
+  q.d[id] = Date.now();
+  saveSyncQueue(q);
+  scheduleSyncFlush();
+  renderSyncStatus();
+}
+
+/* 同步节流：本地连续改动（检查点每 30 秒一次）不该每次都打云端 */
+let syncFlushTimer = null;
+function scheduleSyncFlush() {
+  if (!isSignedIn() || !state.cloud || !state.cloud.database) return;   // 离线/未登录：留在队列里
+  if (syncFlushTimer) return;
+  syncFlushTimer = setTimeout(() => {
+    syncFlushTimer = null;
+    syncCourses().catch(() => {});
+  }, 1500);
+}
+
+/* 同步状态行：让"有没有存进去"这件事在界面上看得见，
+   而不是只靠一个 toast 然后什么都不知道（原报告的诉求之一） */
+function renderSyncStatus() {
+  const el = $('#sync-status');
+  if (!el) return;
+  const n = pendingSyncCount();
+  if (!isSignedIn()) {
+    el.hidden = true;                    // 未登录：走门禁，不显示同步状态（会误导）
+    return;
+  }
+  el.hidden = false;
+  el.classList.toggle('is-pending', n > 0);
+  if (syncRunning) el.textContent = '正在同步…';
+  else if (n > 0) el.textContent = '有 ' + n + ' 项改动待同步（会自动重试）';
+  else el.textContent = '已同步到云端';
+}
+let syncRunning = false;
+
 function persistCourses() {
   try {
     /* ★ R01：写进当前账号的命名空间 */
     localStorage.setItem(scopedContentKey(CONTENT_KEYS.courses), JSON.stringify(state.courses));
+    /* ★ R02：落盘的同时做一次 id 集合差异检测 ——
+       新增的课进待同步队列、消失的课记墓碑。
+       放在这里而不是各个调用点，是为了"将来新增的落盘路径也不会漏"。 */
+    try {
+      const nowIds = new Set((Array.isArray(state.courses) ? state.courses : []).map((c) => c && c.id).filter(Boolean));
+      if (lastPersistedCourseIds) {
+        const q = loadSyncQueue();
+        let changed = false;
+        nowIds.forEach((id) => {
+          if (!lastPersistedCourseIds.has(id)) {
+            const c = (state.courses || []).find((x) => x && x.id === id);
+            const at = (c && c.updatedAt) || Date.now();
+            if (!q.u[id]) { q.u[id] = at; changed = true; }
+          }
+        });
+        lastPersistedCourseIds.forEach((id) => {
+          if (!nowIds.has(id) && !q.d[id]) { q.d[id] = Date.now(); changed = true; }
+        });
+        if (changed) { saveSyncQueue(q); scheduleSyncFlush(); renderSyncStatus(); }
+      }
+      lastPersistedCourseIds = nowIds;
+    } catch (_) {}
     return true;
   } catch (_) {
     if (!storageWarned) {
@@ -7526,6 +7652,7 @@ function saveCourse(course, notify) {
   const idx = state.courses.findIndex((c) => c.id === course.id);
   course.saved = true;
   if (idx >= 0) state.courses[idx] = course; else state.courses.unshift(course);
+  markCourseDirty(course);          // ★ R02：这是一次本地改动，进待同步队列
   persistCourses();
   if (notify) {
     toast('已保存到「我的课程」', 'ok');
@@ -7540,55 +7667,95 @@ function loadCourses() {
        绝不回落到"上一个账号留下的那份"，那正是要修的串数据缺陷。 */
     state.courses = normalizeCourses(JSON.parse(readContentRaw(CONTENT_KEYS.courses, '[]') || '[]'));
   } catch (_) { state.courses = []; }
+  /* ★ R02：记下基线 id 集合，作为后续 persistCourses 差异检测的参照。
+     不重置的话，切账号后的第一次落盘会把"新账号的空列表"误判成一堆删除。 */
+  try {
+    lastPersistedCourseIds = new Set((state.courses || []).map((c) => c && c.id).filter(Boolean));
+  } catch (_) { lastPersistedCourseIds = null; }
 }
 
-/* 登录后：把本地课程同步到云端，并从云端拉回（跨设备不丢）
-   游客课程存 localStorage；登录后第一次调用会双向合并：
-   ① 本地有而云端没有 → 上传；② 本地有且云端有 → 以本地最新版覆盖；
-   ③ 拉回云端全部课程，云端优先合并到本地，写回 localStorage。 */
+/* 课程同步（重写，外部审查 R02）
+   顺序很关键：**先推本地未同步的改动（可重试）→ 再拉云端按时间戳合并**。
+   反过来的话，本轮的本地改动会被拉回来的旧版本盖掉。
+   返回 true 表示"推的部分全部成功"（拉取失败不算失败 —— 只影响看到的内容新旧）。 */
 async function syncCourses() {
-  if (!state.cloud || !state.cloud.database) return;
-  if (!state.user || state.user.anonymous) return;
+  if (!state.cloud || !state.cloud.database) return false;
+  if (!state.user || state.user.anonymous) return false;
+  if (syncRunning) return false;              // 同一时刻只跑一次，避免并发互相覆盖
+  syncRunning = true;
   const db = state.cloud.database;
-  const local = Array.isArray(state.courses) ? state.courses.filter((c) => c && c.id) : [];
-
-  // 1. 云端已有的课程（RLS 保证只能拿到自己的）
-  let existing = new Map();
+  let pushFailed = 0;
   try {
-    const { data: rows } = await db.from('courses').select('id, course_id').limit(1000);
-    (rows || []).forEach((r) => { if (r && r.course_id) existing.set(r.course_id, r.id); });
-  } catch (_) {}
+    /* ── ① 推：先把本地未同步的改动送上去 ── */
+    const q = loadSyncQueue();
+    const localById = {};
+    (Array.isArray(state.courses) ? state.courses : []).forEach((c) => { if (c && c.id) localById[c.id] = c; });
 
-  // 2. 上传/更新本地课程
-  for (const c of local) {
-    const rid = existing.get(c.id);
+    // 云端已有的行（RLS 保证只能拿到自己的）
+    const existing = new Map();
     try {
-      if (rid) {
-        await db.from('courses').update({ data: c, updated_at: new Date().toISOString() }).eq('id', rid);
-      } else {
-        await db.from('courses').insert({ course_id: c.id, data: c });
-      }
-    } catch (_) {}
-  }
+      const { data: rows } = await db.from('courses').select('id, course_id').limit(1000);
+      (rows || []).forEach((r) => { if (r && r.course_id) existing.set(r.course_id, r.id); });
+    } catch (_) { /* 索引拿不到就先当"云端没有"处理，下面的插入会失败并留在队列里重试 */ }
 
-  // 3. 拉回云端全部课程，合并（云端优先，本地补充）
-  try {
-    const { data: rows } = await db.from('courses').select('data').order('updated_at', { ascending: false }).limit(500);
-    const cloud = (rows || []).map((r) => r && r.data).filter((d) => d && d.id);
-    const map = {};
-    local.forEach((c) => { map[c.id] = c; });
-    cloud.forEach((c) => { map[c.id] = c; });
-    // 云端数据可能来自旧版本或被写坏 —— 与本地走同一套归一化
-    state.courses = normalizeCourses(Object.values(map));
-    persistCourses();
-    renderCourses();
-  } catch (_) {}
+    for (const id of Object.keys(q.u)) {
+      const c = localById[id];
+      if (!c) { delete q.u[id]; continue; }    // 本地已不存在 → 交给墓碑分支
+      try {
+        const rid = existing.get(id);
+        if (rid) await db.from('courses').update({ data: c, updated_at: new Date().toISOString() }).eq('id', rid);
+        else {
+          await db.from('courses').insert({ course_id: id, data: c });
+          existing.set(id, id);
+        }
+        delete q.u[id];
+        c.syncState = 'synced';
+      } catch (_) { pushFailed++; }            // 留在队列里，下次重试（离线不丢）
+    }
+
+    for (const id of Object.keys(q.d)) {
+      try {
+        const rid = existing.get(id);
+        if (rid) await db.from('courses').delete().eq('id', rid);
+        delete q.d[id];
+      } catch (_) { pushFailed++; }
+    }
+    saveSyncQueue(q);
+
+    /* ── ② 拉：按时间戳合并，本地"未同步的改动"优先，其次是较新的 ── */
+    try {
+      const { data: rows } = await db.from('courses').select('data').order('updated_at', { ascending: false }).limit(500);
+      const cloud = (rows || []).map((r) => r && r.data).filter((d) => d && d.id);
+      const q2 = loadSyncQueue();
+      const map = {};
+      (Array.isArray(state.courses) ? state.courses : []).forEach((c) => { if (c && c.id) map[c.id] = c; });
+      cloud.forEach((cc) => {
+        /* 墓碑：本地删过，且删除时间不早于云端这一版 → 不复活。
+           （如果云端比删除还新，说明另一台设备删后又改了 —— 那种情况让云端赢。） */
+        if (q2.d[cc.id] && Number(cc.updatedAt || 0) <= Number(q2.d[cc.id])) { delete map[cc.id]; return; }
+        const loc = map[cc.id];
+        if (loc && q2.u[cc.id]) return;        // 本地有未同步改动 → 本地赢（它更新且还没推上去）
+        const ct = Number(cc.updatedAt || 0);
+        const lt = loc ? Number(loc.updatedAt || 0) : -1;
+        if (!loc || ct > lt) map[cc.id] = cc;  // 谁更新谁赢；一样新时保持本地
+      });
+      state.courses = normalizeCourses(Object.values(map));
+      persistCourses();
+      renderCourses();
+    } catch (_) {}
+  } finally {
+    syncRunning = false;
+    renderSyncStatus();
+  }
+  return pushFailed === 0;
 }
 
 function renderCourses() {
   const list = $('#course-list');
   const empty = $('#course-empty');
   const filterRow = $('#course-filter');
+  // ★ R02：课程列表一刷新就顺手同步一次状态行（"已同步 / 有几项待同步"）
+  try { renderSyncStatus(); } catch (_) {}
   // 访客提示：课程只在本机，讲清登录的价值（原来只有个"登录/注册"按钮，没说为什么）
   const guestHint = $('#courses-guest-hint');
   if (guestHint) guestHint.hidden = !!(state.user && !state.user.anonymous);
@@ -9723,6 +9890,7 @@ function bindModalEvents() {
     delete c.replay;
     const i = state.courses.findIndex((x) => x.id === c.id);
     if (i >= 0) { state.courses[i] = c; }
+    markCourseDirty(c);             // ★ R02
     persistCourses();
     closeReplay();
     renderCourses();
@@ -9802,6 +9970,8 @@ function bindCourseListEvents() {
       const c = state.courses.find((x) => x.id === id);
       if (c && window.confirm('确定删除课程《' + c.title + '》吗？')) {
         state.courses = state.courses.filter((x) => x.id !== id);
+        /* ★ R02：记墓碑。只删本地的话，下一次从云端拉取会把课程**复活**。 */
+        markCourseDeleted(id);
         persistCourses();
         renderCourses();
         toast('已删除');
@@ -12168,6 +12338,9 @@ try {
     persistCourses, loadCourses,
     /* 同步：R01 的实质断言要验"上传的载荷里有没有别的账号的课程" */
     syncCourses,
+    /* R02：待同步队列 / 墓碑 / 冲突判定 —— 都要能被行为测试直接驱动 */
+    SYNC_QUEUE_BASE, syncQueueKey, loadSyncQueue, saveSyncQueue, pendingSyncCount,
+    markCourseDirty, markCourseDeleted, renderSyncStatus, saveCourse,
     /* 登录门禁：测试要能直接驱动它（登出后是否重新上锁等） */
     isSignedIn, enforceLoginGate, releaseLoginGate, syncLoginGate, requireSignedIn,
     getGateState,
