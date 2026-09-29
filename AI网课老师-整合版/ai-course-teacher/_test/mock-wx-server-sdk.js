@@ -6,6 +6,40 @@ function cmd(op, value) {
   return { __op: op, __value: value };
 }
 
+/* ★ 2026-09-29 补：点路径写入。
+   真实云数据库的 update 里 `{ 'levels.ielts': {...} }` 是写到**嵌套层级**的；
+   桩里若直接 Object.assign，就会留下字面键 "levels.ielts" ——
+   测试照样绿，真实行为却完全不同（"假通过"就是这么来的）。 */
+function setPath(obj, path, value) {
+  const parts = String(path).split('.');
+  let cur = obj;
+  for (let i = 0; i < parts.length - 1; i++) {
+    const k = parts[i];
+    if (cur[k] == null || typeof cur[k] !== 'object') cur[k] = {};
+    cur = cur[k];
+  }
+  cur[parts[parts.length - 1]] = value;
+  return obj;
+}
+
+function applyPatch(target, data) {
+  Object.keys(data || {}).forEach(k => {
+    if (k.indexOf('.') >= 0) setPath(target, k, data[k]);
+    else target[k] = data[k];
+  });
+  return target;
+}
+
+// get/set 返回副本，避免测试之间通过共享引用互相污染
+function deepClone(v) {
+  if (v == null || typeof v !== 'object') return v;
+  if (v instanceof Date) return new Date(v.getTime());
+  if (Array.isArray(v)) return v.map(deepClone);
+  const o = {};
+  Object.keys(v).forEach(k => { o[k] = deepClone(v[k]); });
+  return o;
+}
+
 // 日期比较：把 Date / ISO 字符串统一转时间戳
 function toTs(v) {
   if (v == null) return null;
@@ -92,7 +126,7 @@ function createDb(initial) {
           });
         }
         rows = rows.slice(0, lim);
-        return { data: rows.map(r => Object.assign({}, r)) };
+        return { data: rows.map(r => deepClone(r)) };
       },
       async count() {
         return { total: filterDocs(ensure(name).rows, w).length };
@@ -103,15 +137,22 @@ function createDb(initial) {
          桩里必须如实模拟行数（一律返回 1 会让并发测试恒过，等于没测）。 */
       async update({ data }) {
         const hit = filterDocs(ensure(name).rows, w);
-        hit.forEach(r => Object.assign(r, data));
+        hit.forEach(r => applyPatch(r, data));
         return { stats: { updated: hit.length } };
       }
     };
     return q;
   }
 
-  return {
+  const db = {
     _store: store,
+    /* 两种 SDK 行为都要能测（不同版本/不同路径下不一致）：
+       - _updateMissingThrows：对不存在的文档 update 时，是 reject 还是返回 updated:0。
+         代码必须两种都活下来，而且**两种情况都不能靠 set 覆盖整篇文档**。
+       - _updateExistingUpdated：文档存在时 updated 报几。
+         真实环境里"值完全相同"也可能报 0，所以 0 不代表文档不存在。 */
+    _updateMissingThrows: true,
+    _updateExistingUpdated: 1,
     serverDate,
     command: { gte: (v) => cmd('gte', v), lte: (v) => cmd('lte', v), gt: (v) => cmd('gt', v), lt: (v) => cmd('lt', v), eq: (v) => cmd('eq', v) },
     collection(name) {
@@ -122,7 +163,7 @@ function createDb(initial) {
         limit(n) { return makeQuery(name, null, null, n); },
         async add({ data }) {
           const id = name + '_' + (++c.seq);
-          c.rows.push(Object.assign({ _id: id }, data));
+          c.rows.push(Object.assign({ _id: id }, deepClone(data)));
           return { _id: id };
         },
         doc(id) {
@@ -130,19 +171,26 @@ function createDb(initial) {
             async get() {
               const r = c.rows.find(x => x._id === id);
               if (!r) throw new Error('document not exists: ' + id);
-              return { data: Object.assign({}, r) };
+              return { data: deepClone(r) };
             },
             async update({ data }) {
               const r = c.rows.find(x => x._id === id);
-              if (!r) throw new Error('document not exists: ' + id);
-              Object.assign(r, data);
-              return { stats: { updated: 1 } };
+              if (!r) {
+                if (db._updateMissingThrows) throw new Error('document not exists: ' + id);
+                return { stats: { updated: 0 } };
+              }
+              applyPatch(r, data);
+              return { stats: { updated: db._updateExistingUpdated } };
             },
+            // ★ 注意：set 是"整篇替换"，**刻意不展开点路径**。
+            //   把 'levels.x' 交给 set 会写出一个字面键，读 doc.levels 得到 undefined。
+            //   桩如果在这里也展开，就会掩盖这类真实缺陷 —— 所以保持字面语义。
             async set({ data }) {
               let r = c.rows.find(x => x._id === id);
               if (!r) { r = { _id: id }; c.rows.push(r); }
               Object.keys(r).forEach(k => { if (k !== '_id') delete r[k]; });
-              Object.assign(r, data);
+              // 顶层键照写；含点的键**保持字面**（如 'a.b' 就存成字面键），如实模拟 set 的替换语义
+              Object.keys(data || {}).forEach(k => { r[k] = deepClone(data[k]); });
               return { stats: { created: 1, updated: 1 } };
             }
           };
@@ -151,6 +199,7 @@ function createDb(initial) {
     },
     async createCollection(name) { ensure(name); return {}; }
   };
+  return db;
 }
 
 module.exports = { createDb, toTs };

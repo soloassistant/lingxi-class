@@ -134,8 +134,14 @@ async function buildWeeklyReport(openid, weekStart, now, weekKey) {
   const pending = wrongs.data.filter(w => w.status === 'reviewing');
   const weak = buildWeak(pending);
 
-  const level = learner && learner.data ? (learner.data.level || '') : '';
-  const levelName = learner && learner.data ? (learner.data.levelName || '') : '';
+  /* ★ R16（2026-09-29）：等级是按课程定的，周报里必须带上它是哪门课的，
+     否则订阅消息/报告页写着"等级 S+"却不说科目，等于制造误解。
+     `level`/`levelName` 已不再写入（saveLevel 改存 lastLevel* + levels.<courseId>），
+     这里读 lastLevel*，并对迁移前的老数据保留一次回退。 */
+  const ld = (learner && learner.data) || {};
+  const level = ld.lastLevel || ld.level || '';
+  const levelName = ld.lastLevelName || ld.levelName || '';
+  const levelCourseName = ld.lastLevelCourseName || '';
 
   // 下周建议：优先补最薄弱的课程
   const suggestion = weak.length > 0
@@ -152,6 +158,7 @@ async function buildWeeklyReport(openid, weekStart, now, weekKey) {
     pendingWrongs: pending.length,
     level,
     levelName,
+    levelCourseName,
     weakTop: weak.slice(0, 3),
     suggestion,
     totalLearned: (await countLearned(openid))

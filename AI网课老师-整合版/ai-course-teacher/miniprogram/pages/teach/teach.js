@@ -179,7 +179,7 @@ Page({
       }
     }).then(res => {
       const r = (res && res.result) || {};
-      /* ★ 2026-09-23 修（外部审查 R13）：
+      /* ★ 2026-09-29 修（外部审查 R13）：
          原来失败时把「AI 暂不可用」当成**老师的回答**塞进 aiReply 与 chatHistory ——
          学生看到的是"老师说了这句话"，而且它会作为上下文传给下一轮、被当成教学内容。
          现在失败分开处理：显示可重试的错误气泡，message 明确说"这不是老师的回答"，
@@ -225,9 +225,19 @@ Page({
       return;
     }
     const item = this.data.item || {};
-    const level = wx.getStorageSync('userLevel') || 'S';
+    /* ★ R16（2026-09-29）：授课等级必须按**这门课**读，不能再读全局 `userLevel`。
+       全局键已经废弃（quiz 页只写 `userLevel:<courseId>`）。
+       这里显式不读全局键 —— 万一读到旧版本残留值，就又变成"雅思的等级决定数学难度"。
+       这门课没测过就用默认 S（中档），并在埋点里标出 levelSource，便于核对。 */
+    const scopeId = item.courseId || '';
+    let level = '';
+    if (scopeId) {
+      try { level = wx.getStorageSync('userLevel:' + scopeId) || ''; } catch (e) {}
+    }
+    const levelSource = level ? 'course' : 'default';
+    if (!level) level = 'S';
     this.setData({ aiLoading: true });
-    track('ai_teach_start', { itemId: item.id, level });
+    track('ai_teach_start', { itemId: item.id, level, courseId: scopeId, levelSource });
     wx.cloud.callFunction({
       name: 'aiTeach',
       data: {

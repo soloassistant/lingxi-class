@@ -1,0 +1,32 @@
+# 统一行尾为 LF（仓库根）
+#
+# 起因：本机 `core.autocrlf=true`，Windows 上 checkout 出来的是 CRLF。
+# 而测试里常用 `indexOf('...\n...')` 在**源码字符串**上做字面匹配，
+# 字面 `\n` 匹配不到 CRLF，于是出现"假失败"，每次都要重新解释一遍。
+#
+# 之前只在 _extract/lingxi-class/ai-live-class/ 下放了一份 .gitattributes，
+# 那只覆盖了那一棵子树；小程序目录仍在重复踩同一个坑（提交时一批
+# "LF will be replaced by CRLF" 警告就是它）。这里提到仓库根，一次覆盖全部。
+#
+# .gitattributes 对 core.autocrlf 有更高优先级。
+* text=auto eol=lf
+
+# 二进制：不要做任何行尾转换
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.gif    binary
+*.ico    binary
+*.pdf    binary
+*.docx   binary
+*.pptx   binary
+*.xlsx   binary
+*.zip    binary
+*.gz     binary
+*.woff   binary
+*.woff2  binary
+*.ttf    binary
+*.otf    binary
+*.mp3    binary
+*.m4a    binary
+*.mp4    binary

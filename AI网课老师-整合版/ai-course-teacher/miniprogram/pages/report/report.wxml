@@ -15,8 +15,9 @@
       <view class="mastery-bar">
         <view class="mastery-inner" style="width: {{mastery}}%;"></view>
       </view>
+      <!-- ★ R16：等级按课程分开定，这里只能展示"最近一次测评"，且必须注明科目 -->
       <view class="report-level level-{{level}}" wx:if="{{level}}">
-        学习等级：{{level}} · {{levelName}}
+        最近一次测评：{{levelCourseName || '本课程'}} {{level}} · {{levelName}}
       </view>
     </view>
 

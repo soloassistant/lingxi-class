@@ -5,6 +5,90 @@
   background: #0f1117;
 }
 
+/* ---------- ★ R16 选诊断范围 ---------- */
+.scope-card {
+  background: #1a1d27;
+  border-radius: 16rpx;
+  padding: 32rpx;
+}
+
+.scope-title {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #e8eaf0;
+  margin-bottom: 16rpx;
+}
+
+.scope-note {
+  font-size: 24rpx;
+  color: #7a7f8a;
+  line-height: 1.7;
+  margin-bottom: 28rpx;
+}
+
+.scope-strong {
+  color: #00e5ff;
+}
+
+.scope-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+}
+
+.scope-sub {
+  font-size: 26rpx;
+  color: #7a7f8a;
+  margin-bottom: 16rpx;
+}
+
+.scope-back {
+  font-size: 26rpx;
+  color: #00e5ff;
+  margin-bottom: 16rpx;
+}
+
+.scope-empty {
+  font-size: 24rpx;
+  color: #ffd740;
+  background: rgba(255, 215, 64, 0.08);
+  border-radius: 8rpx;
+  padding: 16rpx 20rpx;
+  margin-bottom: 16rpx;
+  line-height: 1.6;
+}
+
+.scope-item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 20rpx;
+  background: #22262f;
+  border-radius: 12rpx;
+  margin-bottom: 14rpx;
+}
+
+.scope-item-main {
+  flex: 1;
+}
+
+.scope-item-name {
+  font-size: 28rpx;
+  color: #e8eaf0;
+}
+
+.scope-item-desc {
+  font-size: 22rpx;
+  color: #7a7f8a;
+  margin-top: 6rpx;
+}
+
+.scope-item-go {
+  font-size: 28rpx;
+  color: #7a7f8a;
+  margin-left: 12rpx;
+}
+
 .quiz-progress {
   margin-bottom: 24rpx;
 }

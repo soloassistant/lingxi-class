@@ -11,6 +11,7 @@ Page({
     mastery: 0,
     level: '',
     levelName: '',
+    levelCourseName: '',
     achievements: [],
     weakPoints: [],
     recommend: [],
@@ -23,10 +24,18 @@ Page({
 
   onShow() {
     const total = (data.knowledge || []).length;
+    /* ★ R16（2026-09-29）：不再读全局 `userLevel` / `userLevelName`（已废弃）。
+       等级是按课程分开定的，档案页只能展示"**最近一次**测评"，
+       并且必须把它测的是哪门课一起显示出来 ——
+       否则会跟学生说"你的学习等级是 S+"，却不说这是哪一科的，等于制造误解。 */
+    const courseMap = {};
+    (data.courses || []).forEach(c => { courseMap[c.id] = c.name; });
+    const recentCourseId = wx.getStorageSync('userLevelRecentCourseId') || '';
     this.setData({
       totalKnowledge: total,
-      level: wx.getStorageSync('userLevel') || '',
-      levelName: wx.getStorageSync('userLevelName') || ''
+      level: wx.getStorageSync('userLevelRecent') || '',
+      levelName: wx.getStorageSync('userLevelRecentName') || '',
+      levelCourseName: recentCourseId ? (courseMap[recentCourseId] || recentCourseId) : ''
     });
     if (app.globalData.hasLogin) {
       this.setData({ hasLogin: true });

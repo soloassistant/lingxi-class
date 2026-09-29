@@ -1,6 +1,43 @@
 <view class="container">
+  <!-- ★ R16（2026-09-29）：先选诊断范围，再出题。
+       原来不带 courseId 就直接从全部 176 个知识点里抽 10 题（横跨 7 个体系），
+       再把总分变成一个全局等级给所有课程用。这里让范围成为一次显式选择。 -->
+  <block wx:if="{{needScope}}">
+    <view class="scope-card">
+      <view class="scope-title">选择诊断范围</view>
+      <view class="scope-note">诊断只从你选的这门课抽题，等级也只在<text class="scope-strong">这门课</text>里生效。不同体系的题目不会混在一起考。</view>
+
+      <!-- 第二步：选中体系后列出该体系的课程 -->
+      <block wx:if="{{scopeSystemId}}">
+        <view class="scope-bar">
+          <text class="scope-back" bindtap="backToSystems">← 换个体系</text>
+          <text class="scope-sub">选一门课开始诊断</text>
+        </view>
+        <view class="scope-empty" wx:if="{{scopeEmpty}}">这门课还没有配好诊断题目，换一门试试。</view>
+        <view class="scope-item" wx:for="{{scopeCourses}}" wx:key="id" data-id="{{item.id}}" bindtap="pickScopeCourse">
+          <view class="scope-item-main">
+            <view class="scope-item-name">{{item.emoji}} {{item.name}}</view>
+            <view class="scope-item-desc">{{item.desc}}</view>
+          </view>
+          <view class="scope-item-go">→</view>
+        </view>
+      </block>
+
+      <!-- 第一步：选体系 -->
+      <block wx:else>
+        <view class="scope-sub">先选体系</view>
+        <view class="scope-item" wx:for="{{systems}}" wx:key="id" data-id="{{item.id}}" bindtap="pickScopeSystem">
+          <view class="scope-item-main">
+            <view class="scope-item-name">{{item.name}}</view>
+          </view>
+          <view class="scope-item-go">→</view>
+        </view>
+      </block>
+    </view>
+  </block>
+
   <!-- 答题模式 -->
-  <block wx:if="{{!submitted}}">
+  <block wx:elif="{{!submitted}}">
     <view class="quiz-progress">
       <text class="progress-text">{{current + 1}} / {{questions.length}}</text>
       <view class="progress-bar">
