@@ -10,6 +10,33 @@ const DAILY_GLOBAL_QUOTA = parseInt(process.env.AI_GLOBAL_QUOTA || '2000', 10); 
 const RATE_WINDOW_MS = 60000;  // 频率统计窗口：60 秒
 const RATE_MAX = parseInt(process.env.AI_RATE_MAX || '10', 10);         // 单用户每分钟最多 10 次
 const MAX_PROMPT_LEN = 4000;    // 单次输入上限，防止拿超长 prompt 刷 token
+
+/* ============================================================
+   超时预算（外部审查 R15）
+   ------------------------------------------------------------
+   原状：单次上游超时 25 秒，两个 key 顺序重试 → 最坏 50 秒，
+   而本函数 `config.json` 里总时长只有 30 秒 —— **主通道一超时，
+   备份通道通常已经拿不到预算**，平台会在 await 之中把函数强杀，
+   本地没有任何兜底（连 log 都来不及写）。
+   嵌套更糟：aiProxy 被 8 个外层云函数调用，而**那些外层也是 30 秒**，
+   也就是说外层必然先被强杀。所以单改这里不够，两边必须一起核算。
+
+   现在把预算写成显式常量，层级关系一眼可见：
+     外层调用方（8 个函数）      40s   ← 必须 > aiProxy 的总时长
+       └─ aiProxy 函数本身        30s   ← config.json
+            ├─ 全部上游重试合计    26s   ← UPSTREAM_BUDGET_MS（给返回留 4 秒余量）
+            └─ 单次上游尝试        15s   ← PER_ATTEMPT_MAX_MS（保证两个 key 都跑得完）
+
+   另外修了一处容易漏的：原来 `clearTimeout(timer)` 写在 `res.json()` **之前**，
+   于是"响应头拿到了、响应体一直不来"这种情况完全没有超时保护。
+   现在定时器在 finally 里清理，响应体读取也在保护范围内。
+   ============================================================ */
+const FN_BUDGET_MS = 30000;                        // 与 config.json 的 timeout 保持一致
+const RETURN_RESERVE_MS = 4000;                    // 留给序列化与平台返回
+const UPSTREAM_BUDGET_MS = FN_BUDGET_MS - RETURN_RESERVE_MS;   // 26s：所有重试**共享**
+const PER_ATTEMPT_MAX_MS = 15000;                  // 单次上游尝试上限
+const MIN_ATTEMPT_MS = 1500;                       // 剩余预算低于这个数就别再开新尝试了
+
 let failCount = 0;
 let coolDownUntil = 0;
 
@@ -72,10 +99,19 @@ exports.main = async (event) => {
     return { code: 429, msg: '今日 AI 服务已达全站上限，请明天再来', fallback: event.fallback || null };
   }
 
+  /* ★ R15：所有重试共享一个总预算，而不是"每个 key 各自 25 秒"。
+     进度条式地消耗：每次开新尝试前先看还剩多少，不够就别开了。 */
+  const deadline = Date.now() + UPSTREAM_BUDGET_MS;
   for (let i = 0; i < keys.length; i++) {
+    const left = deadline - Date.now();
+    if (left <= MIN_ATTEMPT_MS) {
+      console.error('[aiProxy] 上游预算用尽，放弃第 ' + (i + 1) + ' 个 key（剩余 ' + left + 'ms）');
+      break;
+    }
+    const perAttempt = Math.min(PER_ATTEMPT_MAX_MS, left);
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), perAttempt);
     try {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 25000);
       const res = await fetch(base + '/chat/completions', {
         method: 'POST',
         headers: {
@@ -93,9 +129,10 @@ exports.main = async (event) => {
         }),
         signal: controller.signal
       });
-      clearTimeout(timer);
 
       if (!res.ok) throw new Error('HTTP ' + res.status);
+      /* ★ 这里**不再**提前 clearTimeout：响应体可能一直不来，
+         而"拿到响应头"不等于"拿到结果"。定时器统一在 finally 里清。 */
       const json = await res.json();
       const content = json.choices && json.choices[0] && json.choices[0].message.content;
       const parsed = JSON.parse(content);
@@ -106,6 +143,8 @@ exports.main = async (event) => {
     } catch (e) {
       // 失败详情只写日志，不返回给调用方
       console.error('[aiProxy] upstream error:', e && e.message);
+    } finally {
+      clearTimeout(timer);   // ★ R15：无论成败都清理，不再泄漏定时器
     }
   }
 
