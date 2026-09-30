@@ -22,10 +22,26 @@ function setPath(obj, path, value) {
   return obj;
 }
 
+function getPath(obj, path) {
+  return String(path).split('.').reduce((o, k) => (o == null ? undefined : o[k]), obj);
+}
+
 function applyPatch(target, data) {
   Object.keys(data || {}).forEach(k => {
-    if (k.indexOf('.') >= 0) setPath(target, k, data[k]);
-    else target[k] = data[k];
+    const v = data[k];
+    /* ★ 2026-09-30 补：原子自增 `_.inc(n)`。
+       真实云数据库里 { count: _.inc(1) } 的读改写是在**服务端**一次完成的，
+       调用方拿不到旧值、也就没有"读到旧余额"的窗口。R12 的修法正建立在
+       这个语义上（把"判断有没有超限"和"加一"合并成同一个操作）。
+       桩里若把它当普通值写入，count 会变成一个命令对象，判据全被掩盖。 */
+    if (v && typeof v === 'object' && v.__op === 'inc') {
+      const cur = Number(k.indexOf('.') >= 0 ? getPath(target, k) : target[k]) || 0;
+      const next = cur + Number(v.__value || 0);
+      if (k.indexOf('.') >= 0) setPath(target, k, next); else target[k] = next;
+      return;
+    }
+    if (k.indexOf('.') >= 0) setPath(target, k, v);
+    else target[k] = v;
   });
   return target;
 }
@@ -136,6 +152,7 @@ function createDb(initial) {
          reviewDraft 的"原子抢占"就是靠这个计数判断自己有没有抢到。
          桩里必须如实模拟行数（一律返回 1 会让并发测试恒过，等于没测）。 */
       async update({ data }) {
+        if (db._updateDenied.indexOf(name) >= 0) throw new Error('update denied: ' + name);
         const hit = filterDocs(ensure(name).rows, w);
         hit.forEach(r => applyPatch(r, data));
         return { stats: { updated: hit.length } };
@@ -164,11 +181,18 @@ function createDb(initial) {
          真实环境里"值完全相同"也可能报 0，所以 0 不代表文档不存在。 */
     _updateMissingThrows: true,
     _updateExistingUpdated: 1,
+    /* 指定集合的 update 一律失败（模拟计数存储不可用）。
+       用来验证「配额计数查不到时不能按未超限放行」—— 即 fail-closed。 */
+    _updateDenied: [],
     /* 指定集合的 add 一律失败。用来验证"记事件失败不能拖垮主流程"这类韧性要求：
        作答本身已经成功了，统计写不进去只能如实回传 recorded:false，不能假装记上了。 */
     _addDenied: [],
     serverDate,
-    command: { gte: (v) => cmd('gte', v), lte: (v) => cmd('lte', v), gt: (v) => cmd('gt', v), lt: (v) => cmd('lt', v), eq: (v) => cmd('eq', v) },
+    command: {
+      gte: (v) => cmd('gte', v), lte: (v) => cmd('lte', v),
+      gt: (v) => cmd('gt', v), lt: (v) => cmd('lt', v), eq: (v) => cmd('eq', v),
+      inc: (v) => cmd('inc', v)
+    },
     collection(name) {
       const c = ensure(name);
       return {
@@ -177,7 +201,15 @@ function createDb(initial) {
         limit(n) { return makeQuery(name, null, null, n); },
         async add({ data }) {
           if (db._addDenied.indexOf(name) >= 0) throw new Error('add denied: ' + name);
-          const id = name + '_' + (++c.seq);
+          /* ★ 2026-09-30 补：`_id` 是主键，**重复必须被拒绝**。
+             真实云数据库会报 duplicate key；桩若不拒绝，"用确定性 _id 做唯一计数键"
+             这类修法会以"并发下也能建出两条"的形式假通过 —— 而那正是 R12 要治的病。 */
+          if (data && data._id !== undefined && c.rows.some(x => x._id === data._id)) {
+            const err = new Error('document already exists: ' + data._id);
+            err.errCode = -501001;
+            throw err;
+          }
+          const id = (data && data._id !== undefined) ? data._id : (name + '_' + (++c.seq));
           c.rows.push(Object.assign({ _id: id }, deepClone(data)));
           return { _id: id };
         },
@@ -189,6 +221,7 @@ function createDb(initial) {
               return { data: deepClone(r) };
             },
             async update({ data }) {
+              if (db._updateDenied.indexOf(name) >= 0) throw new Error('update denied: ' + name);
               const r = c.rows.find(x => x._id === id);
               if (!r) {
                 if (db._updateMissingThrows) throw new Error('document not exists: ' + id);

@@ -113,9 +113,12 @@ async function run() {
   console.log('\n=== 7. 全站每日上限（AI_GLOBAL_QUOTA）===');
   process.env.AI_DAILY_QUOTA = '100';
   process.env.AI_GLOBAL_QUOTA = '2';
+  const todayKey = new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10);
   db = createDb({
     // 预置：其他用户已把全站额度用完
-    ai_usage_global: [{ date: new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10), count: 2 }]
+    // ★ R12 起计数文档的 _id 是**确定性键**（g_<date>），不再是自动 id；
+    //   本 fixture 必须跟着改，否则预置的"已用完"根本不会被读到（假绿）。
+    ai_usage_global: [{ _id: 'g_' + todayKey, date: todayKey, count: 2 }]
   });
   const fn6 = loadFn('aiProxy', db);
   r = await fn6.main({ prompt: 'q1' });

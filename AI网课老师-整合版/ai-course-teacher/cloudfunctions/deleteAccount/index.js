@@ -18,6 +18,7 @@ const USER_COLLECTIONS = [
   'weekly_reports',      // 学情周报
   'learner_prefs',       // 用户偏好
   'ai_quota',            // 单用户 AI 日用量
+  'ai_rate',             // ★ R12：分钟级频控桶（含 openid）—— 新增时必须同步到这里
   'ai_calls',            // AI 调用明细
   'teach_interrupt_logs',// 打断提问日志
   'courses_draft',       // AI 生成草稿
