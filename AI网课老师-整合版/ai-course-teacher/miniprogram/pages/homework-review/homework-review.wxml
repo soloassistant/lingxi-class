@@ -4,15 +4,47 @@
   <block wx:elif="{{review}}">
     <view class="summary-card">
       <view class="review-header">
-        <view class="review-course">课后练习讲评</view>
-        <view class="review-status {{review.correct ? 'pass' : 'fail'}}">{{review.correct ? '通过' : '未通过'}}</view>
+        <view class="review-course">{{review.courseName || '课后练习讲评'}}</view>
+        <!-- ★ R17：correct 可能是 null（未作答 / 答案键不可用）。
+             原来写的是 `review.correct ? '通过' : '未通过'` —— 把"没作答"显示成"未通过"，
+             等于用界面替学生做了一个它并不知道的判断。 -->
+        <view class="review-status {{review.correct === null ? 'status-unknown' : (review.correct ? 'status-pass' : 'status-fail')}}">
+          {{review.correct === null ? (review.answered ? '未判定' : '未作答') : (review.correct ? '通过' : '未通过')}}
+        </view>
       </view>
-      <view class="review-title">{{review.itemId}}</view>
+      <view class="review-title">{{review.question || '（题目内容缺失）'}}</view>
+    </view>
+
+    <!-- 作答明细：学生选了哪个、标准答案哪个 -->
+    <view class="summary-card" wx:if="{{review.options.length}}">
+      <view class="detail-label">你的作答</view>
+      <view wx:for="{{review.options}}"
+            wx:for-item="opt"
+            wx:for-index="idx"
+            wx:key="*this"
+            class="opt-row {{review.answerIndex === idx ? 'is-answer' : ''}} {{review.userAnswer === idx ? 'is-picked' : ''}}">
+        <text class="opt-tag">{{review.userAnswer === idx ? '你的选择' : (review.answerIndex === idx ? '正确答案' : '')}}</text>
+        <text class="opt-text">{{opt}}</text>
+      </view>
+      <view class="opt-note" wx:if="{{review.answered === false}}">这道题你没有作答，因此无法判断对错。</view>
     </view>
 
     <view class="summary-card">
       <view class="review-feedback">📝 {{review.feedback}}</view>
       <view class="review-suggestion" wx:if="{{review.suggestion}}">💡 {{review.suggestion}}</view>
+      <!-- 讲评结论的依据强度必须写在界面上：
+           "只讲了选项"和"分析了错因"是两件事，不能让它们看起来一样。 -->
+      <view class="review-scope">
+        <block wx:if="{{review.diagnosisLevel === 'cause'}}">本次讲评基于题目与你写的解题过程，可以讨论错因。</block>
+        <block wx:elif="{{review.diagnosisLevel === 'option_only'}}">本次讲评只能判断"选项对错"，没有依据去断定具体错因。</block>
+        <block wx:else>本次讲评无法判定对错，因此没有给出错因分析。</block>
+        <block wx:if="{{review.questionSource === 'client'}}">（题面与答案未与题库核对，仅依据本次提交内容）</block>
+      </view>
+    </view>
+
+    <view class="summary-card" wx:if="{{review.explanation}}">
+      <view class="detail-label">标准解析</view>
+      <view class="review-explain">{{review.explanation}}</view>
     </view>
   </block>
 

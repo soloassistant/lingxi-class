@@ -4,11 +4,92 @@
 .review-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8rpx; }
 .review-course { font-size: 24rpx; color: #7a7f8a; }
 .review-status { font-size: 22rpx; padding: 4rpx 16rpx; border-radius: 8rpx; }
+/* ★ R17：wxml 原来传的是 'pass'/'fail'，与这里的 .status-pass/.status-fail 对不上 ——
+   颜色一直没生效。现在两边都对齐，并补上"未判定"这一档。 */
 .status-pass { color: #00c853; background: rgba(0, 200, 83, 0.1); }
 .status-fail { color: #ff1744; background: rgba(255, 23, 68, 0.1); }
-.review-title { font-size: 32rpx; font-weight: 700; margin-bottom: 12rpx; }
-.review-feedback { font-size: 26rpx; color: #b0b6c4; line-height: 1.6; }
-.review-suggestion { font-size: 26rpx; color: #ffd740; line-height: 1.6; margin-top: 8rpx; }
+.status-unknown { color: #7a7f8a; background: rgba(255, 255, 255, 0.06); }
+.review-title { font-size: 30rpx; font-weight: 600; line-height: 1.6; text-align: left; margin-bottom: 12rpx; }
+.review-feedback { font-size: 26rpx; color: #b0b6c4; line-height: 1.6; text-align: left; }
+.review-suggestion { font-size: 26rpx; color: #ffd740; line-height: 1.6; margin-top: 8rpx; text-align: left; }
+
+/* ---------- ★ R17：作答明细 / 依据强度 ---------- */
+.detail-label {
+  font-size: 24rpx;
+  color: #7a7f8a;
+  text-align: left;
+  margin-bottom: 14rpx;
+}
+
+.opt-row {
+  display: flex;
+  align-items: flex-start;
+  padding: 16rpx 18rpx;
+  border: 2rpx solid #2a2d37;
+  border-radius: 12rpx;
+  margin-bottom: 12rpx;
+}
+
+.opt-row.is-answer {
+  border-color: #00c853;
+  background: rgba(0, 200, 83, 0.08);
+}
+
+.opt-row.is-picked {
+  border-color: #ff8a80;
+  background: rgba(255, 138, 128, 0.08);
+}
+
+/* 既选对又是正确答案时，以"对"的绿色为准 */
+.opt-row.is-answer.is-picked {
+  border-color: #00c853;
+  background: rgba(0, 200, 83, 0.12);
+}
+
+.opt-tag {
+  flex-shrink: 0;
+  min-width: 120rpx;
+  font-size: 22rpx;
+  color: #7a7f8a;
+  padding-top: 4rpx;
+}
+
+.opt-row.is-answer .opt-tag { color: #00c853; }
+.opt-row.is-picked .opt-tag { color: #ff8a80; }
+.opt-row.is-answer.is-picked .opt-tag { color: #00c853; }
+
+.opt-text {
+  flex: 1;
+  font-size: 26rpx;
+  color: #e8eaf0;
+  line-height: 1.6;
+}
+
+.opt-note {
+  font-size: 24rpx;
+  color: #7a7f8a;
+  text-align: left;
+  margin-top: 6rpx;
+}
+
+.review-scope {
+  margin-top: 16rpx;
+  padding: 14rpx 18rpx;
+  font-size: 23rpx;
+  line-height: 1.6;
+  color: #7a7f8a;
+  text-align: left;
+  background: rgba(0, 229, 255, 0.06);
+  border-radius: 8rpx;
+}
+
+.review-explain {
+  font-size: 26rpx;
+  color: #b0b6c4;
+  line-height: 1.7;
+  text-align: left;
+}
+
 .btn-row { margin-top: 20rpx; }
 .btn-secondary {
   background: rgba(0, 229, 255, 0.1);

@@ -9199,7 +9199,8 @@ async function endLive() {
       '"detail":"他具体是怎么错的（一句话，写清错误表现）","fix":"下次针对这个原因该怎么补（一句话）"}],' +
       '"comment":"给学生和家长的两三句总评，语气温和鼓励，用成长型思维措辞（把不足说成' +
       '\"这一步的策略还有提升空间\"而不是\"你不行\"）"}。' +
-      '要求：mastered/weakPoints/homework 各 1-3 条；cards 给 3 张，问题要覆盖本节课最核心的 3 个知识点、' +
+      '要求：mastered/weakPoints/homework 各 0-3 条 —— **有依据才写，没有依据就给空数组 []**，' +
+      '绝对不要为了凑数编造；cards 给 3 张，问题要覆盖本节课最核心的 3 个知识点、' +
       '必须能脱离上下文作答（不要出现"这道题""刚才那个"这类指代）；reviewPlan 4 条，按遗忘曲线安排；' +
       'memoryFacts 给 2-6 条，只写**对以后教学真正有用**的信息（薄弱知识点、反复出现的错误、有效的讲解方式、' +
       '学习偏好、当前进度），不要写"今天上了XX课"这类流水账，每条要具体可执行、脱离本节课也能看懂；' +
@@ -9214,18 +9215,38 @@ async function endLive() {
       '  · careless（计算失误）——**解题思路和方法是对的**，只是运算、移项、去括号、抄写、符号出现错误。\n' +
       '  · reading（审题偏差）——漏看或错看了题目条件、单位、问法（如求"最大值"他答了"最小值"、漏掉"至少"）。\n' +
       '判定时优先看学生**自己说的解题过程**：如果他复述思路正确却算错，就是 careless，不要误判成 knowledge —— ' +
-      '把"会但算错"当成"不会"去重讲，是伤害学习信心最常见的一种误诊。';
+      '把"会但算错"当成"不会"去重讲，是伤害学习信心最常见的一种误诊。\n' +
+      /* ★ R17（2026-09-29）："未作答"必须与"做对/做错"三分，不能二分成"掌握/薄弱"。
+         原来要求 mastered 至少 1 条，等于强迫模型在"学生整节课没答题"时也要凑一个已掌握出来 ——
+         那不是评估，是编造。现在由提示词 + 下面的确定性守卫一起保证。 */
+      '【关于"未作答"，必须遵守】学生**没有作答**的知识点既不算"已掌握"，也不算"薄弱" —— ' +
+      '它属于"未验证"，不要写进 mastered，也不要写进 weakPoints。\n' +
+      '  · 本节课学生**完全没有作答**时，mastered 必须是空数组 []，weakPoints 里也不能出现"没掌握"这类断言，' +
+      '并在 comment 里如实说明"本节课以讲解为主，还没有作答证据，掌握情况待验证"。\n' +
+      '  · 只有学生**答对**（或明确复述对了）才能进 mastered；只有出现**错误的作答或明确的卡点**才能进 weakPoints。\n' +
+      '  · 宁可少写、写空，也不要为了让小结"看起来完整"而编造结论。';
+    /* ★ R17（2026-09-29）：把课中**已经采集到**的作答证据一并交给小结模型。
+       live.recording 里 type='cause' 的事件是课中逐轮累积的错因，
+       live.causeSummary 早就算好了、track 里也上报了，却一直没进过提示词 ——
+       于是模型只能从对话文本里再猜一遍，典型的"证据采了但没用上"。 */
+    const studentMsgCount = live.messages.filter((m) => m.role === 'user' && !m.hidden).length;
+    const causeEvidence = (live.causeSummary || []).filter(Boolean);
+    const answerEvidence = '\n【本节课的作答证据（结构化采集，以它为准）】' +
+      '\n· 学生作答/发言次数：' + studentMsgCount +
+      '\n· 课中诊断出的错因：' + (causeEvidence.length ? causeEvidence.join('、') : '（无）') +
+      '\n· 说明：次数为 0 表示学生整节课没有作答 —— 此时 mastered 必须为空，不要给出任何"已掌握"结论。';
     const raw = await streamChat({
       messages: [
         { role: 'system', content: sys },
         { role: 'user', content: '课程：' + course.title + '（' + course.subject + ' · ' + course.grade + '，时长 ' + fmtTime(seconds) + '）' +
           (memoryPromptBlock() ? '\n【已有的学生长期记忆（请勿重复记录，只补新的或更新的）】\n' + memoryPromptBlock() : '') +
+          answerEvidence +
           '\n课堂对话记录：\n' + (transcript || '（学生本节课未发言）') },
       ],
       temperature: 0.4,
       responseFormat: true,
     });
-    const sum = parseJSONLoose(raw);
+    const sum = guardSummaryEvidence(parseJSONLoose(raw), { studentMessages: studentMsgCount });
     renderSummary(sum, raw, null, course);
     track('summary_view', {
       course: String(course.title || '').slice(0, 80), parsed: !!sum,
@@ -9465,6 +9486,31 @@ function renderMemoryDiag(facts) {
     '当某个"起点薄弱"的标签在掌握度里变成"已掌握"，那才是真的学会了。</p>';
 }
 
+/* ★ R17（2026-09-29）：小结的"已掌握"必须由作答证据支撑，不能靠模型自觉。
+   提示词里已经写明"未作答不算已掌握、没有证据就给空数组"，但提示词是**请求**不是**保证** ——
+   模型仍然可能为了把小结写满而列出没验证过的知识点。
+   这里做一道确定性守卫：学生整节课没有任何作答/发言 → mastered 一律清空，
+   并在小结上标注"掌握情况待验证"。宁可空着，也不要给学生和家长一个没有依据的结论。
+
+   注意：只清 mastered，不动 weakPoints —— 薄弱点可以由老师自己的观察支撑
+   （学生在讲解中出现卡顿、反复追问都算），并不要求他先作答。
+   而"已掌握"按定义是一种**正面验证结果**，没有作答就不可能有。 */
+function guardSummaryEvidence(sum, ctx) {
+  if (!sum || typeof sum !== 'object') return sum;
+  const studentMessages = (ctx && typeof ctx.studentMessages === 'number') ? ctx.studentMessages : 0;
+  if (studentMessages <= 0) {
+    const dropped = Array.isArray(sum.mastered) ? sum.mastered.length : 0;
+    sum.mastered = [];
+    sum.noAnswerEvidence = true;
+    if (dropped > 0) {
+      // 这不是静默丢弃：留下痕迹，便于排查模型为什么在无证据时给出了结论
+      sum.droppedUnverified = dropped;
+      console.warn('[summary] 学生本节课无作答记录，已清空 ' + dropped + ' 条无依据的"已掌握"');
+    }
+  }
+  return sum;
+}
+
 function renderSummary(sum, raw, errMsg, course) {
   const body = $('#summary-body');
   if (!sum) {
@@ -9500,8 +9546,14 @@ function renderSummary(sum, raw, errMsg, course) {
 
   const hasReplay = course && course.replay && course.replay.events && course.replay.events.length;
   const causeHtml = renderCauses(sum.errorCauses);
+  /* ★ R17：无作答证据时，这一栏如实显示"待验证"，而不是"暂无"了事 ——
+     "没答过"和"没掌握"是两件事，学生和家长都需要知道这一栏现在空着的原因。 */
+  const masteredHtml = sum.noAnswerEvidence
+    ? '<div class="sum-block"><b>✅ 已掌握</b><ul><li>暂无 —— 本节课没有作答记录，掌握情况待验证</li></ul>' +
+      '<p class="sum-hint">"没答过"既不代表已掌握，也不代表没学会。等你有作答之后再回来看这一栏。</p></div>'
+    : '<div class="sum-block"><b>✅ 已掌握</b>' + list(sum.mastered) + '</div>';
   body.innerHTML = `
-    <div class="sum-block"><b>✅ 已掌握</b>${list(sum.mastered)}</div>
+    ${masteredHtml}
     <div class="sum-block"><b>📌 待巩固</b>${list(sum.weakPoints)}</div>
     ${causeHtml ? '<div class="sum-block sum-causes"><b>🔍 错因分析</b>' +
       '<p class="sum-hint">知道"为什么错"比知道"错了"重要 —— 不同原因要用完全不同的方式补。</p>' +
@@ -12457,6 +12509,9 @@ try {
     markCourseDirty, markCourseDeleted, renderSyncStatus, saveCourse,
     /* R18：流式取消的两条路径必须等价 —— 直接驱动 streamChat 来验 */
     streamChat, finishInterruptedSegment,
+    /* R17：小结的"已掌握"必须有作答证据 —— 这是确定性守卫，必须能被行为测试直接驱动。
+       提示词纪律（0-3 条 / 未作答不给结论）无法被测试断言，但守卫可以。 */
+    guardSummaryEvidence,
     /* 登录门禁：测试要能直接驱动它（登出后是否重新上锁等） */
     isSignedIn, enforceLoginGate, releaseLoginGate, syncLoginGate, requireSignedIn,
     getGateState,

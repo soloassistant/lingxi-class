@@ -31,6 +31,19 @@
       <button class="btn-submit" wx:if="{{!submittedMap[item.id]}}"
               data-id="{{item.id}}" bindtap="submit">提交作业</button>
       <view class="hw-done" wx:else>✅ 已提交，可查看讲评</view>
+
+      <!-- ★ R17：可选写下解题过程。
+           讲评要判断"错因"，就必须有过程可依据；没有过程时服务端只会说
+           "选项不符 + 正确选项是什么"，不会替你猜"概念混淆/计算失误"。 -->
+      <view class="hw-work" wx:if="{{pickedMap[item.id] && !submittedMap[item.id]}}">
+        <view class="hw-work-label">写下你的思路（可选）</view>
+        <textarea class="hw-work-input"
+                  value="{{workMap[item.id] || ''}}"
+                  data-id="{{item.id}}"
+                  bindinput="inputWork"
+                  maxlength="300"
+                  placeholder="例如：我先排除了 A，再算……（写了过程，讲评才可能分析错因）" />
+      </view>
     </view>
   </block>
 </view>

@@ -5,7 +5,10 @@ Page({
   data: {
     assignments: [],
     selectedMap: {},
-    submittedMap: {}
+    submittedMap: {},
+    // ★ R17：pickedMap 用来控制"写下思路"输入框的出现（WXML 里比 undefined 可靠）
+    pickedMap: {},
+    workMap: {}
   },
 
   onLoad() {
@@ -39,7 +42,15 @@ Page({
     if (this.data.submittedMap[id]) return;
     const index = Number(e.currentTarget.dataset.index);
     const selectedMap = { ...this.data.selectedMap, [id]: index };
-    this.setData({ selectedMap });
+    const pickedMap = { ...this.data.pickedMap, [id]: true };
+    this.setData({ selectedMap, pickedMap });
+  },
+
+  // 可选：写下解题过程。有过程，讲评才被允许讨论错因（否则只讲"选项不符"）
+  inputWork(e) {
+    const id = e.currentTarget.dataset.id;
+    const workMap = { ...this.data.workMap, [id]: e.detail.value };
+    this.setData({ workMap });
   },
 
   submit(e) {
@@ -57,13 +68,23 @@ Page({
     this.setData({ submittedMap });
 
     if (app.globalData.hasLogin) {
+      /* ★ R17：把**学生实际看到的那份题面**一起提交。
+         服务端要拿它做两件事：
+           ① 与 question_bank 按版本核对答案键（不再盲信客户端说的答案）；
+           ② 讲评时把题干/选项/解析交给模型 —— 原来只给序号，模型只能编错因。
+         另外把学生所选的**选项文字**也留在题面里即可，选项本身已经传了。 */
       wx.cloud.callFunction({
         name: 'homeworkSubmit',
         data: {
           itemId: id,
           courseId: assignment.courseId,
-          userAnswer,
+          courseName: assignment.courseName,
+          question: assignment.quiz.question || '',
+          options: assignment.quiz.options || [],
           answerIndex: assignment.quiz.answerIndex,
+          explanation: assignment.quiz.explanation || '',
+          userAnswer,
+          studentWork: this.data.workMap[id] || '',
           status: 'submitted'
         }
       }).catch(() => {});

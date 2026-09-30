@@ -24,6 +24,8 @@ const tests = [
   'production.test.js',
   /* 行为测试：走真实函数 + 真实 DOM，专门覆盖"grep 源码测不出来"的门禁/落盘/分句 */
   'gate-behavior.test.js',
+  /* R17：课堂小结的"已掌握"必须有作答证据 —— 端到端跑一节真实课堂，抓真实发出的提示词 */
+  'summary-evidence.test.js',
 ];
 
 let failed = 0;

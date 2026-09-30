@@ -51,3 +51,27 @@
   border-color: #00e5ff;
   background: rgba(0, 229, 255, 0.08);
 }
+
+/* ---------- ★ R17：可选的解题过程输入 ---------- */
+.hw-work {
+  margin-top: 20rpx;
+}
+
+.hw-work-label {
+  font-size: 24rpx;
+  color: #7a7f8a;
+  margin-bottom: 10rpx;
+}
+
+.hw-work-input {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 120rpx;
+  padding: 18rpx 20rpx;
+  background: #14171f;
+  border: 2rpx solid #2a2d37;
+  border-radius: 12rpx;
+  font-size: 26rpx;
+  line-height: 1.6;
+  color: #e8eaf0;
+}

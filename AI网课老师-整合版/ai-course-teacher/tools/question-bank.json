@@ -1,0 +1,2818 @@
+[
+  {
+    "_id": "ielts_listening_basics",
+    "itemId": "ielts_listening_basics",
+    "courseId": "ielts_listening",
+    "courseName": "雅思听力",
+    "question": "以下哪类词最适合做定位词？",
+    "options": [
+      "介词",
+      "专有名词",
+      "动名词",
+      "形容词"
+    ],
+    "answerIndex": 1,
+    "explanation": "专有名词如人名、地名在听力中不容易被同义替换，最适合做定位词。",
+    "version": "1a80130c"
+  },
+  {
+    "_id": "toefl_b2_i1",
+    "itemId": "toefl_b2_i1",
+    "courseId": "toefl_b2",
+    "courseName": "托福进阶",
+    "question": "In Cornell notes, the main column is for:",
+    "options": [
+      "Key points",
+      "Summary",
+      "Keywords",
+      "Questions"
+    ],
+    "answerIndex": 0,
+    "explanation": "主栏记录讲座要点；副栏写提示词；底部是总结。",
+    "version": "ec5809b1"
+  },
+  {
+    "_id": "toefl_b2_i2",
+    "itemId": "toefl_b2_i2",
+    "courseId": "toefl_b2",
+    "courseName": "托福进阶",
+    "question": "Which word signals a cause-and-effect relationship?",
+    "options": [
+      "For instance",
+      "Consequently",
+      "In addition",
+      "Meanwhile"
+    ],
+    "answerIndex": 1,
+    "explanation": "consequently 表示结果，是因果关系的信号词。",
+    "version": "dcc51809"
+  },
+  {
+    "_id": "toefl_b2_i3",
+    "itemId": "toefl_b2_i3",
+    "courseId": "toefl_b2",
+    "courseName": "托福进阶",
+    "question": "A professor says: \"Let me give you an example of this process.\" What comes next?",
+    "options": [
+      "Definition",
+      "Example",
+      "Evaluation",
+      "Conclusion"
+    ],
+    "answerIndex": 1,
+    "explanation": "give you an example 指示接下来是举例部分。",
+    "version": "c759a194"
+  },
+  {
+    "_id": "toefl_b2_i4",
+    "itemId": "toefl_b2_i4",
+    "courseId": "toefl_b2",
+    "courseName": "托福进阶",
+    "question": "In listening notes, \"∵\" usually means:",
+    "options": [
+      "Therefore",
+      "Because",
+      "However",
+      "In addition"
+    ],
+    "answerIndex": 1,
+    "explanation": "∵ 表示 because（因为）；∴ 表示 therefore（所以）。",
+    "version": "7a4e00df"
+  },
+  {
+    "_id": "toefl_adv_i1",
+    "itemId": "toefl_adv_i1",
+    "courseId": "toefl_adv",
+    "courseName": "托福冲刺",
+    "question": "In integrated writing, the listening passage typically:",
+    "options": [
+      "Supports the reading",
+      "Challenges the reading",
+      "Summarizes the reading",
+      "Is unrelated to the reading"
+    ],
+    "answerIndex": 1,
+    "explanation": "听力通常对阅读中的论点提出质疑或反驳。",
+    "version": "349f6e4b"
+  },
+  {
+    "_id": "toefl_adv_i2",
+    "itemId": "toefl_adv_i2",
+    "courseId": "toefl_adv",
+    "courseName": "托福冲刺",
+    "question": "Which sentence best introduces a contrast?",
+    "options": [
+      "The reading states that X, and the lecturer agrees.",
+      "The reading states that X. However, the lecturer challenges this.",
+      "The reading states that X, so the lecturer listens.",
+      "The reading states that X because the lecturer responds."
+    ],
+    "answerIndex": 1,
+    "explanation": "However, the lecturer challenges 是标准的对比表达。",
+    "version": "f6bbf19d"
+  },
+  {
+    "_id": "toefl_adv_i3",
+    "itemId": "toefl_adv_i3",
+    "courseId": "toefl_adv",
+    "courseName": "托福冲刺",
+    "question": "During the reading phase, you should mainly:",
+    "options": [
+      "Memorize every detail",
+      "Identify the three main arguments",
+      "Write your full outline",
+      "Check grammar"
+    ],
+    "answerIndex": 1,
+    "explanation": "阅读阶段核心任务是识别阅读中的三个分论点。",
+    "version": "bee733c6"
+  },
+  {
+    "_id": "toefl_adv_i4",
+    "itemId": "toefl_adv_i4",
+    "courseId": "toefl_adv",
+    "courseName": "托福冲刺",
+    "question": "Which factor most seriously hurts your integrated writing score?",
+    "options": [
+      "Missing a key point",
+      "Using simple words",
+      "Long sentences",
+      "Handwriting"
+    ],
+    "answerIndex": 0,
+    "explanation": "遗漏要点比语言简单更致命。",
+    "version": "c330df31"
+  },
+  {
+    "_id": "igcse_math_i1",
+    "itemId": "igcse_math_i1",
+    "courseId": "igcse_math",
+    "courseName": "IGCSE数学",
+    "question": "What is the discriminant of x² - 5x + 6 = 0?",
+    "options": [
+      "1",
+      "25",
+      "36",
+      "49"
+    ],
+    "answerIndex": 0,
+    "explanation": "Δ = b² - 4ac = (-5)² - 4×1×6 = 25 - 24 = 1。",
+    "version": "3ccc2bbc"
+  },
+  {
+    "_id": "igcse_math_i2",
+    "itemId": "igcse_math_i2",
+    "courseId": "igcse_math",
+    "courseName": "IGCSE数学",
+    "question": "Factor x² - 9:",
+    "options": [
+      "(x-3)²",
+      "(x+3)(x-3)",
+      "(x+9)(x-1)",
+      "x(x-9)"
+    ],
+    "answerIndex": 1,
+    "explanation": "x² - 9 是平方差形式：x² - 3² = (x+3)(x-3)。",
+    "version": "fe15ee54"
+  },
+  {
+    "_id": "igcse_math_i3",
+    "itemId": "igcse_math_i3",
+    "courseId": "igcse_math",
+    "courseName": "IGCSE数学",
+    "question": "Which is a perfect square trinomial?",
+    "options": [
+      "x² + 6x + 9",
+      "x² + 5x + 6",
+      "x² - 4x + 8",
+      "x² - x + 1"
+    ],
+    "answerIndex": 0,
+    "explanation": "x² + 6x + 9 = (x+3)²，其中 6x = 2×x×3。",
+    "version": "f0a9a361"
+  },
+  {
+    "_id": "igcse_math_i4",
+    "itemId": "igcse_math_i4",
+    "courseId": "igcse_math",
+    "courseName": "IGCSE数学",
+    "question": "Solve: -3x ≤ 12",
+    "options": [
+      "x ≥ -4",
+      "x ≤ -4",
+      "x ≥ 4",
+      "x ≤ 4"
+    ],
+    "answerIndex": 0,
+    "explanation": "两边除以 -3，不等号方向反转：-3x ≤ 12 → x ≥ -4。",
+    "version": "c402e6f4"
+  },
+  {
+    "_id": "igcse_am_i1",
+    "itemId": "igcse_am_i1",
+    "courseId": "igcse_addmath",
+    "courseName": "IGCSE附加数学",
+    "question": "What is dy/dx for y = x⁴?",
+    "options": [
+      "x³",
+      "3x³",
+      "4x³",
+      "x⁵/5"
+    ],
+    "answerIndex": 2,
+    "explanation": "用幂函数求导法则：d/dx(xⁿ) = nxⁿ⁻¹，所以 d/dx(x⁴) = 4x³。",
+    "version": "88b5c2fd"
+  },
+  {
+    "_id": "igcse_am_i2",
+    "itemId": "igcse_am_i2",
+    "courseId": "igcse_addmath",
+    "courseName": "IGCSE附加数学",
+    "question": "The slope of y = x² at x = 3 is:",
+    "options": [
+      "2",
+      "3",
+      "6",
+      "9"
+    ],
+    "answerIndex": 2,
+    "explanation": "y' = 2x，代入 x = 3 得 6。",
+    "version": "8f657082"
+  },
+  {
+    "_id": "igcse_am_i3",
+    "itemId": "igcse_am_i3",
+    "courseId": "igcse_addmath",
+    "courseName": "IGCSE附加数学",
+    "question": "What is ∫₀¹ 2x dx?",
+    "options": [
+      "0",
+      "1",
+      "2",
+      "3"
+    ],
+    "answerIndex": 1,
+    "explanation": "∫₀¹ 2x dx = [x²]₀¹ = 1 - 0 = 1。",
+    "version": "50110664"
+  },
+  {
+    "_id": "igcse_am_i4",
+    "itemId": "igcse_am_i4",
+    "courseId": "igcse_addmath",
+    "courseName": "IGCSE附加数学",
+    "question": "The area between y = x² and the x-axis from x=0 to x=2 is:",
+    "options": [
+      "2/3",
+      "4/3",
+      "8/3",
+      "16/3"
+    ],
+    "answerIndex": 2,
+    "explanation": "∫₀² x² dx = [x³/3]₀² = 8/3。",
+    "version": "70ac8d0c"
+  },
+  {
+    "_id": "alevel_p3_i1",
+    "itemId": "alevel_p3_i1",
+    "courseId": "alevel_pure3",
+    "courseName": "A-Level纯数3",
+    "question": "Which equation can be solved by separation of variables?",
+    "options": [
+      "dy/dx = x + y",
+      "dy/dx = x²y",
+      "dy/dx = x - 2y",
+      "dy/dx = y"
+    ],
+    "answerIndex": 1,
+    "explanation": "dy/dx = x²y 可分离：dy/y = x² dx，然后两边积分。",
+    "version": "2cf6e600"
+  },
+  {
+    "_id": "alevel_p3_i2",
+    "itemId": "alevel_p3_i2",
+    "courseId": "alevel_pure3",
+    "courseName": "A-Level纯数3",
+    "question": "For dy/dx + 2y = x, the integrating factor is:",
+    "options": [
+      "x²",
+      "e²ˣ",
+      "x",
+      "eˣ"
+    ],
+    "answerIndex": 1,
+    "explanation": "I = e^∫2 dx = e²ˣ。",
+    "version": "f9491edb"
+  },
+  {
+    "_id": "alevel_p3_i3",
+    "itemId": "alevel_p3_i3",
+    "courseId": "alevel_pure3",
+    "courseName": "A-Level纯数3",
+    "question": "The characteristic equation of y'' + 5y' + 6y = 0 is:",
+    "options": [
+      "λ² + 5λ + 6 = 0",
+      "λ² - 5λ + 6 = 0",
+      "λ² + 5λ - 6 = 0",
+      "λ² - 5λ - 6 = 0"
+    ],
+    "answerIndex": 0,
+    "explanation": "把 y'' 换成 λ²，y' 换成 λ，y 换成 1，得 λ² + 5λ + 6 = 0。",
+    "version": "9e8a2031"
+  },
+  {
+    "_id": "alevel_p3_i4",
+    "itemId": "alevel_p3_i4",
+    "courseId": "alevel_pure3",
+    "courseName": "A-Level纯数3",
+    "question": "If dy/dx = y and y(0) = 2, what is the particular solution?",
+    "options": [
+      "y = 2eˣ",
+      "y = e²ˣ",
+      "y = eˣ + 2",
+      "y = 2e⁻ˣ"
+    ],
+    "answerIndex": 0,
+    "explanation": "通解 y = Ceˣ，代入 y(0) = 2 得 C = 2。",
+    "version": "7c3dda9d"
+  },
+  {
+    "_id": "alevel_mech_i1",
+    "itemId": "alevel_mech_i1",
+    "courseId": "alevel_mech",
+    "courseName": "A-Level力学",
+    "question": "A 3 kg object accelerates at 2 m/s². The net force is:",
+    "options": [
+      "1.5 N",
+      "5 N",
+      "6 N",
+      "9 N"
+    ],
+    "answerIndex": 2,
+    "explanation": "F = ma = 3 × 2 = 6 N。",
+    "version": "f16355d2"
+  },
+  {
+    "_id": "alevel_mech_i2",
+    "itemId": "alevel_mech_i2",
+    "courseId": "alevel_mech",
+    "courseName": "A-Level力学",
+    "question": "A car accelerates from rest at 2 m/s² for 3 s. The distance is:",
+    "options": [
+      "3 m",
+      "6 m",
+      "9 m",
+      "18 m"
+    ],
+    "answerIndex": 2,
+    "explanation": "s = ut + ½at² = 0 + ½×2×9 = 9 m。",
+    "version": "668982a7"
+  },
+  {
+    "_id": "alevel_mech_i3",
+    "itemId": "alevel_mech_i3",
+    "courseId": "alevel_mech",
+    "courseName": "A-Level力学",
+    "question": "In a connected-body problem, the tension in the rope:",
+    "options": [
+      "Is always zero",
+      "Equals the applied force",
+      "Is an internal force",
+      "Cannot be calculated"
+    ],
+    "answerIndex": 2,
+    "explanation": "绳张力是连接体之间的内力，通过隔离单体计算。",
+    "version": "963689de"
+  },
+  {
+    "_id": "alevel_mech_i4",
+    "itemId": "alevel_mech_i4",
+    "courseId": "alevel_mech",
+    "courseName": "A-Level力学",
+    "question": "A 1 kg ball drops from 5 m. What is its speed just before hitting the ground? (g=10 m/s²)",
+    "options": [
+      "5 m/s",
+      "10 m/s",
+      "15 m/s",
+      "50 m/s"
+    ],
+    "answerIndex": 1,
+    "explanation": "v = √(2gh) = √(2×10×5) = √100 = 10 m/s。",
+    "version": "9c65712a"
+  },
+  {
+    "_id": "ib_aa_i1",
+    "itemId": "ib_aa_i1",
+    "courseId": "ib_math_aa",
+    "courseName": "IB数学AA",
+    "question": "What is the derivative of sin(2x)?",
+    "options": [
+      "cos(2x)",
+      "2cos(2x)",
+      "-cos(2x)",
+      "-2cos(2x)"
+    ],
+    "answerIndex": 1,
+    "explanation": "链式法则：导数是 2cos(2x)。",
+    "version": "3c7c9016"
+  },
+  {
+    "_id": "ib_aa_i2",
+    "itemId": "ib_aa_i2",
+    "courseId": "ib_math_aa",
+    "courseName": "IB数学AA",
+    "question": "For ∫x cos(x) dx, the best choice for u is:",
+    "options": [
+      "cos(x)",
+      "x",
+      "1",
+      "cos(x)+x"
+    ],
+    "answerIndex": 1,
+    "explanation": "LIATE 法则：代数 x 优先于三角 cos(x)，所以 u = x，dv = cos(x) dx。",
+    "version": "d633354d"
+  },
+  {
+    "_id": "ib_aa_i3",
+    "itemId": "ib_aa_i3",
+    "courseId": "ib_math_aa",
+    "courseName": "IB数学AA",
+    "question": "The Maclaurin series of eˣ starts with:",
+    "options": [
+      "1 + x",
+      "1 - x",
+      "x + x²",
+      "1 + x²"
+    ],
+    "answerIndex": 0,
+    "explanation": "eˣ = 1 + x + x²/2! + x³/3! + ...，前两项是 1 + x。",
+    "version": "4845e1cb"
+  },
+  {
+    "_id": "ib_aa_i4",
+    "itemId": "ib_aa_i4",
+    "courseId": "ib_math_aa",
+    "courseName": "IB数学AA",
+    "question": "What substitution for ∫2x cos(x²) dx?",
+    "options": [
+      "u = 2x",
+      "u = x²",
+      "u = cos(x²)",
+      "u = x"
+    ],
+    "answerIndex": 1,
+    "explanation": "u = x²，则 du = 2x dx，原式 = ∫cos(u) du = sin(x²) + C。",
+    "version": "fbb70545"
+  },
+  {
+    "_id": "ib_ai_i1",
+    "itemId": "ib_ai_i1",
+    "courseId": "ib_math_ai",
+    "courseName": "IB数学AI",
+    "question": "About what percentage of data lies within 2 standard deviations of the mean?",
+    "options": [
+      "68%",
+      "95%",
+      "99.7%",
+      "50%"
+    ],
+    "answerIndex": 1,
+    "explanation": "68-95-99.7 法则：2σ 范围内约 95%。",
+    "version": "1d78fb7a"
+  },
+  {
+    "_id": "ib_ai_i2",
+    "itemId": "ib_ai_i2",
+    "courseId": "ib_math_ai",
+    "courseName": "IB数学AI",
+    "question": "A correlation coefficient r = -0.9 indicates:",
+    "options": [
+      "A strong negative linear relationship",
+      "A weak negative relationship",
+      "No relationship",
+      "A perfect positive relationship"
+    ],
+    "answerIndex": 0,
+    "explanation": "r = -0.9 表示很强的负相关，|r| 接近 1。",
+    "version": "ed4a64f5"
+  },
+  {
+    "_id": "ib_ai_i3",
+    "itemId": "ib_ai_i3",
+    "courseId": "ib_math_ai",
+    "courseName": "IB数学AI",
+    "question": "What does n represent in A = P(1 + r/n)^(nt)?",
+    "options": [
+      "Interest rate",
+      "Number of compounding periods per year",
+      "Years",
+      "Initial amount"
+    ],
+    "answerIndex": 1,
+    "explanation": "n 是每年复利计算的次数。",
+    "version": "35ace368"
+  },
+  {
+    "_id": "ib_ai_i4",
+    "itemId": "ib_ai_i4",
+    "courseId": "ib_math_ai",
+    "courseName": "IB数学AI",
+    "question": "If each measurement has a 1% relative error, multiplying them yields about:",
+    "options": [
+      "1% error",
+      "2% error",
+      "0.5% error",
+      "10% error"
+    ],
+    "answerIndex": 1,
+    "explanation": "乘法模型中相对误差相加：1% + 1% = 2%。",
+    "version": "5eed4d16"
+  },
+  {
+    "_id": "ap_calc_i1",
+    "itemId": "ap_calc_i1",
+    "courseId": "ap_calc",
+    "courseName": "AP微积分",
+    "question": "The center of a Maclaurin series is:",
+    "options": [
+      "x = 0",
+      "x = 1",
+      "x = -1",
+      "x = e"
+    ],
+    "answerIndex": 0,
+    "explanation": "麦克劳林级数是以 x=0 为中心的泰勒展开。",
+    "version": "185daaa3"
+  },
+  {
+    "_id": "ap_calc_i2",
+    "itemId": "ap_calc_i2",
+    "courseId": "ap_calc",
+    "courseName": "AP微积分",
+    "question": "For a power series with convergence radius R = 2 centered at x = 1, the series converges when:",
+    "options": [
+      "-1 < x < 3",
+      "x > 2",
+      "x < 1",
+      "x = 4"
+    ],
+    "answerIndex": 0,
+    "explanation": "|x-1| < 2 → -1 < x < 3。",
+    "version": "e8cd33fe"
+  },
+  {
+    "_id": "ap_calc_i3",
+    "itemId": "ap_calc_i3",
+    "courseId": "ap_calc",
+    "courseName": "AP微积分",
+    "question": "The first two nonzero terms of sin x are:",
+    "options": [
+      "x - x³/6",
+      "x + x³/6",
+      "x - x²/2",
+      "x - x³/3"
+    ],
+    "answerIndex": 0,
+    "explanation": "sin x = x - x³/3! + x⁵/5! - ...，所以前两项是 x - x³/6。",
+    "version": "5f773b66"
+  },
+  {
+    "_id": "ap_calc_i4",
+    "itemId": "ap_calc_i4",
+    "courseId": "ap_calc",
+    "courseName": "AP微积分",
+    "question": "To bound the error of a 3rd degree Taylor approximation, you need:",
+    "options": [
+      "The 4th derivative",
+      "The 3rd derivative",
+      "The 2nd derivative",
+      "The 0th derivative"
+    ],
+    "answerIndex": 0,
+    "explanation": "拉格朗日余项 R₃ 需要用到 n+1=4 阶导数。",
+    "version": "76556877"
+  },
+  {
+    "_id": "ap_stats_i1",
+    "itemId": "ap_stats_i1",
+    "courseId": "ap_stats",
+    "courseName": "AP统计",
+    "question": "A biased sample is likely produced by:",
+    "options": [
+      "Simple random sampling",
+      "Convenience sampling",
+      "Stratified sampling",
+      "Cluster sampling"
+    ],
+    "answerIndex": 1,
+    "explanation": "方便抽样只取容易到达的样本，代表性差，容易偏差。",
+    "version": "1fc2dd78"
+  },
+  {
+    "_id": "ap_stats_i2",
+    "itemId": "ap_stats_i2",
+    "courseId": "ap_stats",
+    "courseName": "AP统计",
+    "question": "The standard deviation of the sampling distribution of the mean is:",
+    "options": [
+      "σ",
+      "σ/√n",
+      "σ²",
+      "nσ"
+    ],
+    "answerIndex": 1,
+    "explanation": "标准误 = σ/√n，n 越大误差越小。",
+    "version": "e0758f93"
+  },
+  {
+    "_id": "ap_stats_i3",
+    "itemId": "ap_stats_i3",
+    "courseId": "ap_stats",
+    "courseName": "AP统计",
+    "question": "For a 95% confidence interval, the critical value z* is approximately:",
+    "options": [
+      "1.28",
+      "1.645",
+      "1.96",
+      "2.58"
+    ],
+    "answerIndex": 2,
+    "explanation": "95% 置信水平对应的 z* = 1.96。",
+    "version": "c06b09d0"
+  },
+  {
+    "_id": "ap_stats_i4",
+    "itemId": "ap_stats_i4",
+    "courseId": "ap_stats",
+    "courseName": "AP统计",
+    "question": "If p-value = 0.03 and α = 0.05, you should:",
+    "options": [
+      "Reject H₀",
+      "Fail to reject H₀",
+      "Accept H₁",
+      "Increase α"
+    ],
+    "answerIndex": 0,
+    "explanation": "p = 0.03 < α = 0.05，结果显著，拒绝原假设。",
+    "version": "6388bf8c"
+  },
+  {
+    "_id": "sat_math_i1",
+    "itemId": "sat_math_i1",
+    "courseId": "sat_math",
+    "courseName": "SAT数学",
+    "question": "What is the slope of the line through (0,2) and (3,8)?",
+    "options": [
+      "2",
+      "3",
+      "6",
+      "8/3"
+    ],
+    "answerIndex": 0,
+    "explanation": "m = (8-2)/(3-0) = 6/3 = 2。",
+    "version": "10d88583"
+  },
+  {
+    "_id": "sat_math_i2",
+    "itemId": "sat_math_i2",
+    "courseId": "sat_math",
+    "courseName": "SAT数学",
+    "question": "The vertex of y = 2(x-3)² + 5 is:",
+    "options": [
+      "(3, 5)",
+      "(-3, 5)",
+      "(2, 3)",
+      "(5, 3)"
+    ],
+    "answerIndex": 0,
+    "explanation": "顶点式 y=a(x-h)²+k 中顶点为 (h,k) = (3,5)。",
+    "version": "bb458ec1"
+  },
+  {
+    "_id": "sat_math_i3",
+    "itemId": "sat_math_i3",
+    "courseId": "sat_math",
+    "courseName": "SAT数学",
+    "question": "In a right triangle, if sin θ = 3/5, the opposite side is:",
+    "options": [
+      "3",
+      "5",
+      "4",
+      "3/5"
+    ],
+    "answerIndex": 0,
+    "explanation": "sin θ = 对边/斜边，2 通过对边=3，斜边=5。",
+    "version": "79c7707d"
+  },
+  {
+    "_id": "sat_math_i4",
+    "itemId": "sat_math_i4",
+    "courseId": "sat_math",
+    "courseName": "SAT数学",
+    "question": "Which measure of central tendency is most affected by extreme values?",
+    "options": [
+      "Mean",
+      "Median",
+      "Mode",
+      "Range"
+    ],
+    "answerIndex": 0,
+    "explanation": "平均数对极端值敏感，中位数更稳健。",
+    "version": "9675bac9"
+  },
+  {
+    "_id": "sat_write_i1",
+    "itemId": "sat_write_i1",
+    "courseId": "sat_write",
+    "courseName": "SAT文法",
+    "question": "Which is correct?",
+    "options": [
+      "The list of items are long.",
+      "The list of items is long.",
+      "The list of items were long.",
+      "The list, with items, are long."
+    ],
+    "answerIndex": 1,
+    "explanation": "主语是 list（单数），of items 是修饰，谓语用 is。",
+    "version": "4ce5a26d"
+  },
+  {
+    "_id": "sat_write_i2",
+    "itemId": "sat_write_i2",
+    "courseId": "sat_write",
+    "courseName": "SAT文法",
+    "question": "Which correctly joins two independent clauses without a conjunction?",
+    "options": [
+      "She ran; he walked.",
+      "She ran, he walked.",
+      "She ran he walked.",
+      "She ran: he walked."
+    ],
+    "answerIndex": 0,
+    "explanation": "分号可直接连接两个独立分句。",
+    "version": "0c2e0914"
+  },
+  {
+    "_id": "sat_write_i3",
+    "itemId": "sat_write_i3",
+    "courseId": "sat_write",
+    "courseName": "SAT文法",
+    "question": "Choose correct: \"If you study hard, you ___ succeed.\"",
+    "options": [
+      "will",
+      "would",
+      "are",
+      "were"
+    ],
+    "answerIndex": 0,
+    "explanation": "第一条件句主句用 will + 原形。",
+    "version": "6cda9c73"
+  },
+  {
+    "_id": "sat_write_i4",
+    "itemId": "sat_write_i4",
+    "courseId": "sat_write",
+    "courseName": "SAT文法",
+    "question": "“He failed twice; ___, he never gave up.” Best word?",
+    "options": [
+      "therefore",
+      "however",
+      "for example",
+      "meanwhile"
+    ],
+    "answerIndex": 1,
+    "explanation": "前后是转折关系，用 however。",
+    "version": "89a01bf1"
+  },
+  {
+    "_id": "igcse_math_i5",
+    "itemId": "igcse_math_i5",
+    "courseId": "igcse_math",
+    "courseName": "IGCSE数学",
+    "question": "Factorise x² - 7x + 12 =",
+    "options": [
+      "(x-3)(x-4)",
+      "(x+3)(x+4)",
+      "(x-2)(x-6)",
+      "(x-1)(x-12)"
+    ],
+    "answerIndex": 0,
+    "explanation": "-3+(-4)=-7，(-3)(-4)=12。",
+    "version": "94978c9f"
+  },
+  {
+    "_id": "igcse_math_i6",
+    "itemId": "igcse_math_i6",
+    "courseId": "igcse_math",
+    "courseName": "IGCSE数学",
+    "question": "Right triangle with angle 30°, hypotenuse 10, opposite side =?",
+    "options": [
+      "5",
+      "5√3",
+      "10",
+      "√3"
+    ],
+    "answerIndex": 0,
+    "explanation": "sin30°=1/2，对边=10×1/2=5。",
+    "version": "40f36160"
+  },
+  {
+    "_id": "igcse_math_i7",
+    "itemId": "igcse_math_i7",
+    "courseId": "igcse_math",
+    "courseName": "IGCSE数学",
+    "question": "Angle subtended by diameter at circumference =",
+    "options": [
+      "90°",
+      "180°",
+      "45°",
+      "varies"
+    ],
+    "answerIndex": 0,
+    "explanation": "直径所对圆周角恒为直角。",
+    "version": "b1859c1b"
+  },
+  {
+    "_id": "igcse_math_i8",
+    "itemId": "igcse_math_i8",
+    "courseId": "igcse_math",
+    "courseName": "IGCSE数学",
+    "question": "Two fair dice rolled, P(sum=7)=?",
+    "options": [
+      "6/36",
+      "1/6",
+      "both 6/36=1/6",
+      "5/36"
+    ],
+    "answerIndex": 2,
+    "explanation": "和为7共6种(1,6..6,1)，6/36=1/6。",
+    "version": "142ae81c"
+  },
+  {
+    "_id": "igcse_phy_i1",
+    "itemId": "igcse_phy_i1",
+    "courseId": "igcse_phy",
+    "courseName": "IGCSE物理",
+    "question": "Car accelerates from rest at 2 m/s² for 5 s, final speed =",
+    "options": [
+      "10 m/s",
+      "5 m/s",
+      "2.5 m/s",
+      "25 m/s"
+    ],
+    "answerIndex": 0,
+    "explanation": "v=u+at=0+2×5=10。",
+    "version": "1292369b"
+  },
+  {
+    "_id": "igcse_phy_i2",
+    "itemId": "igcse_phy_i2",
+    "courseId": "igcse_phy",
+    "courseName": "IGCSE物理",
+    "question": "A 2 kg mass accelerates at 3 m/s², net force =",
+    "options": [
+      "6 N",
+      "2/3 N",
+      "5 N",
+      "1.5 N"
+    ],
+    "answerIndex": 0,
+    "explanation": "F=ma=2×3=6 N。",
+    "version": "a7523730"
+  },
+  {
+    "_id": "igcse_phy_i3",
+    "itemId": "igcse_phy_i3",
+    "courseId": "igcse_phy",
+    "courseName": "IGCSE物理",
+    "question": "Mass 1 kg dropped from 5 m, KE just before ground ≈ (g=10)",
+    "options": [
+      "50 J",
+      "5 J",
+      "10 J",
+      "500 J"
+    ],
+    "answerIndex": 0,
+    "explanation": "PE=mgh=1×10×5=50J，全转 KE。",
+    "version": "ead8be9f"
+  },
+  {
+    "_id": "igcse_phy_i4",
+    "itemId": "igcse_phy_i4",
+    "courseId": "igcse_phy",
+    "courseName": "IGCSE物理",
+    "question": "Resistor 10Ω with 5V across, current =",
+    "options": [
+      "0.5 A",
+      "2 A",
+      "50 A",
+      "0.2 A"
+    ],
+    "answerIndex": 0,
+    "explanation": "I=V/R=5/10=0.5A。",
+    "version": "f94f32b1"
+  },
+  {
+    "_id": "alevel_math_i1",
+    "itemId": "alevel_math_i1",
+    "courseId": "alevel_math",
+    "courseName": "A-Level数学",
+    "question": "d/dx(x²·sinx)=?",
+    "options": [
+      "2x·sinx + x²cosx",
+      "2x·cosx",
+      "x²sinx",
+      "2xsinx - x²cosx"
+    ],
+    "answerIndex": 0,
+    "explanation": "乘积法则：(x²)'sinx + x²(sinx)' = 2x sinx + x²cosx。",
+    "version": "1d9e177c"
+  },
+  {
+    "_id": "alevel_math_i2",
+    "itemId": "alevel_math_i2",
+    "courseId": "alevel_math",
+    "courseName": "A-Level数学",
+    "question": "∫₀¹ x² dx =",
+    "options": [
+      "1/3",
+      "1",
+      "1/2",
+      "2/3"
+    ],
+    "answerIndex": 0,
+    "explanation": "[x³/3]₀¹=1/3。",
+    "version": "0b1e8e89"
+  },
+  {
+    "_id": "alevel_math_i3",
+    "itemId": "alevel_math_i3",
+    "courseId": "alevel_math",
+    "courseName": "A-Level数学",
+    "question": "Solve dy/dx = 2y, y(0)=1 gives:",
+    "options": [
+      "y=e^{2x}",
+      "y=2e^x",
+      "y=x²+1",
+      "y=e^x"
+    ],
+    "answerIndex": 0,
+    "explanation": "分离变量得 ln|y|=2x+C → y=Ce^{2x}，代入 y(0)=1→C=1。",
+    "version": "52b1ecf4"
+  },
+  {
+    "_id": "alevel_math_i4",
+    "itemId": "alevel_math_i4",
+    "courseId": "alevel_math",
+    "courseName": "A-Level数学",
+    "question": "Modulus of 3+4i =",
+    "options": [
+      "5",
+      "7",
+      "12",
+      "25"
+    ],
+    "answerIndex": 0,
+    "explanation": "√(3²+4²)=√25=5。",
+    "version": "d74ea286"
+  },
+  {
+    "_id": "alevel_phy_i1",
+    "itemId": "alevel_phy_i1",
+    "courseId": "alevel_phy",
+    "courseName": "A-Level物理",
+    "question": "Torque from force 10N at perpendicular distance 2m =",
+    "options": [
+      "20 N·m",
+      "5 N·m",
+      "12 N·m",
+      "2 N·m"
+    ],
+    "answerIndex": 0,
+    "explanation": "τ=Fr=10×2=20（垂直 θ=90°）。",
+    "version": "9e9cc760"
+  },
+  {
+    "_id": "alevel_phy_i2",
+    "itemId": "alevel_phy_i2",
+    "courseId": "alevel_phy",
+    "courseName": "A-Level物理",
+    "question": "Induced emf depends on rate of change of:",
+    "options": [
+      "Magnetic flux",
+      "Current",
+      "Charge",
+      "Resistance"
+    ],
+    "answerIndex": 0,
+    "explanation": "法拉第定律：电动势正比于磁通变化率。",
+    "version": "723164e1"
+  },
+  {
+    "_id": "alevel_phy_i3",
+    "itemId": "alevel_phy_i3",
+    "courseId": "alevel_phy",
+    "courseName": "A-Level物理",
+    "question": "Photon energy formula:",
+    "options": [
+      "E=hf",
+      "E=mc²",
+      "E=½mv²",
+      "E=IR"
+    ],
+    "answerIndex": 0,
+    "explanation": "光子能量 E=hf（普朗克关系）。",
+    "version": "71063643"
+  },
+  {
+    "_id": "alevel_phy_i4",
+    "itemId": "alevel_phy_i4",
+    "courseId": "alevel_phy",
+    "courseName": "A-Level物理",
+    "question": "In β⁻ decay, a neutron becomes:",
+    "options": [
+      "proton + electron + antineutrino",
+      "proton only",
+      "2 protons",
+      "alpha particle"
+    ],
+    "answerIndex": 0,
+    "explanation": "n→p+e⁻+反中微子。",
+    "version": "f1f8d897"
+  },
+  {
+    "_id": "ib_math_i1",
+    "itemId": "ib_math_i1",
+    "courseId": "ib_math",
+    "courseName": "IB数学",
+    "question": "Two vectors perpendicular ⟹ dot product =",
+    "options": [
+      "0",
+      "1",
+      "|a||b|",
+      "-1"
+    ],
+    "answerIndex": 0,
+    "explanation": "垂直 ⟹ cos90°=0 ⟹ 点积为 0。",
+    "version": "f6171dcc"
+  },
+  {
+    "_id": "ib_math_i2",
+    "itemId": "ib_math_i2",
+    "courseId": "ib_math",
+    "courseName": "IB数学",
+    "question": "det[[2,0],[0,3]]=",
+    "options": [
+      "6",
+      "5",
+      "0",
+      "-6"
+    ],
+    "answerIndex": 0,
+    "explanation": "ad-bc=2×3-0=6。",
+    "version": "de3a7c11"
+  },
+  {
+    "_id": "ib_math_i3",
+    "itemId": "ib_math_i3",
+    "courseId": "ib_math",
+    "courseName": "IB数学",
+    "question": "Parametric x=t²,y=t³ → dy/dx =",
+    "options": [
+      "3t/2",
+      "3t²",
+      "2/(3t)",
+      "t"
+    ],
+    "answerIndex": 0,
+    "explanation": "dy/dt=3t², dx/dt=2t → (3t²)/(2t)=3t/2。",
+    "version": "c21f2bc9"
+  },
+  {
+    "_id": "ib_math_i4",
+    "itemId": "ib_math_i4",
+    "courseId": "ib_math",
+    "courseName": "IB数学",
+    "question": "X~B(10,0.3), mean =",
+    "options": [
+      "3",
+      "7",
+      "2.1",
+      "0.3"
+    ],
+    "answerIndex": 0,
+    "explanation": "均值=np=10×0.3=3。",
+    "version": "164e29f5"
+  },
+  {
+    "_id": "ib_phy_i1",
+    "itemId": "ib_phy_i1",
+    "courseId": "ib_phy",
+    "courseName": "IB物理",
+    "question": "Measure 5.2±0.1 cm, relative uncertainty ≈",
+    "options": [
+      "1.9%",
+      "0.1%",
+      "5%",
+      "10%"
+    ],
+    "answerIndex": 0,
+    "explanation": "0.1/5.2≈0.019=1.9%。",
+    "version": "94b8415c"
+  },
+  {
+    "_id": "ib_phy_i2",
+    "itemId": "ib_phy_i2",
+    "courseId": "ib_phy",
+    "courseName": "IB物理",
+    "question": "Ideal gas isothermal expansion: ΔU =",
+    "options": [
+      "0",
+      "positive",
+      "negative",
+      "PV"
+    ],
+    "answerIndex": 0,
+    "explanation": "理想气体内能只与温度有关，等温 ΔT=0 ⟹ ΔU=0。",
+    "version": "173dc9f3"
+  },
+  {
+    "_id": "ib_phy_i3",
+    "itemId": "ib_phy_i3",
+    "courseId": "ib_phy",
+    "courseName": "IB物理",
+    "question": "Destructive interference path difference =",
+    "options": [
+      "(n+½)λ",
+      "nλ",
+      "2nλ",
+      "λ/4 only"
+    ],
+    "answerIndex": 0,
+    "explanation": "半波长奇数倍导致相消。",
+    "version": "9bd7b42d"
+  },
+  {
+    "_id": "ib_phy_i4",
+    "itemId": "ib_phy_i4",
+    "courseId": "ib_phy",
+    "courseName": "IB物理",
+    "question": "Lorentz factor γ for v→c approaches",
+    "options": [
+      "∞",
+      "1",
+      "0",
+      "c"
+    ],
+    "answerIndex": 0,
+    "explanation": "分母趋零，γ→∞。",
+    "version": "d3fcbfbe"
+  },
+  {
+    "_id": "toefl_b1_i1",
+    "itemId": "toefl_b1_i1",
+    "courseId": "toefl_b1",
+    "courseName": "托福基础",
+    "question": "教授说 \"Today we'll look at how coral reefs form\"，这最可能对应什么题型？",
+    "options": [
+      "细节题",
+      "主旨题",
+      "态度题",
+      "推断题"
+    ],
+    "answerIndex": 1,
+    "explanation": "开场句直接点明讲座主题，是典型的组织主旨题信号。",
+    "version": "158e08bf"
+  },
+  {
+    "_id": "toefl_b1_i2",
+    "itemId": "toefl_b1_i2",
+    "courseId": "toefl_b1",
+    "courseName": "托福基础",
+    "question": "听到 \"however, recent studies show the opposite\"，答案最可能在哪？",
+    "options": [
+      "however 之前",
+      "however 之后",
+      "开头第一句",
+      "教授举例时"
+    ],
+    "answerIndex": 1,
+    "explanation": "转折词之后才是出题人想强调的新观点，是考点集中区。",
+    "version": "983af861"
+  },
+  {
+    "_id": "toefl_b1_i3",
+    "itemId": "toefl_b1_i3",
+    "courseId": "toefl_b1",
+    "courseName": "托福基础",
+    "question": "做事实信息题第一步应该做什么？",
+    "options": [
+      "通读全文",
+      "把选项代入验证",
+      "从题干提取关键词回原文定位",
+      "猜测作者态度"
+    ],
+    "answerIndex": 2,
+    "explanation": "先定位再比对，是这类题唯一稳定高效的做法。",
+    "version": "379cf6e9"
+  },
+  {
+    "_id": "toefl_b1_i4",
+    "itemId": "toefl_b1_i4",
+    "courseId": "toefl_b1",
+    "courseName": "托福基础",
+    "question": "口语 Task 1 准备时间是多少？",
+    "options": [
+      "15 秒",
+      "30 秒",
+      "45 秒",
+      "60 秒"
+    ],
+    "answerIndex": 0,
+    "explanation": "Task 1 准备 15 秒，答题 45 秒，时间管理很关键。",
+    "version": "1c3c9328"
+  },
+  {
+    "_id": "ielts_listening_i2",
+    "itemId": "ielts_listening_i2",
+    "courseId": "ielts_listening",
+    "courseName": "雅思听力",
+    "question": "填空题答案 \"books\"，只写了 \"book\" 会怎样？",
+    "options": [
+      "不扣分",
+      "扣分，单复数算错",
+      "由考官决定",
+      "算半分"
+    ],
+    "answerIndex": 1,
+    "explanation": "雅思拼写必须准确，单复数错误就是答案错误。",
+    "version": "67f37321"
+  },
+  {
+    "_id": "ielts_listening_i3",
+    "itemId": "ielts_listening_i3",
+    "courseId": "ielts_listening",
+    "courseName": "雅思听力",
+    "question": "听到 \"the bank is opposite the library\"，银行在图书馆的哪里？",
+    "options": [
+      "旁边",
+      "里面",
+      "对面",
+      "尽头"
+    ],
+    "answerIndex": 2,
+    "explanation": "opposite 就是正对面，是地图题最高频方位词之一。",
+    "version": "2ab8bda7"
+  },
+  {
+    "_id": "ielts_listening_i4",
+    "itemId": "ielts_listening_i4",
+    "courseId": "ielts_listening",
+    "courseName": "雅思听力",
+    "question": "多选题答案的出现规律更接近？",
+    "options": [
+      "集中连续出现",
+      "分散在整段录音中",
+      "只在开头",
+      "只在结尾"
+    ],
+    "answerIndex": 1,
+    "explanation": "多选答案分散是雅思听力的常见设计，需边听边标记。",
+    "version": "33af7884"
+  },
+  {
+    "_id": "ielts_speaking_i1",
+    "itemId": "ielts_speaking_i1",
+    "courseId": "ielts_speaking",
+    "courseName": "雅思口语",
+    "question": "Part 1 回答 \"Do you like music?\" 最合理的长度是？",
+    "options": [
+      "只说 Yes, I do",
+      "观点+原因+一句补充",
+      "讲一个完整故事",
+      "背诵一段模板"
+    ],
+    "answerIndex": 1,
+    "explanation": "Part 1 不是展示长篇大论，而是自然交谈，3 句左右最合适。",
+    "version": "99c75419"
+  },
+  {
+    "_id": "ielts_speaking_i2",
+    "itemId": "ielts_speaking_i2",
+    "courseId": "ielts_speaking",
+    "courseName": "雅思口语",
+    "question": "Part 2 的 1 分钟准备时间最应该做什么？",
+    "options": [
+      "写完整回答并背诵",
+      "只写关键词和要点",
+      "反复读卡片题目",
+      "什么都不写直接开口"
+    ],
+    "answerIndex": 1,
+    "explanation": "写关键词能帮你组织逻辑，又不会因为盯着稿子而卡壳。",
+    "version": "1c1cf05c"
+  },
+  {
+    "_id": "ielts_speaking_i3",
+    "itemId": "ielts_speaking_i3",
+    "courseId": "ielts_speaking",
+    "courseName": "雅思口语",
+    "question": "Part 3 被打断追问时，最不推荐的做法是？",
+    "options": [
+      "承认问题有难度",
+      "坚持原观点并解释",
+      "马上改口说自己没想过",
+      "用连接词争取时间"
+    ],
+    "answerIndex": 2,
+    "explanation": "改口太快显得立场不坚定，应先大方回应再加说明。",
+    "version": "b41d8463"
+  },
+  {
+    "_id": "ielts_speaking_i4",
+    "itemId": "ielts_speaking_i4",
+    "courseId": "ielts_speaking",
+    "courseName": "雅思口语",
+    "question": "说到一半找不到合适的词时，下列哪种处理最加分？",
+    "options": [
+      "停下来沉默想 10 秒",
+      "用解释性语句绕过去",
+      "直接跳回开头重新说",
+      "不断重复刚才的话"
+    ],
+    "answerIndex": 1,
+    "explanation": "自然绕过显示了交流能力，长时间沉默会严重扣流利度分。",
+    "version": "66f69158"
+  },
+  {
+    "_id": "ielts_reading_i1",
+    "itemId": "ielts_reading_i1",
+    "courseId": "ielts_reading",
+    "courseName": "雅思阅读",
+    "question": "做段落标题题时，下一步最推荐？",
+    "options": [
+      "先精读全部选项",
+      "读每段首末句",
+      "从文章最后一段倒着读",
+      "先做其他题型"
+    ],
+    "answerIndex": 1,
+    "explanation": "首末句通常包含主题句，能快速匹配标题。",
+    "version": "aed21801"
+  },
+  {
+    "_id": "ielts_reading_i2",
+    "itemId": "ielts_reading_i2",
+    "courseId": "ielts_reading",
+    "courseName": "雅思阅读",
+    "question": "原文只说 \"The museum charges a fee\"，题目说 \"The museum is free\"。判断？",
+    "options": [
+      "True",
+      "False",
+      "Not Given",
+      "无法判断"
+    ],
+    "answerIndex": 1,
+    "explanation": "charge a fee 与 free 明确相反，是 False 而非 Not Given。",
+    "version": "8621a7d2"
+  },
+  {
+    "_id": "ielts_reading_i3",
+    "itemId": "ielts_reading_i3",
+    "courseId": "ielts_reading",
+    "courseName": "雅思阅读",
+    "question": "原文 \"children often find it hard to concentrate\"，题干 \"Young pupils may struggle with ______\"，空格应填？",
+    "options": [
+      "concentration",
+      "children",
+      "hard",
+      "struggle"
+    ],
+    "answerIndex": 0,
+    "explanation": "find it hard to concentrate = struggle with concentration，名词化替换。",
+    "version": "570802e0"
+  },
+  {
+    "_id": "ielts_reading_i4",
+    "itemId": "ielts_reading_i4",
+    "courseId": "ielts_reading",
+    "courseName": "雅思阅读",
+    "question": "看到 \"NB You may use any heading more than once\"，正确策略是？",
+    "options": [
+      "每个标题只能用一次",
+      "有标题会重复使用",
+      "选项比段落多",
+      "heading 按文章顺序排列"
+    ],
+    "answerIndex": 1,
+    "explanation": "NB 明确提示可重复，这是出题人故意设置的陷阱。",
+    "version": "197c9201"
+  },
+  {
+    "_id": "ielts_writing_i1",
+    "itemId": "ielts_writing_i1",
+    "courseId": "ielts_writing",
+    "courseName": "雅思写作",
+    "question": "Task 1 图表作文里，哪句话是得分的？",
+    "options": [
+      "The number increased significantly.",
+      "The increase is because people earn more.",
+      "I think the trend is good.",
+      "This chart is very important."
+    ],
+    "answerIndex": 0,
+    "explanation": "客观描述数据变化最符合 Task 1 要求，主观原因或评论不得分。",
+    "version": "19955439"
+  },
+  {
+    "_id": "ielts_writing_i2",
+    "itemId": "ielts_writing_i2",
+    "courseId": "ielts_writing",
+    "courseName": "雅思写作",
+    "question": "Task 2 大作文最稳妥的段落结构是？",
+    "options": [
+      "2 段：观点+例子",
+      "3 段：开头+一段论述+结尾",
+      "4 段：开头+两主体+结尾",
+      "5 段以上自由发挥"
+    ],
+    "answerIndex": 2,
+    "explanation": "4 段式逻辑完整、结构清晰，是高分模板。",
+    "version": "eddbd05e"
+  },
+  {
+    "_id": "ielts_writing_i3",
+    "itemId": "ielts_writing_i3",
+    "courseId": "ielts_writing",
+    "courseName": "雅思写作",
+    "question": "下列哪种衔接手法最自然？",
+    "options": [
+      "Every sentence starts with \"Moreover\"",
+      "Use \"it\" and \"this\" to refer back",
+      "Copy the same word in every sentence",
+      "Avoid all linking words"
+    ],
+    "answerIndex": 1,
+    "explanation": "适当使用指代词和连接词，避免机械重复。",
+    "version": "787048f9"
+  },
+  {
+    "_id": "ielts_writing_i4",
+    "itemId": "ielts_writing_i4",
+    "courseId": "ielts_writing",
+    "courseName": "雅思写作",
+    "question": "下面哪句语法最正确且能体现多样性？",
+    "options": [
+      "He go to school yesterday.",
+      "If he had studied harder, he would have passed.",
+      "I very like it because it is very good thing.",
+      "There are many reasons, for example, traffic."
+    ],
+    "answerIndex": 1,
+    "explanation": "条件句表达准确，展示了虚拟语气的使用能力。",
+    "version": "2e2a729d"
+  },
+  {
+    "_id": "ap_calc_i5",
+    "itemId": "ap_calc_i5",
+    "courseId": "ap_calc",
+    "courseName": "AP微积分",
+    "question": "For x²+y²=25, dy/dx equals:",
+    "options": [
+      "x/y",
+      "-x/y",
+      "y/x",
+      "-y/x"
+    ],
+    "answerIndex": 1,
+    "explanation": "Differentiating gives 2x+2y·dy/dx=0, so dy/dx=-x/y.",
+    "version": "06b55f67"
+  },
+  {
+    "_id": "ap_calc_i6",
+    "itemId": "ap_calc_i6",
+    "courseId": "ap_calc",
+    "courseName": "AP微积分",
+    "question": "For A=πr² with r=3 and dr/dt=2, dA/dt is:",
+    "options": [
+      "6π",
+      "12π",
+      "18π",
+      "4π"
+    ],
+    "answerIndex": 1,
+    "explanation": "dA/dt=2πr·dr/dt=2π(3)(2)=12π.",
+    "version": "e8a67059"
+  },
+  {
+    "_id": "ap_calc_i7",
+    "itemId": "ap_calc_i7",
+    "courseId": "ap_calc",
+    "courseName": "AP微积分",
+    "question": "If f'(c)=0 and f''(c)>0, the point c is a:",
+    "options": [
+      "local maximum",
+      "local minimum",
+      "inflection point",
+      "discontinuity"
+    ],
+    "answerIndex": 1,
+    "explanation": "f''>0 means the function is concave up, so c is a local minimum.",
+    "version": "5fe91af5"
+  },
+  {
+    "_id": "ap_calc_i8",
+    "itemId": "ap_calc_i8",
+    "courseId": "ap_calc",
+    "courseName": "AP微积分",
+    "question": "lim(x→0) sin x/x equals:",
+    "options": [
+      "0",
+      "1",
+      "∞",
+      "does not exist"
+    ],
+    "answerIndex": 1,
+    "explanation": "By L'Hôpital's rule, the limit is lim cos x/1 = 1.",
+    "version": "efe5d576"
+  },
+  {
+    "_id": "ap_stats_i5",
+    "itemId": "ap_stats_i5",
+    "courseId": "ap_stats",
+    "courseName": "AP统计",
+    "question": "Rejecting a true null hypothesis is a:",
+    "options": [
+      "Type I error",
+      "Type II error",
+      "correct decision",
+      "sampling error"
+    ],
+    "answerIndex": 0,
+    "explanation": "Type I error is rejecting H₀ when it is actually true.",
+    "version": "5b110e4e"
+  },
+  {
+    "_id": "ap_stats_i6",
+    "itemId": "ap_stats_i6",
+    "courseId": "ap_stats",
+    "courseName": "AP统计",
+    "question": "Comparing the same subjects before and after a treatment uses a:",
+    "options": [
+      "two-sample t-test",
+      "paired t-test",
+      "z-test for proportions",
+      "chi-square test"
+    ],
+    "answerIndex": 1,
+    "explanation": "Paired data (same subjects, two measurements) requires a paired t-test.",
+    "version": "35903134"
+  },
+  {
+    "_id": "ap_stats_i7",
+    "itemId": "ap_stats_i7",
+    "courseId": "ap_stats",
+    "courseName": "AP统计",
+    "question": "Chi-square tests are used for:",
+    "options": [
+      "means",
+      "proportions",
+      "categorical data",
+      "paired data"
+    ],
+    "answerIndex": 2,
+    "explanation": "Chi-square tests analyze categorical (count) data.",
+    "version": "548f5d6b"
+  },
+  {
+    "_id": "ap_stats_i8",
+    "itemId": "ap_stats_i8",
+    "courseId": "ap_stats",
+    "courseName": "AP统计",
+    "question": "In regression inference, the usual null hypothesis for the slope is:",
+    "options": [
+      "β=1",
+      "β=0",
+      "β>0",
+      "β<0"
+    ],
+    "answerIndex": 1,
+    "explanation": "The default null hypothesis is β=0, meaning no linear relationship.",
+    "version": "607b2122"
+  },
+  {
+    "_id": "sat_math_i5",
+    "itemId": "sat_math_i5",
+    "courseId": "sat_math",
+    "courseName": "SAT数学",
+    "question": "√x expressed as an exponent is:",
+    "options": [
+      "x²",
+      "x^(1/2)",
+      "x^(1/3)",
+      "2x"
+    ],
+    "answerIndex": 1,
+    "explanation": "The square root is the 1/2 power: √x=x^(1/2).",
+    "version": "d70a3981"
+  },
+  {
+    "_id": "sat_math_i6",
+    "itemId": "sat_math_i6",
+    "courseId": "sat_math",
+    "courseName": "SAT数学",
+    "question": "For (x-2)²+(y+3)²=16, the radius is:",
+    "options": [
+      "2",
+      "3",
+      "4",
+      "16"
+    ],
+    "answerIndex": 2,
+    "explanation": "r²=16, so r=4.",
+    "version": "319ed3e7"
+  },
+  {
+    "_id": "sat_math_i7",
+    "itemId": "sat_math_i7",
+    "courseId": "sat_math",
+    "courseName": "SAT数学",
+    "question": "A 20% discount on a $50 item gives a price of:",
+    "options": [
+      "$30",
+      "$40",
+      "$45",
+      "$48"
+    ],
+    "answerIndex": 1,
+    "explanation": "50×(1-0.20)=50×0.8=$40.",
+    "version": "465a8ca1"
+  },
+  {
+    "_id": "sat_math_i8",
+    "itemId": "sat_math_i8",
+    "courseId": "sat_math",
+    "courseName": "SAT数学",
+    "question": "(3+2i)(3-2i) equals:",
+    "options": [
+      "9",
+      "5",
+      "13",
+      "9-4i"
+    ],
+    "answerIndex": 2,
+    "explanation": "(3+2i)(3-2i)=9-4i²=9+4=13.",
+    "version": "9942f606"
+  },
+  {
+    "_id": "sat_write_i5",
+    "itemId": "sat_write_i5",
+    "courseId": "sat_write",
+    "courseName": "SAT文法",
+    "question": "Which is correct?",
+    "options": [
+      "to run, swimming, and biking",
+      "running, swimming, and biking",
+      "run, swimming, and to bike",
+      "running, to swim, and bike"
+    ],
+    "answerIndex": 1,
+    "explanation": "All three items must be gerunds: running, swimming, and biking.",
+    "version": "3b602975"
+  },
+  {
+    "_id": "sat_write_i6",
+    "itemId": "sat_write_i6",
+    "courseId": "sat_write",
+    "courseName": "SAT文法",
+    "question": "Which sentence has clear pronoun reference?",
+    "options": [
+      "When Tom met Jerry, he laughed.",
+      "Tom and Jerry met, and Tom laughed.",
+      "They met, and he laughed.",
+      "It was funny when he laughed."
+    ],
+    "answerIndex": 1,
+    "explanation": "Option 2 names Tom explicitly, removing the ambiguity.",
+    "version": "23e0fc19"
+  },
+  {
+    "_id": "sat_write_i7",
+    "itemId": "sat_write_i7",
+    "courseId": "sat_write",
+    "courseName": "SAT文法",
+    "question": "Which fixes the dangling modifier?",
+    "options": [
+      "Walking down the street, the trees were beautiful.",
+      "Walking down the street, I saw beautiful trees.",
+      "Walking down the street, beautiful trees were seen.",
+      "The trees, walking down the street, were beautiful."
+    ],
+    "answerIndex": 1,
+    "explanation": "Option 2 makes \"I\" the subject who is walking.",
+    "version": "6c48d75c"
+  },
+  {
+    "_id": "sat_write_i8",
+    "itemId": "sat_write_i8",
+    "courseId": "sat_write",
+    "courseName": "SAT文法",
+    "question": "Which is the most concise?",
+    "options": [
+      "Due to the fact that it rained, we stayed.",
+      "Because it rained, we stayed.",
+      "The reason we stayed is because it rained.",
+      "It rained, and due to this fact we stayed."
+    ],
+    "answerIndex": 1,
+    "explanation": "\"Because it rained, we stayed\" is the shortest and clearest.",
+    "version": "ddeab451"
+  },
+  {
+    "_id": "ielts_listening_i5",
+    "itemId": "ielts_listening_i5",
+    "courseId": "ielts_listening",
+    "courseName": "雅思听力",
+    "question": "配对题录音中的答案通常以什么形式出现？",
+    "options": [
+      "与选项原词相同",
+      "选项的同义改写",
+      "更长的句子",
+      "与题干重复"
+    ],
+    "answerIndex": 1,
+    "explanation": "配对题答案常以同义改写出现，需预判改写形式。",
+    "version": "fbe76520"
+  },
+  {
+    "_id": "ielts_listening_i6",
+    "itemId": "ielts_listening_i6",
+    "courseId": "ielts_listening",
+    "courseName": "雅思听力",
+    "question": "13 和 30 易混，主要靠什么区分？",
+    "options": [
+      "元音长短",
+      "重音位置",
+      "语境",
+      "以上都是"
+    ],
+    "answerIndex": 3,
+    "explanation": "thirteen 重音在后、30 thirty 重音在前，结合语境综合判断。",
+    "version": "9f040d01"
+  },
+  {
+    "_id": "ielts_listening_i7",
+    "itemId": "ielts_listening_i7",
+    "courseId": "ielts_listening",
+    "courseName": "雅思听力",
+    "question": "\"I'd love to go, but I'm busy\" 中说话人的态度是？",
+    "options": [
+      "想去",
+      "不想去",
+      "不确定",
+      "无所谓"
+    ],
+    "answerIndex": 1,
+    "explanation": "but 之后才是真实态度，实际是不去。",
+    "version": "40c63fdd"
+  },
+  {
+    "_id": "ielts_listening_i8",
+    "itemId": "ielts_listening_i8",
+    "courseId": "ielts_listening",
+    "courseName": "雅思听力",
+    "question": "\"a ___ of water\" 的空格应填什么词性？",
+    "options": [
+      "动词",
+      "名词",
+      "形容词",
+      "副词"
+    ],
+    "answerIndex": 1,
+    "explanation": "\"a ... of\" 结构中间需要名词，如 a glass of water。",
+    "version": "86480f5c"
+  },
+  {
+    "_id": "ielts_speaking_i5",
+    "itemId": "ielts_speaking_i5",
+    "courseId": "ielts_speaking",
+    "courseName": "雅思口语",
+    "question": "AREA 法中 E 代表什么？",
+    "options": [
+      "Explanation",
+      "Example",
+      "English",
+      "Emotion"
+    ],
+    "answerIndex": 1,
+    "explanation": "AREA = Answer, Reason, Example, Alternative。",
+    "version": "bc635047"
+  },
+  {
+    "_id": "ielts_speaking_i6",
+    "itemId": "ielts_speaking_i6",
+    "courseId": "ielts_speaking",
+    "courseName": "雅思口语",
+    "question": "Part 2 要求的时长是？",
+    "options": [
+      "1 分钟",
+      "1-2 分钟",
+      "2 分钟",
+      "3 分钟"
+    ],
+    "answerIndex": 2,
+    "explanation": "Part 2 需要连续说 1-2 分钟，目标应说满 2 分钟。",
+    "version": "54b8973f"
+  },
+  {
+    "_id": "ielts_speaking_i7",
+    "itemId": "ielts_speaking_i7",
+    "courseId": "ielts_speaking",
+    "courseName": "雅思口语",
+    "question": "遇到难题时最好的做法是？",
+    "options": [
+      "直接说不会",
+      "沉默思考",
+      "用过渡表达争取时间",
+      "要求换题"
+    ],
+    "answerIndex": 2,
+    "explanation": "用自然过渡表达争取思考时间，既得体又能组织语言。",
+    "version": "8a03374e"
+  },
+  {
+    "_id": "ielts_speaking_i8",
+    "itemId": "ielts_speaking_i8",
+    "courseId": "ielts_speaking",
+    "courseName": "雅思口语",
+    "question": "发音评分主要看？",
+    "options": [
+      "是否有英音",
+      "清晰度和可理解度",
+      "语速快",
+      "词汇量"
+    ],
+    "answerIndex": 1,
+    "explanation": "评分关注清晰可懂，口音不影响。",
+    "version": "2016722c"
+  },
+  {
+    "_id": "ielts_reading_i5",
+    "itemId": "ielts_reading_i5",
+    "courseId": "ielts_reading",
+    "courseName": "雅思阅读",
+    "question": "最适合做定位词的是？",
+    "options": [
+      "动词",
+      "形容词",
+      "专有名词和数字",
+      "连接词"
+    ],
+    "answerIndex": 2,
+    "explanation": "专有名词和数字难被改写，定位最稳。",
+    "version": "6d1b091e"
+  },
+  {
+    "_id": "ielts_reading_i6",
+    "itemId": "ielts_reading_i6",
+    "courseId": "ielts_reading",
+    "courseName": "雅思阅读",
+    "question": "主旨题的正确答案通常？",
+    "options": [
+      "是文中某个细节",
+      "能概括全段",
+      "最长的选项",
+      "包含数字的选项"
+    ],
+    "answerIndex": 1,
+    "explanation": "主旨题答案要能统领全段，而非某一句细节。",
+    "version": "62e8c905"
+  },
+  {
+    "_id": "ielts_reading_i7",
+    "itemId": "ielts_reading_i7",
+    "courseId": "ielts_reading",
+    "courseName": "雅思阅读",
+    "question": "信息匹配题的答案是？",
+    "options": [
+      "按文章顺序",
+      "乱序出现",
+      "只在首段",
+      "只在末段"
+    ],
+    "answerIndex": 1,
+    "explanation": "这类题答案乱序，需逐题定位。",
+    "version": "8179baad"
+  },
+  {
+    "_id": "ielts_reading_i8",
+    "itemId": "ielts_reading_i8",
+    "courseId": "ielts_reading",
+    "courseName": "雅思阅读",
+    "question": "雅思阅读每篇建议用时？",
+    "options": [
+      "10 分钟",
+      "15 分钟",
+      "20 分钟",
+      "25 分钟"
+    ],
+    "answerIndex": 2,
+    "explanation": "三篇共 60 分钟，平均每篇 20 分钟。",
+    "version": "6e0352f7"
+  },
+  {
+    "_id": "ielts_writing_i5",
+    "itemId": "ielts_writing_i5",
+    "courseId": "ielts_writing",
+    "courseName": "雅思写作",
+    "question": "Task 1 应该？",
+    "options": [
+      "罗列所有数据",
+      "选 2-3 个显著特征",
+      "写个人观点",
+      "只写标题"
+    ],
+    "answerIndex": 1,
+    "explanation": "选最显著特征概述，而非穷举数据。",
+    "version": "50fd4e98"
+  },
+  {
+    "_id": "ielts_writing_i6",
+    "itemId": "ielts_writing_i6",
+    "courseId": "ielts_writing",
+    "courseName": "雅思写作",
+    "question": "PEEL 中 L 代表？",
+    "options": [
+      "Language",
+      "Link",
+      "Length",
+      "Logic"
+    ],
+    "answerIndex": 1,
+    "explanation": "PEEL = Point, Explanation, Example, Link。",
+    "version": "53fda9d4"
+  },
+  {
+    "_id": "ielts_writing_i7",
+    "itemId": "ielts_writing_i7",
+    "courseId": "ielts_writing",
+    "courseName": "雅思写作",
+    "question": "\"Discuss both views and give your opinion\" 要求？",
+    "options": [
+      "只写一方",
+      "讨论双方并给立场",
+      "只写观点",
+      "只写例子"
+    ],
+    "answerIndex": 1,
+    "explanation": "需讨论双方观点并明确给出自己的立场。",
+    "version": "ac6c7746"
+  },
+  {
+    "_id": "ielts_writing_i8",
+    "itemId": "ielts_writing_i8",
+    "courseId": "ielts_writing",
+    "courseName": "雅思写作",
+    "question": "提升词汇分的正确做法是？",
+    "options": [
+      "堆砌生僻词",
+      "准确使用同义替换",
+      "重复同一个词",
+      "全部用短词"
+    ],
+    "answerIndex": 1,
+    "explanation": "准确使用同义替换，而非堆砌或重复。",
+    "version": "94bfcd0d"
+  },
+  {
+    "_id": "toefl_b1_i5",
+    "itemId": "toefl_b1_i5",
+    "courseId": "toefl_b1",
+    "courseName": "托福基础",
+    "question": "细节题的最佳应对是？",
+    "options": [
+      "凭记忆作答",
+      "回笔记定位",
+      "选最长选项",
+      "跳过"
+    ],
+    "answerIndex": 1,
+    "explanation": "用题干关键词回笔记定位，比凭记忆可靠。",
+    "version": "40774b4f"
+  },
+  {
+    "_id": "toefl_b1_i6",
+    "itemId": "toefl_b1_i6",
+    "courseId": "toefl_b1",
+    "courseName": "托福基础",
+    "question": "词汇题的正确做法是？",
+    "options": [
+      "直接背词义",
+      "看上下文推断",
+      "选最熟悉的词",
+      "跳过"
+    ],
+    "answerIndex": 1,
+    "explanation": "词汇题考语境义，需结合上下文推断。",
+    "version": "85d02882"
+  },
+  {
+    "_id": "toefl_b1_i7",
+    "itemId": "toefl_b1_i7",
+    "courseId": "toefl_b1",
+    "courseName": "托福基础",
+    "question": "Task 2 回答应包含？",
+    "options": [
+      "只概括通知",
+      "通知+态度+理由",
+      "只讲个人观点",
+      "只复述对话"
+    ],
+    "answerIndex": 1,
+    "explanation": "需概括通知、说明态度并给理由。",
+    "version": "c68575d9"
+  },
+  {
+    "_id": "toefl_b1_i8",
+    "itemId": "toefl_b1_i8",
+    "courseId": "toefl_b1",
+    "courseName": "托福基础",
+    "question": "阅读主旨常出现在？",
+    "options": [
+      "末段",
+      "首段 thesis statement",
+      "中间段",
+      "标题"
+    ],
+    "answerIndex": 1,
+    "explanation": "主旨常在首段，尤其是 thesis statement。",
+    "version": "2e39fef8"
+  },
+  {
+    "_id": "toefl_b2_i5",
+    "itemId": "toefl_b2_i5",
+    "courseId": "toefl_b2",
+    "courseName": "托福进阶",
+    "question": "重听题重点听什么？",
+    "options": [
+      "字面意思",
+      "语气和意图",
+      "语法",
+      "词汇"
+    ],
+    "answerIndex": 1,
+    "explanation": "重听题考意图态度，语气是关键线索。",
+    "version": "e76b2cb8"
+  },
+  {
+    "_id": "toefl_b2_i6",
+    "itemId": "toefl_b2_i6",
+    "courseId": "toefl_b2",
+    "courseName": "托福进阶",
+    "question": "推断题的原则是？",
+    "options": [
+      "大胆联想",
+      "基于原文往前一小步",
+      "选最极端的",
+      "选文中原句"
+    ],
+    "answerIndex": 1,
+    "explanation": "推断要基于原文做合理的小步推导。",
+    "version": "229d41d1"
+  },
+  {
+    "_id": "toefl_b2_i7",
+    "itemId": "toefl_b2_i7",
+    "courseId": "toefl_b2",
+    "courseName": "托福进阶",
+    "question": "\"为什么提到某个例子\"这类题考的是？",
+    "options": [
+      "例子的细节",
+      "例子的功能",
+      "例子的词义",
+      "例子的长度"
+    ],
+    "answerIndex": 1,
+    "explanation": "考例子在文中的作用，而非例子本身细节。",
+    "version": "25baa902"
+  },
+  {
+    "_id": "toefl_b2_i8",
+    "itemId": "toefl_b2_i8",
+    "courseId": "toefl_b2",
+    "courseName": "托福进阶",
+    "question": "Task 4 复述的重点是？",
+    "options": [
+      "只讲例子",
+      "概念+例子",
+      "只讲概念",
+      "个人观点"
+    ],
+    "answerIndex": 1,
+    "explanation": "需完整复述概念定义并用例子说明。",
+    "version": "7b73b6c5"
+  },
+  {
+    "_id": "toefl_adv_i5",
+    "itemId": "toefl_adv_i5",
+    "courseId": "toefl_adv",
+    "courseName": "托福冲刺",
+    "question": "好的 thesis statement 应该？",
+    "options": [
+      "骑墙不定",
+      "清晰可辩",
+      "越长越好",
+      "只提问题"
+    ],
+    "answerIndex": 1,
+    "explanation": "立场要明确、可辩论，并预告论证方向。",
+    "version": "7d39c32b"
+  },
+  {
+    "_id": "toefl_adv_i6",
+    "itemId": "toefl_adv_i6",
+    "courseId": "toefl_adv",
+    "courseName": "托福冲刺",
+    "question": "论证充分的关键是？",
+    "options": [
+      "观点越多越好",
+      "每个论点配具体例子",
+      "用高级词汇",
+      "写长句"
+    ],
+    "answerIndex": 1,
+    "explanation": "具体例子支撑论点才是论证充分的关键。",
+    "version": "2cd24b2c"
+  },
+  {
+    "_id": "toefl_adv_i7",
+    "itemId": "toefl_adv_i7",
+    "courseId": "toefl_adv",
+    "courseName": "托福冲刺",
+    "question": "让步段的正确写法是？",
+    "options": [
+      "只写对方观点",
+      "承认对方+反驳",
+      "完全不提对方",
+      "全部让步"
+    ],
+    "answerIndex": 1,
+    "explanation": "先承认对方有道理，再反驳，展示辩证思维。",
+    "version": "0574a76a"
+  },
+  {
+    "_id": "toefl_adv_i8",
+    "itemId": "toefl_adv_i8",
+    "courseId": "toefl_adv",
+    "courseName": "托福冲刺",
+    "question": "结尾段应该？",
+    "options": [
+      "逐字重复正文",
+      "重申立场+升华",
+      "引入新论点",
+      "写越长越好"
+    ],
+    "answerIndex": 1,
+    "explanation": "结尾要重申立场并升华，不重复、不引入新论点。",
+    "version": "d6c971b5"
+  },
+  {
+    "_id": "igcse_am_i5",
+    "itemId": "igcse_am_i5",
+    "courseId": "igcse_addmath",
+    "courseName": "IGCSE附加数学",
+    "question": "反函数图像关于哪条线对称？",
+    "options": [
+      "x 轴",
+      "y 轴",
+      "y=x",
+      "原点"
+    ],
+    "answerIndex": 2,
+    "explanation": "反函数图像关于直线 y=x 对称。",
+    "version": "3759d5c3"
+  },
+  {
+    "_id": "igcse_am_i6",
+    "itemId": "igcse_am_i6",
+    "courseId": "igcse_addmath",
+    "courseName": "IGCSE附加数学",
+    "question": "换底公式 log_a b 等于？",
+    "options": [
+      "log b / log a",
+      "log a / log b",
+      "log a · log b",
+      "a^b"
+    ],
+    "answerIndex": 0,
+    "explanation": "log_a b = log b / log a。",
+    "version": "e8b6f08f"
+  },
+  {
+    "_id": "igcse_am_i7",
+    "itemId": "igcse_am_i7",
+    "courseId": "igcse_addmath",
+    "courseName": "IGCSE附加数学",
+    "question": "sin²θ + cos²θ 恒等于？",
+    "options": [
+      "0",
+      "1",
+      "tanθ",
+      "2"
+    ],
+    "answerIndex": 1,
+    "explanation": "这是最基本的三角恒等式，恒等于 1。",
+    "version": "8b831711"
+  },
+  {
+    "_id": "igcse_am_i8",
+    "itemId": "igcse_am_i8",
+    "courseId": "igcse_addmath",
+    "courseName": "IGCSE附加数学",
+    "question": "向量 v=(3,4) 的模长是？",
+    "options": [
+      "5",
+      "7",
+      "12",
+      "25"
+    ],
+    "answerIndex": 0,
+    "explanation": "|v| = √(3²+4²) = √25 = 5。",
+    "version": "66ed3801"
+  },
+  {
+    "_id": "alevel_p3_i5",
+    "itemId": "alevel_p3_i5",
+    "courseId": "alevel_pure3",
+    "courseName": "A-Level纯数3",
+    "question": "cosh²x - sinh²x 等于？",
+    "options": [
+      "1",
+      "-1",
+      "0",
+      "2"
+    ],
+    "answerIndex": 0,
+    "explanation": "双曲恒等式 cosh²x - sinh²x = 1。",
+    "version": "f9e5f9df"
+  },
+  {
+    "_id": "alevel_p3_i6",
+    "itemId": "alevel_p3_i6",
+    "courseId": "alevel_pure3",
+    "courseName": "A-Level纯数3",
+    "question": "部分分式分解用于？",
+    "options": [
+      "有理函数积分",
+      "求极限",
+      "解方程",
+      "矩阵运算"
+    ],
+    "answerIndex": 0,
+    "explanation": "把复杂分式拆成简单分式再积分。",
+    "version": "9c58e351"
+  },
+  {
+    "_id": "alevel_p3_i7",
+    "itemId": "alevel_p3_i7",
+    "courseId": "alevel_pure3",
+    "courseName": "A-Level纯数3",
+    "question": "麦克劳林展开是在哪一点的泰勒展开？",
+    "options": [
+      "x=1",
+      "x=0",
+      "x=∞",
+      "任意点"
+    ],
+    "answerIndex": 1,
+    "explanation": "麦克劳林展开是 x=0 处的泰勒展开特例。",
+    "version": "7cd8efc8"
+  },
+  {
+    "_id": "alevel_p3_i8",
+    "itemId": "alevel_p3_i8",
+    "courseId": "alevel_pure3",
+    "courseName": "A-Level纯数3",
+    "question": "叉积 a×b 的结果是？",
+    "options": [
+      "标量",
+      "垂直于 a、b 的向量",
+      "平行于 a 的向量",
+      "单位向量"
+    ],
+    "answerIndex": 1,
+    "explanation": "叉积结果是同时垂直于两个操作向量的向量。",
+    "version": "85fbb9da"
+  },
+  {
+    "_id": "alevel_mech_i5",
+    "itemId": "alevel_mech_i5",
+    "courseId": "alevel_mech",
+    "courseName": "A-Level力学",
+    "question": "最大静摩擦 f_max 等于？",
+    "options": [
+      "μN",
+      "μN²",
+      "μ/N",
+      "N/μ"
+    ],
+    "answerIndex": 0,
+    "explanation": "最大静摩擦 = 摩擦系数 × 法向力 = μN。",
+    "version": "493fd45a"
+  },
+  {
+    "_id": "alevel_mech_i6",
+    "itemId": "alevel_mech_i6",
+    "courseId": "alevel_mech",
+    "courseName": "A-Level力学",
+    "question": "冲量等于？",
+    "options": [
+      "质量×速度",
+      "力×时间",
+      "力×位移",
+      "质量×加速度"
+    ],
+    "answerIndex": 1,
+    "explanation": "冲量 = 力 × 作用时间 = 动量变化。",
+    "version": "c5c4c6b0"
+  },
+  {
+    "_id": "alevel_mech_i7",
+    "itemId": "alevel_mech_i7",
+    "courseId": "alevel_mech",
+    "courseName": "A-Level力学",
+    "question": "刚体平衡需要满足？",
+    "options": [
+      "合力为零",
+      "合力矩为零",
+      "两者都为零",
+      "两者都不为零"
+    ],
+    "answerIndex": 2,
+    "explanation": "平衡需合力为零且合力矩为零。",
+    "version": "199a83b7"
+  },
+  {
+    "_id": "alevel_mech_i8",
+    "itemId": "alevel_mech_i8",
+    "courseId": "alevel_mech",
+    "courseName": "A-Level力学",
+    "question": "向心加速度等于？",
+    "options": [
+      "v²/r",
+      "vr",
+      "v/r²",
+      "r/v"
+    ],
+    "answerIndex": 0,
+    "explanation": "向心加速度 a = v²/r。",
+    "version": "5f767dac"
+  },
+  {
+    "_id": "ib_aa_i5",
+    "itemId": "ib_aa_i5",
+    "courseId": "ib_math_aa",
+    "courseName": "IB数学AA",
+    "question": "连续函数在 a 点需满足？",
+    "options": [
+      "极限等于函数值",
+      "函数有定义即可",
+      "极限存在即可",
+      "可导即可"
+    ],
+    "answerIndex": 0,
+    "explanation": "连续性要求极限值等于该点函数值。",
+    "version": "22259213"
+  },
+  {
+    "_id": "ib_aa_i6",
+    "itemId": "ib_aa_i6",
+    "courseId": "ib_math_aa",
+    "courseName": "IB数学AA",
+    "question": "d/dx arctan x 等于？",
+    "options": [
+      "1/(1+x²)",
+      "1/√(1-x²)",
+      "-1/(1+x²)",
+      "tan x"
+    ],
+    "answerIndex": 0,
+    "explanation": "arctan x 的导数是 1/(1+x²)。",
+    "version": "102d87d5"
+  },
+  {
+    "_id": "ib_aa_i7",
+    "itemId": "ib_aa_i7",
+    "courseId": "ib_math_aa",
+    "courseName": "IB数学AA",
+    "question": "无穷等比级数收敛条件是？",
+    "options": [
+      "|r|<1",
+      "|r|>1",
+      "r=1",
+      "任意 r"
+    ],
+    "answerIndex": 0,
+    "explanation": "公比绝对值小于 1 时级数收敛。",
+    "version": "0f4dc86d"
+  },
+  {
+    "_id": "ib_aa_i8",
+    "itemId": "ib_aa_i8",
+    "courseId": "ib_math_aa",
+    "courseName": "IB数学AA",
+    "question": "z⁴=1 有几个复数根？",
+    "options": [
+      "1",
+      "2",
+      "4",
+      "无穷"
+    ],
+    "answerIndex": 2,
+    "explanation": "z⁴=1 有 4 个根，均匀分布在单位圆上。",
+    "version": "9a1967dc"
+  },
+  {
+    "_id": "ib_ai_i5",
+    "itemId": "ib_ai_i5",
+    "courseId": "ib_math_ai",
+    "courseName": "IB数学AI",
+    "question": "经过每条边恰好一次的路径叫？",
+    "options": [
+      "欧拉路径",
+      "哈密顿路径",
+      "生成树",
+      "最短路径"
+    ],
+    "answerIndex": 0,
+    "explanation": "欧拉路径遍历所有边一次，哈密顿路径遍历所有顶点一次。",
+    "version": "01026a3b"
+  },
+  {
+    "_id": "ib_ai_i6",
+    "itemId": "ib_ai_i6",
+    "courseId": "ib_math_ai",
+    "courseName": "IB数学AI",
+    "question": "泊松分布常用于近似？",
+    "options": [
+      "n 大 p 小的二项分布",
+      "均匀分布",
+      "正态分布",
+      "指数分布"
+    ],
+    "answerIndex": 0,
+    "explanation": "当 n 大 p 小时，泊松分布近似二项分布。",
+    "version": "f4a7912c"
+  },
+  {
+    "_id": "ib_ai_i7",
+    "itemId": "ib_ai_i7",
+    "courseId": "ib_math_ai",
+    "courseName": "IB数学AI",
+    "question": "线性规划最优解出现在？",
+    "options": [
+      "可行域内部",
+      "可行域顶点",
+      "原点",
+      "任意点"
+    ],
+    "answerIndex": 1,
+    "explanation": "线性规划最优解在可行域的顶点处取得。",
+    "version": "2f689a88"
+  },
+  {
+    "_id": "ib_ai_i8",
+    "itemId": "ib_ai_i8",
+    "courseId": "ib_math_ai",
+    "courseName": "IB数学AI",
+    "question": "p < 0.05 时应该？",
+    "options": [
+      "接受原假设",
+      "拒绝原假设",
+      "无结论",
+      "重新取样"
+    ],
+    "answerIndex": 1,
+    "explanation": "p 值小于显著性水平时拒绝原假设。",
+    "version": "49e93fce"
+  },
+  {
+    "_id": "igcse_phy_i5",
+    "itemId": "igcse_phy_i5",
+    "courseId": "igcse_phy",
+    "courseName": "IGCSE物理",
+    "question": "波速等于？",
+    "options": [
+      "fλ",
+      "f/λ",
+      "λ/f",
+      "f+λ"
+    ],
+    "answerIndex": 0,
+    "explanation": "波速 = 频率 × 波长 = fλ。",
+    "version": "a076552c"
+  },
+  {
+    "_id": "igcse_phy_i6",
+    "itemId": "igcse_phy_i6",
+    "courseId": "igcse_phy",
+    "courseName": "IGCSE物理",
+    "question": "斯涅尔定律是？",
+    "options": [
+      "n₁sinθ₁=n₂sinθ₂",
+      "n₁=n₂",
+      "sinθ=0",
+      "n₁θ₁=n₂θ₂"
+    ],
+    "answerIndex": 0,
+    "explanation": "斯涅尔定律：n₁sinθ₁ = n₂sinθ₂。",
+    "version": "7f50347a"
+  },
+  {
+    "_id": "igcse_phy_i7",
+    "itemId": "igcse_phy_i7",
+    "courseId": "igcse_phy",
+    "courseName": "IGCSE物理",
+    "question": "无需介质的传热方式是？",
+    "options": [
+      "传导",
+      "对流",
+      "辐射",
+      "以上都不是"
+    ],
+    "answerIndex": 2,
+    "explanation": "辐射通过电磁波传热，不需要介质。",
+    "version": "a6644c0c"
+  },
+  {
+    "_id": "igcse_phy_i8",
+    "itemId": "igcse_phy_i8",
+    "courseId": "igcse_phy",
+    "courseName": "IGCSE物理",
+    "question": "两个相同电阻 R 并联，总电阻是？",
+    "options": [
+      "2R",
+      "R/2",
+      "R",
+      "R²"
+    ],
+    "answerIndex": 1,
+    "explanation": "并联 1/R总=1/R+1/R，故 R总=R/2。",
+    "version": "73717f85"
+  },
+  {
+    "_id": "alevel_math_i5",
+    "itemId": "alevel_math_i5",
+    "courseId": "alevel_math",
+    "courseName": "A-Level数学",
+    "question": "(f⁻¹)'(y) 等于？",
+    "options": [
+      "1/f'(x)",
+      "f'(x)",
+      "-f'(x)",
+      "f'(x)²"
+    ],
+    "answerIndex": 0,
+    "explanation": "反函数求导是原函数导数的倒数。",
+    "version": "4c70e625"
+  },
+  {
+    "_id": "alevel_math_i6",
+    "itemId": "alevel_math_i6",
+    "courseId": "alevel_math",
+    "courseName": "A-Level数学",
+    "question": "参数方程 dy/dx 等于？",
+    "options": [
+      "(dy/dt)/(dx/dt)",
+      "dy/dt·dx/dt",
+      "dx/dt/dy/dt",
+      "dy/dx·dt"
+    ],
+    "answerIndex": 0,
+    "explanation": "dy/dx = (dy/dt)/(dx/dt)。",
+    "version": "9c2947a7"
+  },
+  {
+    "_id": "alevel_math_i7",
+    "itemId": "alevel_math_i7",
+    "courseId": "alevel_math",
+    "courseName": "A-Level数学",
+    "question": "dy/dt = ky 的通解是？",
+    "options": [
+      "y=Ce^(kt)",
+      "y=kt+C",
+      "y=k ln t",
+      "y=t^k"
+    ],
+    "answerIndex": 0,
+    "explanation": "指数增长方程的解为 y = Ce^(kt)。",
+    "version": "f4d4d58b"
+  },
+  {
+    "_id": "alevel_math_i8",
+    "itemId": "alevel_math_i8",
+    "courseId": "alevel_math",
+    "courseName": "A-Level数学",
+    "question": "等比级数公比 |r|<1 时无穷和是？",
+    "options": [
+      "a/(1-r)",
+      "a(1-r)",
+      "a rⁿ",
+      "a/(r-1)"
+    ],
+    "answerIndex": 0,
+    "explanation": "无穷等比级数和 S = a/(1-r)。",
+    "version": "f7ab7536"
+  },
+  {
+    "_id": "alevel_phy_i5",
+    "itemId": "alevel_phy_i5",
+    "courseId": "alevel_phy",
+    "courseName": "A-Level物理",
+    "question": "SHM 回复力的特点是？",
+    "options": [
+      "与位移成正比反向",
+      "恒为常数",
+      "与速度成正比",
+      "与位移平方成正比"
+    ],
+    "answerIndex": 0,
+    "explanation": "F = -kx，回复力与位移成正比且方向相反。",
+    "version": "27c3b41a"
+  },
+  {
+    "_id": "alevel_phy_i6",
+    "itemId": "alevel_phy_i6",
+    "courseId": "alevel_phy",
+    "courseName": "A-Level物理",
+    "question": "万有引力与距离的关系是？",
+    "options": [
+      "正比 r",
+      "反比 r²",
+      "反比 r",
+      "正比 r²"
+    ],
+    "answerIndex": 1,
+    "explanation": "F = GMm/r²，与距离平方成反比。",
+    "version": "78d1df5d"
+  },
+  {
+    "_id": "alevel_phy_i7",
+    "itemId": "alevel_phy_i7",
+    "courseId": "alevel_phy",
+    "courseName": "A-Level物理",
+    "question": "电容储能公式是？",
+    "options": [
+      "½CV²",
+      "CV",
+      "½CV",
+      "CV²/4"
+    ],
+    "answerIndex": 0,
+    "explanation": "电容储存的能量 E = ½CV²。",
+    "version": "3d4b0b8d"
+  },
+  {
+    "_id": "alevel_phy_i8",
+    "itemId": "alevel_phy_i8",
+    "courseId": "alevel_phy",
+    "courseName": "A-Level物理",
+    "question": "法拉第定律中 ε 与什么成正比？",
+    "options": [
+      "磁通量",
+      "磁通量变化率",
+      "磁通量平方",
+      "时间"
+    ],
+    "answerIndex": 1,
+    "explanation": "感应电动势与磁通量的变化率成正比。",
+    "version": "eca647b9"
+  },
+  {
+    "_id": "ib_math_i5",
+    "itemId": "ib_math_i5",
+    "courseId": "ib_math",
+    "courseName": "IB数学",
+    "question": "a·b = 0 说明两向量？",
+    "options": [
+      "平行",
+      "垂直",
+      "相等",
+      "反向"
+    ],
+    "answerIndex": 1,
+    "explanation": "点积为零表示两向量垂直。",
+    "version": "a4ccacf7"
+  },
+  {
+    "_id": "ib_math_i6",
+    "itemId": "ib_math_i6",
+    "courseId": "ib_math",
+    "courseName": "IB数学",
+    "question": "det=0 说明矩阵？",
+    "options": [
+      "可逆",
+      "不可逆",
+      "是单位阵",
+      "是对称阵"
+    ],
+    "answerIndex": 1,
+    "explanation": "行列式为零的矩阵不可逆（奇异矩阵）。",
+    "version": "22fdb8e8"
+  },
+  {
+    "_id": "ib_math_i7",
+    "itemId": "ib_math_i7",
+    "courseId": "ib_math",
+    "courseName": "IB数学",
+    "question": "∫ₐᵇ f(x)dx 等于？",
+    "options": [
+      "F(b)-F(a)",
+      "F(a)-F(b)",
+      "F(b)+F(a)",
+      "f(b)-f(a)"
+    ],
+    "answerIndex": 0,
+    "explanation": "定积分等于原函数在上下限的值之差。",
+    "version": "0311baa1"
+  },
+  {
+    "_id": "ib_math_i8",
+    "itemId": "ib_math_i8",
+    "courseId": "ib_math",
+    "courseName": "IB数学",
+    "question": "标准化公式是？",
+    "options": [
+      "(X-μ)/σ",
+      "(X+μ)/σ",
+      "X·σ+μ",
+      "(X-σ)/μ"
+    ],
+    "answerIndex": 0,
+    "explanation": "Z = (X-μ)/σ。",
+    "version": "2f9d779b"
+  },
+  {
+    "_id": "ib_phy_i5",
+    "itemId": "ib_phy_i5",
+    "courseId": "ib_phy",
+    "courseName": "IB物理",
+    "question": "弹性碰撞中守恒的是？",
+    "options": [
+      "仅动量",
+      "仅动能",
+      "动量和动能",
+      "都不守恒"
+    ],
+    "answerIndex": 2,
+    "explanation": "弹性碰撞同时守恒动量和动能。",
+    "version": "b367595d"
+  },
+  {
+    "_id": "ib_phy_i6",
+    "itemId": "ib_phy_i6",
+    "courseId": "ib_phy",
+    "courseName": "IB物理",
+    "question": "爱因斯坦光电方程是？",
+    "options": [
+      "hf=φ+KE_max",
+      "E=mc²",
+      "F=ma",
+      "V=IR"
+    ],
+    "answerIndex": 0,
+    "explanation": "光子能量 = 逸出功 + 最大动能。",
+    "version": "39d4958e"
+  },
+  {
+    "_id": "ib_phy_i7",
+    "itemId": "ib_phy_i7",
+    "courseId": "ib_phy",
+    "courseName": "IB物理",
+    "question": "条纹间距与波长 λ 的关系是？",
+    "options": [
+      "正比",
+      "反比",
+      "无关",
+      "平方"
+    ],
+    "answerIndex": 0,
+    "explanation": "x = λD/d，条纹间距与波长成正比。",
+    "version": "6db80672"
+  },
+  {
+    "_id": "ib_phy_i8",
+    "itemId": "ib_phy_i8",
+    "courseId": "ib_phy",
+    "courseName": "IB物理",
+    "question": "半衰期 T½ 等于？",
+    "options": [
+      "ln2/λ",
+      "λ/ln2",
+      "2λ",
+      "λ²"
+    ],
+    "answerIndex": 0,
+    "explanation": "T½ = ln2/λ。",
+    "version": "ad2c3bb0"
+  }
+]
