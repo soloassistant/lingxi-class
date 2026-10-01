@@ -7,6 +7,7 @@
     "start": "node tools/serve.js",
     "test": "node tests/run-all.js",
     "test:online": "node tests/run-all.js --online",
+    "smoke:online": "node tools/smoke-online.js",
     "audit": "node tests/audit.js"
   },
   "devDependencies": {
