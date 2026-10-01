@@ -28,14 +28,46 @@ Page({
     aiSections: [],
     aiIdx: 0,
     aiSummary: '',
-    speaking: false
+    speaking: false,
+    /* ===== 费曼学习法（2026-10-01 新增）=====
+       feynman     —— 课堂内教学法开关（与元认知类似的可选教学方式）
+       feynmanCheck—— AI 生成的一句"轮到你讲了"的任务，渲染成卡片
+       feynTalk*   —— 课后「讲给我听」环节的独立会话状态 */
+    feynman: false,
+    feynmanCheck: '',
+    feynTalkMode: false,
+    feynTalkMsgs: [],
+    feynTalkInput: '',
+    feynTalkBusy: false,
+    feynTalkDone: false,
+    feynTalkVerdict: null,
+    /* ★ 与 R13 同一条纪律：失败要**看得出来是失败**，不能伪装成听众的提问 */
+    feynTalkError: ''
   },
 
   onLoad(options) {
     const id = options.id || '';
     this.applyTheme();
     this.applyLang();
+    this.restoreFeynman();
     this.loadKnowledge(id);
+  },
+
+  /* 费曼开关的持久化：读不到/读坏了都保持关闭（它是额外要求，不该默认开） */
+  restoreFeynman() {
+    let on = false;
+    try { on = wx.getStorageSync('feynman') === true; } catch (e) {}
+    this.setData({ feynman: on });
+  },
+
+  toggleFeynman() {
+    const on = !this.data.feynman;
+    this.setData({ feynman: on });
+    try { wx.setStorageSync('feynman', on); } catch (e) {}
+    wx.showToast({
+      title: on ? '已开启费曼学习法：讲完会让你自己讲一遍' : '已关闭费曼学习法',
+      icon: 'none'
+    });
   },
 
   applyTheme() {
@@ -245,7 +277,10 @@ Page({
         topic: item.title || item.id || '',
         subject: item.courseName || item.courseId || '',
         system: '国际课程',
-        level: level
+        level: level,
+        /* 费曼模式：让云函数改讲解顺序（先外行话与类比，再术语），
+           并要求额外输出一句可以直接布置给学生的复述任务 */
+        feynman: this.data.feynman === true
       }
     }).then(res => {
       const r = res.result;
@@ -263,7 +298,10 @@ Page({
           aiMode: true,
           aiSections: sections,
           aiIdx: 0,
-          aiSummary: data.summary || ''
+          aiSummary: data.summary || '',
+          /* 没生成出来就留空、不显示卡片 —— 不要用一句通用口号顶替，
+             那样学生以为做了费曼，其实什么也没检验 */
+          feynmanCheck: typeof data.feynmanCheck === 'string' ? data.feynmanCheck : ''
         });
       } else {
         wx.showToast({ title: (r && r.msg) || 'AI 讲解生成失败', icon: 'none' });
@@ -281,7 +319,7 @@ Page({
     if (this.data.aiIdx < this.data.aiSections.length - 1) this.setData({ aiIdx: this.data.aiIdx + 1 });
   },
   exitAi() {
-    this.setData({ aiMode: false, aiSections: [], aiIdx: 0, aiSummary: '' });
+    this.setData({ aiMode: false, aiSections: [], aiIdx: 0, aiSummary: '', feynmanCheck: '' });
     tts.stop();
     this.setData({ speaking: false });
   },
@@ -301,7 +339,11 @@ Page({
       aiMode: true,
       aiSections: sections,
       aiIdx: 0,
-      aiSummary: '（游客模式 · 登录后可体验 AI 老师个性化讲解）'
+      aiSummary: '（游客模式 · 登录后可体验 AI 老师个性化讲解）',
+      /* 游客降级也保留费曼环节的入口文案 —— 复述这件事本来不需要 AI 也能做 */
+      feynmanCheck: this.data.feynman === true
+        ? '请你合上页面，用自己的话把本节内容讲给一个完全没学过的人听 —— 讲不清的地方，就是还需要回头再看的地方。'
+        : ''
     });
     wx.showToast({ title: '已进入讲解模式（游客）', icon: 'none' });
   },
@@ -353,6 +395,150 @@ Page({
           confirmText: '知道了'
         });
       }
+    });
+  },
+
+  /* ===== 课后「讲给我听」：费曼学习法的验收环节 =====
+     AI 扮演一个**完全不懂的听众**，只提问、不总结、不纠正。
+     关键分工：**验收记录由服务端判定**。学生讲了几句、几个字，服务端自己数
+     history 算出来；前端只负责渲染结果。理由是 R12 的同一条教训 ——
+     凡是"够不够格下结论"的判断，判据必须来自可信来源，不能信客户端传的值。 */
+  feynTalkCovered() {
+    const it = this.data.item || {};
+    const parts = [];
+    if (it.title) parts.push(it.title);
+    const q = this.data.currentQuiz;
+    if (q && q.question) parts.push(q.question);
+    return parts.join('；');
+  },
+
+  openFeynTalk() {
+    if (!app.globalData.hasLogin) {
+      /* 需要登录：这个环节要走 AI 多轮对话，游客态没有可用通道。
+         如实说明而不是给一个"假的听众"占位。 */
+      wx.showToast({ title: '登录后即可让 AI 当你的听众', icon: 'none' });
+      return;
+    }
+    this.setData({
+      feynTalkMode: true,
+      feynTalkMsgs: [{
+        role: 'assistant',
+        content: '我完全没学过这门课，你刚才上的那节课能不能讲给我听？'
+          + '就用你自己的话，别用课本上的说法 — 我怕是听不懂。'
+      }],
+      feynTalkInput: '',
+      feynTalkBusy: false,
+      feynTalkDone: false,
+      feynTalkVerdict: null,
+      feynTalkError: ''
+    });
+  },
+
+  closeFeynTalk() {
+    this.setData({ feynTalkMode: false, feynTalkError: '' });
+  },
+
+  onFeynTalkInput(e) {
+    this.setData({ feynTalkInput: e.detail.value });
+  },
+
+  feynTalkPayload() {
+    const it = this.data.item || {};
+    return {
+      topic: it.title || it.id || '',
+      subject: it.courseName || it.courseId || '',
+      covered: this.feynTalkCovered(),
+      history: (this.data.feynTalkMsgs || []).map(m => ({ role: m.role, content: m.content }))
+    };
+  },
+
+  sendFeynTalk() {
+    const text = (this.data.feynTalkInput || '').trim();
+    if (!text) { wx.showToast({ title: '先写一句要讲的', icon: 'none' }); return; }
+    if (this.data.feynTalkBusy || this.data.feynTalkDone) return;
+
+    const msgs = this.data.feynTalkMsgs.concat([{ role: 'user', content: text }]);
+    this.setData({ feynTalkMsgs: msgs, feynTalkInput: '', feynTalkBusy: true, feynTalkError: '' });
+
+    const payload = this.feynTalkPayload();
+    payload.history = msgs.map(m => ({ role: m.role, content: m.content }));
+
+    wx.cloud.callFunction({ name: 'feynmanTalk', data: payload }).then(res => {
+      const r = (res && res.result) || {};
+      if (r.code !== 0 || !r.reply) {
+        /* ★ 与 R13 同一条纪律：失败**不能**伪装成听众的提问——
+           否则学生会去回答一个根本不存在的问题，而且那句错误文案
+           还会作为上下文传给下一轮、被当成教学内容。 */
+        this.setData({ feynTalkBusy: false, feynTalkError: r.msg || '听众暂时没听清，请再说一遍' });
+        return;
+      }
+      this.setData({
+        feynTalkBusy: false,
+        feynTalkError: '',
+        feynTalkMsgs: msgs.concat([{ role: 'assistant', content: r.reply }])
+      });
+    }).catch(() => {
+      this.setData({ feynTalkBusy: false, feynTalkError: '网络异常，请检查网络后重试' });
+    });
+  },
+
+  retryFeynTalk() {
+    /* 失败后重发**最后一条学生发言**（不让学生重新打一遍字）。
+       注意：要把那条发言从历史里**摘掉再重发**，否则发出去的 history 里
+       会有连续两条相同的学生消息，听众会当成"你说了两遍"。 */
+    const msgs = this.data.feynTalkMsgs || [];
+    let idx = -1;
+    for (let i = msgs.length - 1; i >= 0; i--) {
+      if (msgs[i].role === 'user') { idx = i; break; }
+    }
+    if (idx < 0) { this.setData({ feynTalkError: '' }); return; }
+    const lastUser = msgs[idx].content;
+    const cut = msgs.slice(0, idx);
+    this.setData({ feynTalkMsgs: cut, feynTalkInput: '', feynTalkError: '' });
+
+    const withUser = cut.concat([{ role: 'user', content: lastUser }]);
+    this.setData({ feynTalkMsgs: withUser, feynTalkBusy: true });
+    const payload = this.feynTalkPayload();
+    payload.history = withUser.map(m => ({ role: m.role, content: m.content }));
+
+    wx.cloud.callFunction({ name: 'feynmanTalk', data: payload }).then(res => {
+      const r = (res && res.result) || {};
+      if (r.code !== 0 || !r.reply) {
+        this.setData({ feynTalkBusy: false, feynTalkError: r.msg || '听众暂时没听清，请再说一遍' });
+        return;
+      }
+      this.setData({
+        feynTalkBusy: false,
+        feynTalkError: '',
+        feynTalkMsgs: withUser.concat([{ role: 'assistant', content: r.reply }])
+      });
+    }).catch(() => {
+      this.setData({ feynTalkBusy: false, feynTalkError: '网络异常，请检查网络后重试' });
+    });
+  },
+
+  finishFeynTalk() {
+    if (this.data.feynTalkBusy || this.data.feynTalkDone) return;
+    const payload = this.feynTalkPayload();
+    payload.action = 'verdict';
+    this.setData({ feynTalkBusy: true, feynTalkError: '' });
+
+    wx.cloud.callFunction({ name: 'feynmanTalk', data: payload }).then(res => {
+      const r = (res && res.result) || {};
+      if (r.code === 1) {
+        /* 服务端拒绝：一句话都没讲。不给验收记录，也不置 done，学生还能继续讲 */
+        this.setData({ feynTalkBusy: false });
+        wx.showToast({ title: r.msg || '先讲一段再看验收', icon: 'none' });
+        return;
+      }
+      if (r.code !== 0 || !r.verdict) {
+        /* 失败**不给结论**，也不要编一份"你讲得不错"糊过去 */
+        this.setData({ feynTalkBusy: false, feynTalkError: r.msg || '这次没能整理出验收记录' });
+        return;
+      }
+      this.setData({ feynTalkBusy: false, feynTalkVerdict: r.verdict, feynTalkDone: true });
+    }).catch(() => {
+      this.setData({ feynTalkBusy: false, feynTalkError: '网络异常，请检查网络后重试' });
     });
   },
 

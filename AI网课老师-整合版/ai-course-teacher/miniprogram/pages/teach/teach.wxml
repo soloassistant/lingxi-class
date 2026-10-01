@@ -12,6 +12,16 @@
     <button class="btn-ai-teach" bindtap="startAiTeach" disabled="{{aiLoading}}">
       {{aiLoading ? 'AI 备课中…' : '🎓 AI 老师讲解'}}
     </button>
+    <!-- 费曼学习法开关：可选教学法，与"元认知"同级 -->
+    <view class="feyn-row">
+      <view class="feyn-text">
+        <text class="feyn-name">费曼学习法</text>
+        <text class="feyn-desc">先用大白话讲清概念，讲完让你自己讲给"外行"听 —— 讲不清的地方就是没学会的地方</text>
+      </view>
+      <view class="switch {{feynman ? 'on' : ''}}" bindtap="toggleFeynman" role="switch" aria-checked="{{feynman}}">
+        <view class="switch-dot"></view>
+      </view>
+    </view>
   </view>
 
   <!-- AI 讲解模式 -->
@@ -52,6 +62,76 @@
     <view class="ai-teach-btns">
       <button class="btn-ai-prev" bindtap="aiPrev" disabled="{{aiIdx === 0}}">上一段</button>
       <button class="btn-ai-next" bindtap="aiNext" wx:if="{{aiIdx < aiSections.length - 1}}">下一段</button>
+    </view>
+
+    <!-- ★ 费曼学习法：讲完之后给学生一个"现在轮到你讲"的任务卡。
+         它只在 AI 真的生成了 feynmanCheck 时出现 —— 没有就不显示，
+         而不是用一句通用口号顶替（那样学生以为做了费曼，其实什么也没检验）。 -->
+    <view class="feyn-check" wx:if="{{feynmanCheck}}">
+      <view class="feyn-check-title">🗣 现在轮到你讲</view>
+      <view class="feyn-check-text">{{feynmanCheck}}</view>
+      <button class="btn-feyn-talk" bindtap="openFeynTalk">开始讲给我听</button>
+    </view>
+  </view>
+
+  <!-- 课后「讲给我听」：AI 扮演完全不懂的听众 -->
+  <view class="feyn-mask" wx:if="{{feynTalkMode}}" catchtap="closeFeynTalk">
+    <view class="feyn-dialog" catchtap="noop">
+      <view class="feyn-head">
+        <text class="feyn-title">🗣 讲给我听</text>
+        <text class="feyn-close" bindtap="closeFeynTalk">关闭</text>
+      </view>
+      <view class="feyn-intro">对面这位同学<text class="feyn-em">完全没学过这门课</text>。合上课件，用自己的话讲给他听 ——
+        他会一直追问到听懂为止，但<text class="feyn-em">不会替你总结</text>。</view>
+      <scroll-view scroll-y class="feyn-log">
+        <view wx:for="{{feynTalkMsgs}}" wx:for-item="m" wx:key="index"
+              class="feyn-msg {{m.role === 'user' ? 'feyn-me' : 'feyn-ai'}}">
+          <view class="feyn-who">{{m.role === 'user' ? '你' : '🙋 一头雾水的听众'}}</view>
+          <view class="feyn-bubble">{{m.content}}</view>
+        </view>
+        <view class="feyn-msg feyn-ai" wx:if="{{feynTalkBusy}}">
+          <view class="feyn-who">🙋 一头雾水的听众</view>
+          <view class="feyn-bubble feyn-typing">正在想……</view>
+        </view>
+        <!-- ★ 与 R13 同一条纪律：失败要看得出来是失败，并给重试入口 -->
+        <view class="feyn-msg feyn-ai" wx:if="{{feynTalkError}}">
+          <view class="feyn-bubble feyn-err">
+            <text>{{feynTalkError}}</text>
+            <text class="feyn-err-note">（这不是听众的提问，只是这次没能收到回复）</text>
+            <view class="feyn-retry" bindtap="retryFeynTalk">重试一次</view>
+          </view>
+        </view>
+      </scroll-view>
+
+      <!-- 验收记录 -->
+      <view class="feyn-verdict" wx:if="{{feynTalkVerdict}}">
+        <view class="feyn-v-title">📋 验收记录</view>
+        <block wx:if="{{feynTalkVerdict.insufficient}}">
+          <view class="feyn-v-hint">这次你讲得还不多，还不足以看出哪里讲清楚了 ——
+            "讲得少"看不出问题，"没讲"更看不出。下次试着把整节课从头讲一遍。</view>
+        </block>
+        <block wx:else>
+          <view class="feyn-v-block">
+            <view class="feyn-v-label">✔ 你讲清楚了</view>
+            <view class="feyn-v-item" wx:for="{{feynTalkVerdict.explained}}" wx:key="*this">· {{item}}</view>
+            <view class="feyn-v-empty" wx:if="{{feynTalkVerdict.explained.length === 0}}">暂无</view>
+          </view>
+          <view class="feyn-v-block">
+            <view class="feyn-v-label">⚠ 讲过去 / 没讲清</view>
+            <view class="feyn-v-item" wx:for="{{feynTalkVerdict.skipped}}" wx:key="*this">· {{item}}</view>
+            <view class="feyn-v-empty" wx:if="{{feynTalkVerdict.skipped.length === 0}}">暂无</view>
+          </view>
+        </block>
+        <view class="feyn-v-comment" wx:if="{{feynTalkVerdict.comment}}">{{feynTalkVerdict.comment}}</view>
+      </view>
+
+      <textarea class="feyn-input" placeholder="用你自己的话讲，别照搬课本上的说法…"
+                value="{{feynTalkInput}}" bindinput="onFeynTalkInput" maxlength="500"
+                disabled="{{feynTalkDone}}"></textarea>
+      <view class="feyn-btns">
+        <button class="feyn-send" bindtap="sendFeynTalk" disabled="{{feynTalkBusy || feynTalkDone}}">讲给他听</button>
+        <button class="feyn-finish" bindtap="finishFeynTalk" disabled="{{feynTalkBusy || feynTalkDone}}">我讲完了，看验收</button>
+      </view>
     </view>
   </view>
 

@@ -56,9 +56,12 @@ const state = {
   homeSystem: 'cn',
   gen: { system: 'cn', subject: '数学', boards: [], duration: '45 分钟', level: '基础巩固', type: 'new' },
   live: null, // { course, conversationId, messages, controller, busy, seconds, timerInt, stageIndex, savedProgress }
-  /* 教学偏好：苏格拉底引导等级 + 元认知提示，长期记忆在 localStorage */
+  /* 教学偏好：苏格拉底引导等级 + 元认知提示 + 费曼学习法，长期记忆在 localStorage */
   guide: 'balanced',   // 'more' 更多引导 | 'balanced' 均衡 | 'less' 更多自主
   meta: true,          // 是否启用元认知提问（"哪一步让你困惑？"）
+  feynman: false,      // 是否启用费曼学习法（讲给外行听、卡壳处回补重讲）
+  /* 「讲给我听」课后环节：独立于课堂的一次多轮会话（AI 扮演小白听众） */
+  feynTalk: null,      // { course, messages, busy, done, verdict } | null
   /* 账号与长期记忆 */
   user: null,          // 已登录用户 { id, email, phone }
   mem: null,           // 当前学生的长期记忆档案（云端）
@@ -3791,7 +3794,44 @@ function restoreGuidePref() {
   let meta = null;
   try { meta = localStorage.getItem('lingxi_meta'); } catch (_) {}
   if (meta === '0') state.meta = false;
+  /* 费曼学习法默认**关**（它是加在苏格拉底之上的额外要求，开着会让节奏变慢），
+     所以这里只认显式的 '1'，读不到或读坏了都保持关闭。 */
+  let fey = null;
+  try { fey = localStorage.getItem('lingxi_feynman'); } catch (_) {}
+  if (fey === '1') state.feynman = true;
   renderGuideBtn();
+  renderFeynmanSwitch();
+}
+
+function toggleFeynman(on) {
+  state.feynman = typeof on === 'boolean' ? on : !state.feynman;
+  try { localStorage.setItem('lingxi_feynman', state.feynman ? '1' : '0'); } catch (_) {}
+  renderFeynmanSwitch();
+  if (state.feynman) {
+    toast('已开启费曼学习法：老师会请你合上课件，用自己的话讲一遍', 'ok');
+  } else {
+    toast('已关闭费曼学习法');
+  }
+  /* 让老师立刻感知到变化（隐藏指令，学生看不到）—— 与 setGuide 同一套做法。
+     注意必须说明"不要解释这条设置"，否则模型会回一句"好的，我们开始用费曼学习法"，
+     那话听着就像在念设置项，很出戏。 */
+  if (state.live && !state.live.ended) {
+    sendLive('（学生' + (state.feynman ? '开启' : '关闭') + '了费曼学习法。请从下一句开始按新的方式讲，' +
+      (state.feynman
+        ? '讲完一个知识点就请他合上课件用自己的话讲给外行听，听完再指出他卡在哪一步。'
+        : '不必再要求他讲给外行听了，回到原来的节奏。') +
+      '不要解释这条设置。）', { hidden: true });
+  }
+}
+
+/* 开关的视觉状态单独抽出来，是因为它有两个入口（教学面板里的开关、
+   以及可能的其它入口），状态必须由同一个函数渲染，否则会出现"两处显示不一致"。 */
+function renderFeynmanSwitch() {
+  const btn = $('#guide-feynman');
+  if (btn) {
+    btn.classList.toggle('on', state.feynman);
+    btn.setAttribute('aria-checked', state.feynman ? 'true' : 'false');
+  }
 }
 
 function toggleMeta(on) {
@@ -7961,6 +8001,82 @@ const SOCRATIC_RULE =
   '       只有当学生连续两次尝试都失败、或明确说"直接告诉我吧"，才给出完整示范解答（worked example），\n' +
   '       并且示范完立刻让他用同类题自己做一遍。';
 
+/* ===== 费曼学习法（2026-10-01 新增） =====
+   费曼学习法的四步：选定概念 → 讲给外行听 → 找出卡壳处 → 回补并用类比重讲。
+   它与上面 SOCRATIC_RULE 的 d) 步（"收尾请学生复述一遍"）是有区别的，必须写清楚，
+   否则模型会把两件事混成一件、退化成"随口复述一下"：
+
+     苏格拉底的复述 = 检验**这一轮**听懂了没有（可以带着术语说）
+     费曼的讲解     = 检验**能不能脱离课本重新组织语言**（不许照搬术语，要讲给外行）
+
+   最容易做错的两点，这里都写成显式禁令：
+     · 学生讲完之后老师**替他把话归纳一遍** —— 这是最诱人的错误，
+       因为它让回答看起来很完整；但学生自己组织语言那一步恰恰被跳过了，检验就失效了。
+     · 学生讲卡了就直接把正确说法讲出来 —— 那等于又回到"答案倾倒"，
+       正确做法是记住他卡在哪、然后回头补那一处，让他**重讲一遍**。 */
+const FEYNMAN_RULE =
+  '费曼学习法（本课的核心检验方式：讲不清的地方，就是没学会的地方）：\n' +
+  '        a) 选定：每讲完一个知识点，先明确说出"我们现在就检验这一个概念：××"。\n' +
+  '           一次只验一个，不要让学生一口气复述整节课。\n' +
+  '        b) 讲给外行听：请学生**合上课件**，用他能想到的最简单的话把这个概念讲一遍，\n' +
+  '           要求是"假设你面前坐着一个完全没学过这门课的人，你要让他听懂"。\n' +
+  '           明确告诉他：**不许照搬课本上的术语**；如果非要用一个术语，就得先用大白话说清那个术语。\n' +
+  '        c) 找出卡壳处：学生讲的时候**先完整听完，不要中途打断纠正**。听完之后要指出的是他\n' +
+  '           **具体卡在哪一步** —— 是定义说不清、某个词只是背下来了、跳过了关键一环，\n' +
+  '           还是只会照着课本顺序背、一换问法就不会。指出时要说清"你刚才说到××就绕过去了"。\n' +
+  '        d) 回补再讲：针对那个卡壳处，回到最原始的材料（定义、例题）把它补上，\n' +
+  '           然后**让学生用更简单的话重讲一遍**，最好带一个生活化的类比。\n' +
+  '           这一遍讲顺了才算过，再进入下一个知识点。\n' +
+  '     · **绝对不要替学生总结**：不要在他讲完之后说"所以你的意思是……"。\n' +
+  '       你一替他归纳，他就跳过了自己组织语言那一步，检验就失效了。\n' +
+  '       要问的是"你能再说一遍吗""刚才那块你没说清楚"。\n' +
+  '     · 讲得不顺是**正常的、也是有用的**：卡壳不是失败，是找到了漏洞的具体位置。\n' +
+  '       所以语气要轻松（"这块卡住了挺好，说明我们找到了要补的地方"），不要变成挨批评。\n' +
+  '     · 讲得好的地方要**具体**指出好在哪（"你那个把它想成水池的比喻特别准"），\n' +
+  '       不要只笼统地说"很好"—— 泛泛的表扬帮不了他复制这次成功。\n' +
+  '     · 与上面"苏格拉底综合"的分工：苏格拉底那个复述可以带术语、只验这一轮听没听懂；\n' +
+  '       费曼这一遍必须脱离课本、说给外行听。两者都要做，不要合并成一次。';
+
+/* ===== 「讲给我听」：AI 扮演完全不懂的小白听众 =====
+   这是费曼法的**课后独立环节**：学生把整节课讲一遍，AI 只当听众。
+   角色约束是这个环节成败的关键 —— 模型天然想"帮忙"，一帮忙就毁掉检验：
+     · 替学生总结 → 学生不再自己组织语言；
+     · 顺着往下讲 / 补充知识点 → 变成又一次"老师讲课"，不是学生在讲；
+     · 说"这个你刚才讲过" → 学生发现讲漏了会自己补，AI 不该代劳。
+   所以下面把"不许做什么"写得比"要做什么"更重。
+   另外，AI 提问必须**只基于学生讲过的内容**，不能引入学生没提过的知识 ——
+   否则学生会被引到自己没讲的地方，验收记录也就不准了。 */
+function feynmanListenerPrompt(course, ctx) {
+  const c = course || {};
+  const title = c.title || '本节课';
+  const subject = c.subject || '';
+  const line = (ctx && ctx.covered) ? String(ctx.covered).trim() : '';
+  return '你现在扮演一个**完全不懂' + (subject || '这门课') + '的初学者**，坐在学生对面。' +
+    '\n学生刚上完一节课《' + title + '》，现在轮到他讲给你听 —— 这正是费曼学习法：' +
+    '能不能把一件事讲给外行听懂，是检验他有没有真学会的唯一标准。' +
+    (line ? '\n本节课大致讲过这些内容（供你判断他有没有讲漏，但**不要主动报出来**）：' + line : '') +
+    '\n\n【你的角色：只当听众，不是老师】\n' +
+    '  · 你**真的什么都不懂**。你唯一的目标是"让他把我讲明白"。\n' +
+    '  · **绝对不要替学生总结、不要复述他刚说过的话**。他一听你归纳了，就不会再自己组织语言了。\n' +
+    '  · **绝对不要补充知识点、不要纠正他的错误、不要告诉他正确答案**。你现在是学生不是老师。\n' +
+    '  · 他讲错了怎么办：不要指出"你错了"，而是**用听不懂的方式表达出来** ——' +
+    '比如"等一下，你刚说 A 又说是 B，这两个是同一个东西吗？"让他自己发现矛盾。\n' +
+    '  · 不要夸他讲得好，也不要评价。你只是个想听懂的初学者。\n' +
+    '\n【你怎么说话】\n' +
+    '  · 一次只问**一个**问题，问完就停下来等他讲。\n' +
+    '  · 句子短、口语化，可以用"嗯……""等一下""那是为什么呀"这类真实的听感。\n' +
+    '  · 问题要**只基于他刚讲过的内容**，不要引入他没提过的概念 ——' +
+    '那样他就被你引着走了，也就看不出他自己哪里没讲清。\n' +
+    '  · 三种最有用的问题形态：\n' +
+    '    ① 听不懂术语："你说的这个词是什么意思呀？能用别的话说吗？"\n' +
+    '    ② 要一个例子："能举个例子吗？"\n' +
+    '    ③ 逻辑断点："那为什么这里就变成那样了呢？"\n' +
+    '  · 他讲得含糊（只背了结论、跳过一步）时，就**盯着那一点追问**，不要礼貌地放过。\n' +
+    '  · 每轮 1~2 句，不要长。这是聊天，不是讲课。\n' +
+    '\n【红线】不许出现"作为老师""我帮你总结一下""你刚才讲的其实是……"。' +
+    '你一变成老师，这个环节就没有意义了。';
+}
+
 function guideProfile() {
   return GUIDE_PROFILES[state.guide] || GUIDE_PROFILES.balanced;
 }
@@ -8304,6 +8420,10 @@ function teacherSystemPrompt(course) {
     + '收到学生插话后要立刻停下当前讲解、认真回应他的问题，不要抱怨被打断；'
     + '答完之后自然地说一句"那我们接着刚才的往下讲"，把话接回被打断的位置，不要从头重讲。\n' +
     '【苏格拉底式提问】\n     ' + SOCRATIC_RULE + '\n' +
+    /* 费曼学习法：可选教学法，与"元认知脚手架"同级。
+       位置放在苏格拉底之后 —— FEYNMAN_RULE 里明确写了它与"苏格拉底综合"的分工，
+       模型要先看到苏格拉底那条，才读得懂"这两者都要做，不要合并成一次"。 */
+    (state.feynman ? '【费曼学习法】\n     ' + FEYNMAN_RULE + '\n' : '') +
     (state.meta ? '【元认知脚手架】\n     ' + META_RULE + '\n' : '') +
     '【本轮引导强度】\n     ' + guide.rule + '\n' +
     (slideText ? '【课件配合】课件正投屏给学生：讲到某一页时，请自然地说"大家看这一页""我们翻到下一页"等，' +
@@ -9517,7 +9637,11 @@ function renderSummary(sum, raw, errMsg, course) {
     // 学生看不懂原始 JSON，也读不出信息；把原文留在控制台给排查用，界面只给可读的说明
     if (raw) console.warn('[summary] 小结解析失败，原始输出：', raw);
     body.innerHTML = '<div class="sum-comment">' +
-      esc(errMsg || '这次课堂小结没能整理出来，但本节课的内容已经保存，可以稍后重试。') + '</div>';
+      esc(errMsg || '这次课堂小结没能整理出来，但本节课的内容已经保存，可以稍后重试。') + '</div>' +
+      feynTalkBlockHtml();
+    /* 小结挂了不等于这节课白上了 —— 「讲给我听」不依赖小结内容（清单为空也能讲），
+       照样给它入口，否则"AI 抽风"会连学生自己讲一遍的机会一起带走。 */
+    bindFeynTalkButton(course, null);
     return;
   }
   const list = (arr) => Array.isArray(arr) && arr.length
@@ -9564,6 +9688,7 @@ function renderSummary(sum, raw, errMsg, course) {
     ${sum.comment ? '<div class="sum-comment">' + esc(sum.comment) + '</div>' : ''}
     ${hasReplay ? '<div class="sum-replay"><b>⏺ 课堂回放已生成</b>（' + fmtTime(course.replay.duration) + '，' +
       course.replay.events.length + ' 个时间点）<br>到「我的课程」点击 <b>回放</b> 即可重温本节课。</div>' : ''}
+    ${feynTalkBlockHtml()}
     <div class="sum-report"><b>📤 发给家长</b>
       <p class="sum-hint">生成一页学情报告（学什么 / 掌握什么 / 错在哪怎么办 / 作业与复习计划），
         可复制文字或下载长图，直接发微信给家长。</p>
@@ -9574,6 +9699,255 @@ function renderSummary(sum, raw, errMsg, course) {
   if (prBtn) prBtn.addEventListener('click', () => {
     openParentReport(sum, { title: (course && course.title) || '', subject: (course && course.subject) || '' });
   });
+  bindFeynTalkButton(course, sum);
+}
+
+/* 「讲给我听」入口 —— 小结里的一块。
+   为什么放小结里而不是工具栏：它需要"这节课讲了什么"才能当清单给听众，
+   小结正好是那份清单；工具栏上点它反而不知道该讲哪节课。 */
+function feynTalkBlockHtml() {
+  return '<div class="sum-block sum-feyntalk"><b>🗣 讲给我听（费曼学习法）</b>' +
+    '<p class="sum-hint">检验有没有真学会，最可靠的办法是讲给一个完全不懂的人听。' +
+    '对面这位同学没学过这门课，你用自己的话讲，他会一直追问到听懂 —— ' +
+    '他<b>不会替你总结</b>，卡住的地方才是这堂课最该回头看的地方。</p>' +
+    '<button class="btn btn-primary btn-sm" id="btn-open-feyntalk">开始讲给我听</button></div>';
+}
+
+function bindFeynTalkButton(course, sum) {
+  const b = $('#btn-open-feyntalk');
+  if (b) b.addEventListener('click', () => openFeynTalk(course, sum));
+}
+
+/* ============================================================
+   「讲给我听」—— 费曼学习法的课后验收环节（2026-10-01 新增）
+
+   为什么做成**独立环节**而不是课堂里的一段：课堂里老师要推进度，学生一讲不顺
+   老师就忍不住接话；而这个环节的全部价值就在"学生必须自己把话组织完"。
+   所以这里换一个角色 —— AI 变成**完全不懂的初学者**，只提问、不总结、不纠正。
+
+   ★ 与 R17 同一个道理：提示词是**请求**，不是保证。
+     模型天生想帮忙，一帮忙就毁掉检验（它会把学生没说清的地方替他补上，
+     然后给出一份"你讲得很好"的验收）。所以验收记录必须过一道**确定性守卫**：
+     学生这次到底讲了几句、讲了多少字，是可数的；讲得太少就不许给正面结论。
+   ============================================================ */
+
+/* 判定"这次算不算真的讲了一遍"的阈值。
+   为什么是 2 轮 / 60 字：一轮可能只是"嗯""不知道"，60 字大约是一两句话。
+   阈值不是教学判断，只是"有没有素材可供验收"的下限 —— 宁可说"没讲够"，
+   也不要拿两句话去断定学生掌握了什么。 */
+const FEYNTALK_MIN_TURNS = 2;
+const FEYNTALK_MIN_CHARS = 60;
+
+/* 给小白听众看的"这节课讲过什么"。
+   用途只有一个：让 AI 知道学生**有可能讲漏**什么（它会追问，但不会主动报出来）。
+   取小结里的要点与闪卡题目 —— 它们本来就是本节课的知识点清单。 */
+function feynTalkCovered(sum) {
+  if (!sum) return '';
+  const parts = [];
+  if (Array.isArray(sum.mastered) && sum.mastered.length) parts.push(sum.mastered.join('；'));
+  if (Array.isArray(sum.weakPoints) && sum.weakPoints.length) parts.push(sum.weakPoints.join('；'));
+  if (Array.isArray(sum.cards) && sum.cards.length) {
+    parts.push(sum.cards.filter((c) => c && c.q).map((c) => c.q).slice(0, 5).join('；'));
+  }
+  return parts.join('；');
+}
+
+/* 统计学生这一轮到底讲了多少 —— 守卫与验收都要用，所以单独抽出来可测 */
+function feynTalkStudentStats(talk) {
+  const msgs = (talk && Array.isArray(talk.messages)) ? talk.messages : [];
+  const mine = msgs.filter((m) => m.role === 'user');
+  const chars = mine.reduce((n, m) => n + String(m.content || '').replace(/\s/g, '').length, 0);
+  return { turns: mine.length, chars };
+}
+
+function buildFeynTalkMessages(talk) {
+  const t = talk || state.feynTalk;
+  if (!t || !t.course) return [];
+  const sys = feynmanListenerPrompt(t.course, { covered: t.covered || '' });
+  const history = t.messages.map((m) => ({ role: m.role, content: m.content }));
+  /* 和 buildLiveMessages 一样做一次角色交替归一化：
+     开场白是 assistant 发出的，首条不能是 assistant，补一句学生消息接住。 */
+  const fixed = [];
+  for (const m of history) {
+    const prev = fixed[fixed.length - 1];
+    if (prev && prev.role === m.role) prev.content = String(prev.content) + '\n' + String(m.content);
+    else if (!prev && m.role === 'assistant') fixed.push({ role: 'user', content: '（我想把刚才那节课讲给你听）' }, m);
+    else fixed.push({ role: m.role, content: m.content });
+  }
+  return [{ role: 'system', content: sys }, ...fixed];
+}
+
+/* 验收记录：这里换回"懂这门课的人"来评估 —— 让小白听众自己评价是错的，
+   它一无所知，评不出学生讲得对不对。所以是**第二个 prompt**，独立于对话。 */
+function feynTalkVerdictPrompt(talk) {
+  const t = talk || {};
+  const c = t.course || {};
+  const stats = feynTalkStudentStats(t);
+  const 学生原话 = t.messages
+    .filter((m) => m.role === 'user')
+    .map((m, i) => '第' + (i + 1) + '次：' + String(m.content || '').trim())
+    .join('\n');
+  return '你是' + (c.subject || '这门课') + '的老师，刚在门外听完学生给别人讲《' + (c.title || '本节课') + '》。\n' +
+    '现在请你评估他**讲得怎么样**，并只输出一个 JSON 对象。\n\n' +
+    '【评估依据】\n' +
+    '—— 学生讲的原话（共 ' + stats.turns + ' 次发言、' + stats.chars + ' 字）——\n' +
+    (学生原话 || '（他什么也没讲）') + '\n' +
+    (t.covered ? '\n—— 本节课的知识点清单 ——\n' + t.covered + '\n' : '') +
+    '\n【判定规则，必须严格遵守】\n' +
+    '  · explained（讲清楚了的地方）：**只能写他确实讲出来、且讲对了的内容**。\n' +
+    '    他没有提到过的知识点，不管多重要，都**不许**写进 explained。\n' +
+    '  · skipped（绕过去/没讲清的地方）：指他提到了但说得含糊的，或者清单里有、他**完全没提**的。\n' +
+    '    每一条要写清"哪里没说清"，例如"勾股定理你说了 A²+B²，但没说清为什么是这个关系"。\n' +
+    '  · 每项最多 4 条，每条一句话、口语化、不要术语堆砌。\n' +
+    '  · 如果学生讲得很少，explained 就给空数组 —— 少写不扣分，编一条才是错的。\n' +
+    '  · comment：一两句总评，**对事不对人**。指出"哪一步回去再看一眼"，不要说"你基础差"。\n\n' +
+    '只输出 JSON，不要任何其它文字，格式：\n' +
+    '{"explained":["..."],"skipped":["..."],"comment":"..."}';
+}
+
+/* ★ 确定性守卫：讲得太少就不许给正面结论。
+   没有它会发生什么（与 R17 是同一类事故）：学生只回一句"嗯，就是那样"，
+   模型照样能输出三条 explained —— 因为它在**复述知识点清单**，不是在评价这个学生。
+   那种"你讲得很好"比不给结论更糟：它让一次没发生的检验看起来发生了。 */
+function guardFeynTalkVerdict(v, stats) {
+  const s = stats || { turns: 0, chars: 0 };
+  if (!v || typeof v !== 'object') return v;
+  const enough = s.turns >= FEYNTALK_MIN_TURNS && s.chars >= FEYNTALK_MIN_CHARS;
+  if (!enough) {
+    const dropped = Array.isArray(v.explained) ? v.explained.length : 0;
+    v.explained = [];
+    /* 连 skipped 也清掉：他都没怎么讲，说他"绕过了什么"同样是凭空判断 */
+    v.skipped = [];
+    v.insufficient = true;
+    if (dropped > 0) {
+      v.droppedUnverified = dropped;
+      console.warn('[feyntalk] 学生只讲了 ' + s.turns + ' 次 / ' + s.chars + ' 字，已清空 ' +
+        dropped + ' 条无依据的"讲清楚了"');
+    }
+  }
+  return v;
+}
+
+const FEYNTALK_OPENER =
+  '我完全没学过这门课，你刚才上的那节课能不能讲给我听？' +
+  '就用你自己的话，别用课本上的说法 — 我怕是听不懂。';
+
+function openFeynTalk(course, sum) {
+  const c = course || (state.live && state.live.course);
+  if (!c) { toast('先上完一节课再来讲给我听', 'warn'); return; }
+  state.feynTalk = {
+    course: c,
+    covered: feynTalkCovered(sum),
+    messages: [{ role: 'assistant', content: FEYNTALK_OPENER }],
+    busy: false,
+    done: false,
+    verdict: null,
+  };
+  const m = $('#feyntalk-modal');
+  if (m) m.hidden = false;
+  const t = $('#feyntalk-title');
+  if (t) t.textContent = '讲给我听 · ' + (c.title || '');
+  renderFeynTalk();
+  const inp = $('#feyntalk-input');
+  if (inp) inp.focus();
+}
+
+function closeFeynTalk() {
+  const m = $('#feyntalk-modal');
+  if (m) m.hidden = true;
+}
+
+function renderFeynTalk() {
+  const talk = state.feynTalk;
+  const box = $('#feyntalk-log');
+  if (!box) return;
+  if (!talk) { box.innerHTML = ''; return; }
+  box.innerHTML = talk.messages.map((m) => {
+    const who = m.role === 'user' ? '你' : '🙋 一头雾水的听众';
+    return '<div class="ft-msg ' + (m.role === 'user' ? 'me' : 'ai') + '">' +
+      '<div class="ft-who">' + esc(who) + '</div>' +
+      '<div class="ft-text">' + mdLite(m.content) + '</div></div>';
+  }).join('') + (talk.busy ? '<div class="ft-msg ai"><div class="ft-who">🙋 一头雾水的听众</div>' +
+    '<div class="ft-text ft-typing">正在想……</div></div>' : '');
+  box.scrollTop = box.scrollHeight;
+
+  const v = $('#feyntalk-verdict');
+  if (v) { v.innerHTML = talk.verdict ? feynTalkVerdictHTML(talk.verdict) : ''; }
+
+  const send = $('#feyntalk-send');
+  const fin = $('#feyntalk-finish');
+  if (send) send.disabled = !!talk.busy || !!talk.done;
+  if (fin) fin.disabled = !!talk.busy || !!talk.done;
+}
+
+function feynTalkVerdictHTML(v) {
+  const ul = (arr) => '<ul>' + arr.map((x) => '<li>' + esc(x) + '</li>').join('') + '</ul>';
+  if (v.insufficient) {
+    const st = feynTalkStudentStats(state.feynTalk);
+    return '<div class="ft-verdict"><b>📋 验收记录</b>' +
+      '<p class="ft-hint">这次你只讲了 ' + st.turns + ' 次、' + st.chars + ' 个字，' +
+      '还不足以看出哪里讲清楚了 —— "讲得少"看不出问题，"没讲"更看不出。' +
+      '下次试着把整节课从头讲一遍，卡在哪里都比不讲有价值。</p>' +
+      (v.comment ? '<div class="ft-comment">' + esc(v.comment) + '</div>' : '') + '</div>';
+  }
+  return '<div class="ft-verdict"><b>📋 验收记录</b>' +
+    '<div class="ft-block"><b>✔ 你讲清楚了</b>' +
+    (v.explained && v.explained.length ? ul(v.explained) : '<ul><li>暂无</li></ul>') + '</div>' +
+    '<div class="ft-block"><b>⚠ 讲过去 / 没讲清</b>' +
+    (v.skipped && v.skipped.length ? ul(v.skipped) : '<ul><li>暂无</li></ul>') + '</div>' +
+    (v.comment ? '<div class="ft-comment">' + esc(v.comment) + '</div>' : '') + '</div>';
+}
+
+function setFeynTalkBusy(on) {
+  if (state.feynTalk) state.feynTalk.busy = !!on;
+  renderFeynTalk();
+}
+
+async function sendFeynTalk(text) {
+  const talk = state.feynTalk;
+  const raw = String(text || '').trim();
+  if (!talk || !raw || talk.busy || talk.done) return;
+  talk.messages.push({ role: 'user', content: raw });
+  setFeynTalkBusy(true);
+  try {
+    const reply = await streamChat({ messages: buildFeynTalkMessages(talk), temperature: 0.8 });
+    const r = String(reply || '').trim();
+    if (r) talk.messages.push({ role: 'assistant', content: r });
+    else talk.messages.push({ role: 'assistant', content: '（听众没听清，你能再说一遍吗？）' });
+  } catch (e) {
+    /* 失败要如实说，不能伪装成听众的提问 —— 否则学生会去回答一个不存在的问题 */
+    talk.messages.push({ role: 'assistant', content: '（听众走神了，这次没听清 —— 请再讲一遍刚才那句。）' });
+    toast(mapLLMError ? mapLLMError(e) : '网络异常，请重试', 'warn');
+  }
+  setFeynTalkBusy(false);
+}
+
+async function finishFeynTalk() {
+  const talk = state.feynTalk;
+  if (!talk || talk.busy || talk.done) return;
+  const stats = feynTalkStudentStats(talk);
+  if (stats.turns === 0) { toast('先讲一段再结束吧，一句话都没讲是没法验收的', 'warn'); return; }
+  setFeynTalkBusy(true);
+  try {
+    const out = await streamChat({
+      messages: [{ role: 'system', content: feynTalkVerdictPrompt(talk) },
+                 { role: 'user', content: '请给出评估 JSON。' }],
+      temperature: 0.3,
+      responseFormat: true,
+    });
+    let v = null;
+    try { v = parseJSONLoose(out); } catch (_) { v = null; }
+    if (!v) {
+      /* 解析不出来就**不给结论** —— 不要用兜底文案假装验收过 */
+      talk.verdict = { insufficient: true, comment: '这次没能整理出验收记录（AI 未返回可解析的结果），你刚才讲的内容已经保留在对话框里。' };
+    } else {
+      talk.verdict = guardFeynTalkVerdict(v, stats);
+    }
+  } catch (e) {
+    talk.verdict = { insufficient: true, comment: '验收没能完成：' + (mapLLMError ? mapLLMError(e) : '网络异常') + '。你讲的内容还在。' };
+  }
+  talk.done = true;
+  setFeynTalkBusy(false);
 }
 
 /* ---------- 事件绑定 ---------- */
@@ -9983,11 +10357,35 @@ function bindModalEvents() {
     });
     const metaSw = $('#guide-meta');
     if (metaSw) metaSw.addEventListener('click', () => toggleMeta());
+    const feySw = $('#guide-feynman');
+    if (feySw) feySw.addEventListener('click', () => toggleFeynman());
   }
   const gc = $('#btn-guide-close');
   if (gc) gc.addEventListener('click', closeGuideModal);
   const gok = $('#btn-guide-ok');
   if (gok) gok.addEventListener('click', closeGuideModal);
+
+  // 「讲给我听」（费曼学习法的课后环节）
+  const ftClose = $('#btn-feyntalk-close');
+  if (ftClose) ftClose.addEventListener('click', closeFeynTalk);
+  const ftSend = $('#feyntalk-send');
+  if (ftSend) ftSend.addEventListener('click', () => {
+    const inp = $('#feyntalk-input');
+    const v = inp ? inp.value : '';
+    if (inp) inp.value = '';
+    sendFeynTalk(v);
+  });
+  const ftFin = $('#feyntalk-finish');
+  if (ftFin) ftFin.addEventListener('click', () => finishFeynTalk());
+  const ftInp = $('#feyntalk-input');
+  if (ftInp) ftInp.addEventListener('keydown', (e) => {
+    /* Ctrl/Cmd+Enter 发送，单独 Enter 换行 —— 学生常常要分几段讲，别把换行抢走 */
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      const btn = $('#feyntalk-send');
+      if (btn) btn.click();
+    }
+  });
 
   // 宫格视图
   const tbGal = $('#tb-gallery');
@@ -12421,6 +12819,12 @@ try {
     renderDiagnostic, renderDiagProfile, submitDiagnostic, generateDiagnostic,
     persistDiagnostic, renderMemoryDiag,
     guideProfile, setGuide, renderGuideBtn, restoreGuidePref, toggleMeta,
+    /* 费曼学习法：课堂内教学法开关 + 课后「讲给我听」环节 */
+    FEYNMAN_RULE, feynmanListenerPrompt, toggleFeynman, renderFeynmanSwitch,
+    openFeynTalk, closeFeynTalk, sendFeynTalk, finishFeynTalk, renderFeynTalk,
+    buildFeynTalkMessages, feynTalkVerdictPrompt, guardFeynTalkVerdict,
+    feynTalkStudentStats, feynTalkCovered, feynTalkBlockHtml, bindFeynTalkButton,
+    FEYNTALK_MIN_TURNS, FEYNTALK_MIN_CHARS, FEYNTALK_OPENER,
     openGuideModal, closeGuideModal,
     appendMessage, appendTyping, setCaptions,
     teacherSystemPrompt, renderSummary, buildLiveMessages, parseJSONLoose, repairJSONText,

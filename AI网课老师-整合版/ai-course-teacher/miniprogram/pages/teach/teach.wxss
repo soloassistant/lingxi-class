@@ -517,3 +517,128 @@
   font-size: 28rpx;
   font-weight: 600;
 }
+
+/* ── 费曼学习法（2026-10-01）──────────────────────────────
+   ① 课堂内的教学法开关；② 讲完后的"轮到你讲"任务卡；③ 课后「讲给我听」环节。 */
+.feyn-row {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-top: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04);
+}
+.feyn-text { flex: 1; display: flex; flex-direction: column; gap: 6rpx; }
+.feyn-name { font-size: 30rpx; font-weight: 600; }
+.feyn-desc { font-size: 24rpx; color: #999; line-height: 1.5; }
+.switch {
+  width: 88rpx; height: 50rpx; border-radius: 25rpx; background: #d8d8de;
+  position: relative; flex-shrink: 0; transition: background .2s;
+}
+.switch.on { background: #5b5ce6; }
+.switch-dot {
+  position: absolute; top: 5rpx; left: 5rpx; width: 40rpx; height: 40rpx;
+  border-radius: 50%; background: #fff; transition: transform .2s;
+}
+.switch.on .switch-dot { transform: translateX(38rpx); }
+
+.feyn-check {
+  background: #f3f2fe;
+  border: 2rpx solid #ddd6fe;
+  border-radius: 16rpx;
+  padding: 28rpx;
+  margin-top: 24rpx;
+}
+.feyn-check-title { font-size: 30rpx; font-weight: 700; color: #5b21b6; margin-bottom: 12rpx; }
+.feyn-check-text { font-size: 28rpx; line-height: 1.65; color: #333; margin-bottom: 20rpx; }
+.btn-feyn-talk {
+  background: #5b5ce6; color: #fff; font-size: 28rpx;
+  border-radius: 12rpx; line-height: 2.4; padding: 0 32rpx;
+}
+
+.feyn-mask {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+  display: flex; align-items: flex-end; z-index: 50;
+}
+.feyn-dialog {
+  width: 100%; max-height: 88vh; background: #fff;
+  border-radius: 24rpx 24rpx 0 0; padding: 32rpx 28rpx 40rpx; box-sizing: border-box;
+  display: flex; flex-direction: column;
+}
+.feyn-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16rpx; }
+.feyn-title { font-size: 34rpx; font-weight: 700; }
+.feyn-close { font-size: 28rpx; color: #999; padding: 8rpx 12rpx; }
+.feyn-intro {
+  font-size: 25rpx; color: #666; line-height: 1.6;
+  background: #f3f2fe; border-radius: 12rpx; padding: 18rpx 20rpx; margin-bottom: 16rpx;
+}
+.feyn-em { color: #4647d8; font-weight: 600; }
+
+.feyn-log {
+  flex: 1; min-height: 300rpx; max-height: 46vh;
+  border: 2rpx solid #eee; border-radius: 16rpx;
+  background: #fcfcfe; padding: 12rpx; margin-bottom: 16rpx; box-sizing: border-box;
+}
+.feyn-msg { margin-bottom: 16rpx; }
+.feyn-me { display: flex; flex-direction: column; align-items: flex-end; }
+.feyn-who { font-size: 22rpx; color: #999; margin-bottom: 6rpx; }
+.feyn-bubble {
+  font-size: 28rpx; line-height: 1.6; padding: 18rpx 22rpx;
+  border-radius: 14rpx; background: #f1f0fe; color: #222;
+  max-width: 86%; word-break: break-word;
+}
+.feyn-me .feyn-bubble { background: #5b5ce6; color: #fff; }
+.feyn-typing { color: #999; font-style: italic; }
+.feyn-err { background: #fff1f0; color: #a8071a; }
+.feyn-err-note { display: block; font-size: 22rpx; color: #999; margin-top: 8rpx; }
+.feyn-retry {
+  display: inline-block; margin-top: 12rpx; font-size: 24rpx;
+  color: #5b5ce6; border: 2rpx solid #5b5ce6; border-radius: 8rpx; padding: 4rpx 18rpx;
+}
+
+.feyn-verdict {
+  background: #f3f2fe; border: 2rpx solid #ddd6fe;
+  border-radius: 16rpx; padding: 24rpx; margin-bottom: 16rpx;
+}
+.feyn-v-title { font-size: 30rpx; font-weight: 700; color: #5b21b6; margin-bottom: 14rpx; }
+.feyn-v-block { margin-bottom: 16rpx; }
+.feyn-v-label { font-size: 27rpx; font-weight: 600; margin-bottom: 8rpx; }
+.feyn-v-item { font-size: 27rpx; line-height: 1.6; color: #333; }
+.feyn-v-empty { font-size: 25rpx; color: #999; }
+.feyn-v-hint { font-size: 26rpx; color: #666; line-height: 1.65; }
+.feyn-v-comment {
+  font-size: 27rpx; line-height: 1.65; color: #333;
+  background: #fff; border-radius: 12rpx; padding: 18rpx 20rpx;
+}
+
+.feyn-input {
+  width: 100%; box-sizing: border-box; min-height: 150rpx;
+  font-size: 28rpx; line-height: 1.6; padding: 20rpx;
+  border: 2rpx solid #eee; border-radius: 14rpx; background: #fff; margin-bottom: 16rpx;
+}
+.feyn-btns { display: flex; gap: 20rpx; }
+.feyn-send, .feyn-finish { flex: 1; font-size: 28rpx; border-radius: 12rpx; line-height: 2.6; }
+.feyn-send { background: #5b5ce6; color: #fff; }
+.feyn-finish { background: #eee; color: #333; }
+.feyn-send[disabled], .feyn-finish[disabled] { opacity: .5; }
+
+/* 深色模式 */
+.page.dark .feyn-row,
+.page.dark .feyn-dialog { background: #252525; color: #eee; }
+.page.dark .feyn-desc,
+.page.dark .feyn-who { color: #999; }
+.page.dark .feyn-check,
+.page.dark .feyn-verdict { background: #2c2a3d; border-color: #4b4569; }
+.page.dark .feyn-check-text,
+.page.dark .feyn-v-item,
+.page.dark .feyn-v-comment { color: #ddd; }
+.page.dark .feyn-bubble { background: #333; color: #eee; }
+.page.dark .feyn-me .feyn-bubble { background: #5b5ce6; color: #fff; }
+.page.dark .feyn-log { background: #1e1e1e; border-color: #333; }
+.page.dark .feyn-intro { background: #2c2a3d; color: #bbb; }
+.page.dark .feyn-input { background: #1e1e1e; border-color: #333; color: #eee; }
+.page.dark .feyn-finish { background: #333; color: #ddd; }
+.page.dark .switch { background: #444; }
+.page.dark .switch.on { background: #5b5ce6; }

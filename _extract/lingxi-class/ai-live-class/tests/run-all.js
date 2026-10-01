@@ -26,6 +26,7 @@ const tests = [
   'gate-behavior.test.js',
   /* R17：课堂小结的"已掌握"必须有作答证据 —— 端到端跑一节真实课堂，抓真实发出的提示词 */
   'summary-evidence.test.js',
+  'feynman.test.js',
 ];
 
 let failed = 0;

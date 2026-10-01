@@ -1061,9 +1061,36 @@
         <div class="gm-text"><b>元认知提问</b><small>老师会常问"你卡在哪一步""你会怎么讲给别人听"，帮你把思路说清楚</small></div>
         <button class="switch" id="guide-meta" role="switch" aria-checked="false" aria-label="元认知提问"><span></span></button>
       </div>
+      <div class="guide-meta-row">
+        <div class="gm-text"><b>费曼学习法</b><small>老师会请你合上课件，用自己的话把概念讲给"外行"听 —— 讲不清的地方，就是没学会的地方</small></div>
+        <button class="switch" id="guide-feynman" role="switch" aria-checked="false" aria-label="费曼学习法"><span></span></button>
+      </div>
     </div>
     <div class="modal-foot">
       <button class="btn btn-primary" id="btn-guide-ok">好，就这样</button>
+    </div>
+  </div>
+</div>
+
+<!-- 「讲给我听」：费曼学习法的课后验收环节（AI 扮演完全不懂的听众） -->
+<div class="modal-mask" id="feyntalk-modal" hidden>
+  <div class="modal modal-feyntalk">
+    <div class="modal-head">
+      <h3 id="feyntalk-title">讲给我听</h3>
+      <button class="modal-close" id="btn-feyntalk-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="ft-intro">对面这位同学<b>完全没学过这门课</b>。请你合上课件，用自己的话把那节课讲给他听 ——
+        讲不清的地方，就是你其实还没懂的地方。他会一直追问到听懂为止，但<b>不会替你总结</b>。</p>
+      <div class="feyntalk-log" id="feyntalk-log"></div>
+      <div class="feyntalk-verdict" id="feyntalk-verdict"></div>
+      <div class="feyntalk-input">
+        <textarea id="feyntalk-input" rows="3" placeholder="用你自己的话讲，别照搬课本上的说法……"></textarea>
+        <div class="ft-actions">
+          <button class="btn btn-primary btn-sm" id="feyntalk-send">讲给他听</button>
+          <button class="btn btn-ghost btn-sm" id="feyntalk-finish">我讲完了，看验收</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
