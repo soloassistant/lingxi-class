@@ -97,6 +97,44 @@ const t = (label, cond) => {
     console.log('  ' + e.message);
   }
 
+  console.log('\n=== F. 费曼学习法（线上实况） ===');
+  t('F1 费曼开关存在于页面上', !!q('#guide-feynman'));
+  t('F2 默认关闭', g3f(w) === false);
+  t('F3 点一下开关 → 开启', (() => {
+    const sw = q('#guide-feynman');
+    if (sw) sw.click();
+    return w.state.feynman === true;
+  })());
+  t('F4 已写入 localStorage（刷新后还记得）', w.localStorage.getItem('lingxi_feynman') === '1');
+  t('F5 开启后提示词里出现【费曼学习法】', (() => {
+    const p = w.teacherSystemPrompt({ title: 'T', subject: '数学' });
+    return typeof p === 'string' && p.indexOf('【费曼学习法】') >= 0;
+  })());
+  t('F6 提示词里含"讲给外行听"与"不要替学生总结"两条关键要求', (() => {
+    const p = w.teacherSystemPrompt({ title: 'T', subject: '数学' });
+    return p.indexOf('讲给外行听') >= 0 && p.indexOf('绝对不要替学生总结') >= 0;
+  })());
+  t('F7 小白听众提示词可用且角色正确', (() => {
+    const p = w.feynmanListenerPrompt({ title: 'T', subject: '数学' }, {});
+    return typeof p === 'string' && p.indexOf('完全不懂') >= 0 && p.indexOf('只当听众') >= 0;
+  })());
+  t('F8 ★ 验收守卫在线上生效（讲得太少 → 清空结论）', (() => {
+    const v = w.guardFeynTalkVerdict({ explained: ['a', 'b', 'c'], skipped: ['x'] }, { turns: 1, chars: 20 });
+    return !!(v && v.explained.length === 0 && v.insufficient === true);
+  })());
+  t('F9 ★ 反向对照：讲得够多 → 原样保留（守卫不是永远清空）', (() => {
+    const v = w.guardFeynTalkVerdict({ explained: ['a', 'b', 'c'], skipped: ['x'] }, { turns: 3, chars: 300 });
+    return !!(v && v.explained.length === 3 && v.insufficient === undefined);
+  })());
+  t('F10 小结里的「讲给我听」入口能正常生成', (() => {
+    const h = w.feynTalkBlockHtml();
+    return typeof h === 'string' && h.indexOf('btn-open-feyntalk') >= 0 && h.indexOf('费曼学习法') >= 0;
+  })());
+  t('F11 「讲给我听」弹窗节点存在且初始关闭', (() => {
+    const m = q('#feyntalk-modal');
+    return !!m && m.hidden === true;
+  })());
+
   console.log('\n----------------------------------------');
   console.log('线上冒烟：通过 ' + pass + ' 项，失败 ' + fail + ' 项');
   w.close();
@@ -105,3 +143,8 @@ const t = (label, cond) => {
   console.error('冒烟脚本异常: ' + (e && e.stack || e));
   process.exit(2);
 });
+
+/* 读"费曼开关当前状态"的小工具：state 拿不到就返回 null 让断言自己报错 */
+function g3f(w) {
+  try { return w.state.feynman === true ? true : (w.state.feynman === false ? false : null); } catch (e) { return null; }
+}
