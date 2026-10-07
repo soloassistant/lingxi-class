@@ -1576,8 +1576,22 @@ setTimeout(async () => {
   t('OW8 支持拖拽与点击选择文件', /addEventListener\('drop'/.test(srcOW) && /own-paper-file/.test(htmlOW));
   t('OW9 扫描件抽不出文字时如实说明，不假装能 OCR',
     /扫描件\/图片版/.test(srcOW) && /那需要 OCR/.test(srcOW) && !/tesseract/i.test(srcOW));
-  t('OW10 明确"不存储、不公开"学生提供的材料',
-    /我们不存储、不公开/.test(srcOW) && /只在你这里用它做讲解，不存储、不公开/.test(srcOW));
+  /* ★★ 2026-10-07 改：原断言要求文案写「只在你这里用它做讲解」——那句会让学生以为
+     处理发生在本机，而实际上原文是被发给云端模型的（见 runOwnPaper 里 `'材料：\n' + text`）。
+     现在改成要求**说清真相**：明确"原文会发送给 AI 模型处理"，且不得再出现
+     暗示本地处理的「只在你这里」。
+     ⚠️ 否定断言只扫**页脚那一段字符串**，不扫整个 app.js —— 源码注释里正当地引用了反面
+     措辞（"不能写成我们不上传"），扫全文会把警告本身判成违规（这个坑本项目踩过不止一次）。 */
+  t('OW10 如实说明「讲解时原文会发给模型处理」且不留存', (() => {
+    const m = srcOW.match(/'<p class="pp-foot">([^']*)<\/p>'/);
+    const foot = m ? m[1] : '';
+    return !!foot &&
+      /发送给 AI 模型处理/.test(foot) &&
+      /不留存、不公开/.test(foot) &&
+      !/只在你这里/.test(foot);
+  })());
+  t('OW10b 仍明确对学生材料"不存储、不公开"（版权前提不能丢）',
+    /我们不存储、不公开/.test(srcOW));
   t('OW11 讲解模式输出知识点/思路/步骤/扣分点/优先补强',
     /"topics"/.test(srcOW) && /"trap"/.test(srcOW) && /最值得优先补的/.test(srcOW));
   t('OW12 变式模式明确"不得照抄原题"',
@@ -1659,9 +1673,23 @@ setTimeout(async () => {
   /* 存储写失败必须说出来 —— 这个项目里"存储满静默失败导致课程丢失"已经踩过一次 */
   t('BK9 存储写失败时返回明确原因（不静默）',
     /localStorage 存储空间满了|浏览器存储空间满了/.test(srcBK) && /function saveBank[\s\S]{0,400}return \{ ok: false/.test(srcBK));
-  t('BK10 合规：题库只存本机、不上传不分发',
-    /只存在你这台设备的浏览器里/.test(htmlBK) && /不上传、不公开、不分发/.test(htmlBK) &&
-    /只存在他自己的浏览器里/.test(srcBK));
+  /* ★★ 2026-10-07 改：原断言把「不上传」当成合规标志钉住了 —— 但那句话**不成立**：
+     拆题（doSplitToBank）会把整份卷子原文拼进 prompt 发给云端模型。
+     只删掉旧断言是不够的（那会让文案悄悄退回错误表述、而测试照样绿），
+     所以改成"两条都要"：既要求**如实说明原文会发给 AI**，也要求用户可见文案里
+     **不得出现笼统的否认**。
+     ⚠️ 否定断言只扫 .bank-legal 那段**用户可见**文本，不扫整个 index.html ——
+     注释里正当地引用了反面措辞，扫全文会把警告本身判成违规。 */
+  t('BK10 合规：题库只存本机，且如实说明「原文会发给 AI 处理」', (() => {
+    const m = htmlBK.match(/<div class="bank-legal"[^>]*>([\s\S]*?)<\/div>/);
+    const visible = m ? m[1] : '';
+    return !!visible &&
+      /只存在你这台设备的浏览器里/.test(visible) &&
+      /卷子原文会发送给 AI 老师处理/.test(visible) &&
+      !/不上传/.test(visible) &&
+      !/没拿到过/.test(visible) &&
+      /只存在他自己的浏览器里/.test(srcBK);
+  })());
   t('BK11 题库视图，且桌面导航与移动导航里都有入口',
     /id="view-bank"/.test(htmlBK) &&
     /<nav class="nav-links">[\s\S]*?data-nav="bank"[\s\S]*?<\/nav>/.test(htmlBK) &&

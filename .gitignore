@@ -2,6 +2,12 @@
 # 我的验证与审计脚手架：探针脚本、截图、日志（约 6.6M / 598 个文件）
 /_extract/_authtest/
 
+# 应用目录里的开发脚手架（同类：变异验证 harness、云端接口探针）。
+# 它们都落在**发布目录的顶层**，既不该进仓库、也不该跟着站点被公开托管。
+# 若想把变异验证长期留档，更合适的做法是改名放进 tests/ 再提交。
+/_extract/lingxi-class/ai-live-class/_mut-check.js
+/_extract/lingxi-class/ai-live-class/tools/probe-cloud-api.js
+
 # 生成的课件 pptx（约 2.9M）
 /_extract/lingxi-class/ai-live-class/_quality/
 
