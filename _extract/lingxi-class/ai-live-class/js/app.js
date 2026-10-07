@@ -3166,7 +3166,9 @@ function toggleTTS(on) {
   if (btn) {
     btn.classList.toggle('active', TTS.enabled);
     btn.querySelector('.mt-ico').textContent = TTS.enabled ? '🔊' : '🔈';
-    btn.querySelector('.mt-label').textContent = TTS.enabled ? '朗读中' : '语音';
+    /* ★ 2026-10-05：这里原来写 `TTS.enabled ? '朗读中' : '语音'` —— 于是只要用户开着朗读，
+       标签就永远写「朗读中」，哪怕老师一个字都没在说，排查"老师没声音"时会被带偏。
+       开/关只由图标（🔊/🔈）和 .active 表示；「朗读中」改由 setSpeakingUI() 按真实发声事件驱动。 */
   }
   try { localStorage.setItem('lingxi_tts', TTS.enabled ? '1' : '0'); } catch (_) {}
   if (!TTS.enabled) { stopSpeech(); toast('已关闭语音朗读'); return; }
@@ -3200,13 +3202,15 @@ function restoreTTSPref() {
   syncVoiceBtn();
 }
 
-/* 语音按钮状态同步（TTS.enabled → 按钮外观），空元素安全 */
+/* 语音按钮状态同步（TTS.enabled → 按钮外观），空元素安全
+   ⚠️ 「朗读中」不在这里 —— 它由 setSpeakingUI() 按**真实发声**驱动。
+   这里只在"当前没在说话"时把标签复位，避免同步外观时把「朗读中」误抹掉。 */
 function syncVoiceBtn() {
   const btn = $('#tb-voice');
   if (!btn) return;
   btn.classList.toggle('active', TTS.enabled);
   const ico = btn.querySelector('.mt-ico'); if (ico) ico.textContent = TTS.enabled ? '🔊' : '🔈';
-  const lb = btn.querySelector('.mt-label'); if (lb) lb.textContent = TTS.enabled ? '朗读中' : '语音';
+  const lb = btn.querySelector('.mt-label'); if (lb && !TTS.speaking) lb.textContent = '语音';
 }
 
 /* 语音可用性自检。
@@ -3750,7 +3754,23 @@ function ensureVoiceReady() {
     };
     setTimeout(() => {
       const h2 = ttsHealth();
-      notifyTTSProblem(h2.reason === 'ok' ? 'silent' : h2.reason);
+      /* ★ 2026-10-05 修：原来这里是 `notifyTTSProblem(h2.reason === 'ok' ? 'silent' : h2.reason)`，
+         把"音色列表异步就绪、等了 1.8 秒其实已经好了"也报成 `silent`。
+         而 `silent` 的文案是「朗读指令发出去了，但语音引擎没有出声」——
+         这条路径**从未发出过任何朗读指令**，所以那句话与事实相反，还会把排查带偏
+         （用户被告知"设备没出声"，实际设备是好的）。
+         设备没问题就不该报：把音色用起来，静默恢复即可。
+         ⚠️ 别顺手改掉 speakOne 里那个 1.5s 看门狗报的 `silent` —— 那里确实已经调过
+            window.speechSynthesis.speak(u)，报 `silent` 是正确的。 */
+      if (h2.reason === 'ok') {
+        if (!ttsPrefOff()) {
+          TTS.voice = TTS.voice || pickVoice();   // 只报 ok 不代表 TTS.voice 已选好，这里补齐
+          TTS.enabled = true;
+          syncVoiceBtn();
+        }
+        return;
+      }
+      notifyTTSProblem(h2.reason);
     }, 1800);
     return;
   }
@@ -3878,6 +3898,12 @@ function setSpeakingUI(on) {
   // 参会者列表里的老师状态
   const badge = $('#p-teacher-state');
   if (badge) badge.textContent = on ? '正在讲话' : '主讲 · AI 教师';
+  /* ★ 2026-10-05 加：工具栏语音按钮的标签跟**真实发声**走。
+     原来标签按 TTS.enabled 写死「朗读中」，只要开关开着就一直显示"在朗读"，
+     排查"老师没声音"时会把人带偏 —— 这个函数才是"此刻到底在不在说"的权威信号
+     （drainSpeechQueue 开头 true、finally 与 stopSpeech 里 false）。 */
+  const lb = document.querySelector('#tb-voice .mt-label');
+  if (lb) lb.textContent = on ? '朗读中' : '语音';
 }
 
 /* ============================================================
@@ -8583,6 +8609,12 @@ async function startLive(course) {
   }
 
   state.live.timerInt = setInterval(() => {
+    /* 防御：本回调按闭包读全局 state.live，而任何"直接覆盖/置空 state.live"
+       的路径都会让本定时器变成无人认领的孤儿（它的句柄在被覆盖的那个对象上，
+       clearInterval 再也拿不到），之后每秒抛一次 TypeError。
+       产品里目前只有 startLive 建、endLiveSilent 清这一条路径，不会泄漏；
+       但测试里会直接覆盖 state.live，所以这里加一道判空，避免噪音掩盖真问题。 */
+    if (!state.live) return;
     state.live.seconds += 1;
     $('#live-timer').textContent = fmtTime(state.live.seconds);
   }, 1000);

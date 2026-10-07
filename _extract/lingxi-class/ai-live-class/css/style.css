@@ -1117,15 +1117,19 @@ main { max-width: 1160px; margin: 0 auto; padding: 0 24px 40px; }
    开屏动画（2026-09-24）
    ★ 纯 HTML+CSS，不含任何内联脚本 —— 本页 CSP 没有 unsafe-inline，
      内联脚本会被静默拦掉（踩过），所以"何时关闭"由两件事决定：
-       ① CSS 兜底：7 秒后无条件淡出（app.js 挂了也不会永久遮屏）
+       ① CSS 兜底：30 秒后无条件淡出（app.js 挂了也不会永久遮屏）
+          ★ 2026-10-05 由 7s 改为 30s：实测冷启动（网关未压缩 + 未缓存，主包 680KB）
+            约需 50 秒，7 秒就撤开屏会把用户丢在"空壳页 + AI 连接中"上，比多等一会儿糟糕。
+            兜底的本意是"app.js 真挂了也不永久遮屏"，所以没有跟着放到 50s（那等于拆掉安全网）。
+            等第 1 项（网关 gzip + 缓存）生效、冷启动降到 10s 内，30s 就自然合适了。
        ② JS 提前收：init() 就绪后调 hideSplash()，通常 1-3 秒就收掉
    ============================================================ */
 .splash {
   position: fixed; inset: 0; z-index: 999;
   display: flex; align-items: center; justify-content: center;
   background: linear-gradient(160deg, #F7F8FC 0%, #EEF1FF 55%, #E9ECFF 100%);
-  /* 兜底自动淡出：即使 JS 从未执行，也会在 7 秒后消失并让出点击 */
-  animation: splash-auto-out 0.55s ease 7s forwards;
+  /* 兜底自动淡出：即使 JS 从未执行，也会在 30 秒后消失并让出点击（原为 7 秒，见上方说明） */
+  animation: splash-auto-out 0.55s ease 30s forwards;
 }
 @keyframes splash-auto-out {
   to { opacity: 0; visibility: hidden; pointer-events: none; }
@@ -1177,7 +1181,7 @@ main { max-width: 1160px; margin: 0 auto; padding: 0 24px 40px; }
   .splash, .splash-logo, .splash-name, .splash-sub, .splash-dots, .splash-dots i, .splash-tip {
     animation-duration: 0.01ms !important; animation-delay: 0ms !important;
   }
-  .splash { animation: splash-auto-out 0.01s linear 2s forwards !important; }
+  .splash { animation: splash-auto-out 0.01s linear 15s forwards !important; }
 }
 
 /* 跳到主内容：平时移出视口，Tab 聚焦时滑入。键盘用户不必穿过整个顶栏。

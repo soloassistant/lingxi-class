@@ -727,8 +727,14 @@ setTimeout(async () => {
     const block = htmlSplash.slice(i - 400, i + 900);
     return block.indexOf('<script') < 0;
   })());
-  t('SP2 CSS 有自动淡出兜底（app.js 挂了也不能永久遮屏）',
-    /animation: splash-auto-out 0\.55s ease 7s forwards/.test(cssSplash));
+  /* ★ 2026-10-05：兜底延时由 7s 改为 30s（实测冷启动约 50s，7s 就撤开屏会把用户丢在
+     "空壳页 + AI 连接中"上）。断言因此**不再锚定那个秒数** —— 否则每调一次这个值就要
+     改一次测试，而真正要守的是"必须有一个足够长的兜底"。改成断"存在兜底且延时 ≥ 10s"，
+     这样回退到 7s（或写成 0s）都会被抓住，正常调参不会误报。 */
+  t('SP2 CSS 有自动淡出兜底，且延时够长（app.js 挂了也不能永久遮屏）', (() => {
+    const m = cssSplash.match(/animation: splash-auto-out 0\.55s ease (\d+(?:\.\d+)?)s forwards/);
+    return !!m && Number(m[1]) >= 10;
+  })(), '实际: ' + (cssSplash.match(/animation: splash-auto-out 0\.55s ease \S+ forwards/) || ['未找到'])[0]);
   t('SP3 JS 就绪后会提前收（init 末尾调 hideSplash）',
     /try \{ hideSplash\(\); \} catch/.test(srcSplash) && /function hideSplash\(\)/.test(srcSplash));
   t('SP4 收尾会把开屏彻底移除（不再占点击层）',
@@ -736,6 +742,15 @@ setTimeout(async () => {
   t('SP5 重复调用安全（dataset.done 幂等）', /if \(!el \|\| el\.dataset\.done\) return;/.test(srcSplash));
   t('SP6 装饰性内容对读屏隐藏', /class="splash" id="splash" aria-hidden="true"/.test(htmlSplash));
   t('SP7 尊重"减少动效"偏好', /@media \(prefers-reduced-motion: reduce\)[\s\S]{0,600}?splash/.test(cssSplash));
+  /* ★ 2026-10-05 加：reduced-motion 分支里还有**第二处**兜底延时（原来 2s）。
+     上面 SP2 只看主规则，所以单独改这一行时不会有任何断言变红 —— 变异测试实测的缺口。 */
+  t('SP7b reduced-motion 分支的兜底也够长（那条分支会缩短所有动画，别把兜底一起缩短）', (() => {
+    const i = cssSplash.indexOf('prefers-reduced-motion: reduce');
+    if (i < 0) return false;
+    const seg = cssSplash.slice(i, i + 700);
+    const m = seg.match(/\.splash\s*\{\s*animation:\s*splash-auto-out\s+\S+\s+\S+\s+(\d+(?:\.\d+)?)s/);
+    return !!m && Number(m[1]) >= 10;
+  })(), '实际: ' + ((cssSplash.slice(cssSplash.indexOf('prefers-reduced-motion: reduce')).match(/\.splash\s*\{[^}]*\}/) || ['未找到'])[0]));
   t('SP8 开屏在 body 最前（先于页面内容出现）',
     htmlSplash.indexOf('id="splash"') < htmlSplash.indexOf('<header class="nav">'));
 
@@ -2429,6 +2444,166 @@ setTimeout(async () => {
   try { window.endLiveSilent(); t('endLiveSilent 无异常', true); }
   catch (e) { t('endLiveSilent 无异常', false, e.message); }
 
-  console.log('\n结果: ' + pass + ' 通过 / ' + fail + ' 失败');
-  process.exit(fail ? 1 : 0);
+  console.log('\n=== 49. 外部审查施工单（2026-10-05）里的三条前端修复 ===');
+  /* 施工单来路：外部审查 9 项，其中 1/2/4/6 属网关侧，5/7/8/9 在前端。这里覆盖后四条。
+     每条都做成**行为断言或反向断言**，不写成"存在某字符串"（那种断言改坏也常常全绿）。 */
+
+  /* ── 项 7：工具栏「朗读中」必须跟真实发声走，不能跟开关走 ──
+     原缺陷：toggleTTS / syncVoiceBtn 里都写 `TTS.enabled ? '朗读中' : '语音'`，
+     只要用户开着朗读就一直显示"在朗读"，哪怕老师一个字都没说。
+     ★ 这条测试的价值在于"开关开着但没发声"这个状态能被区分出来。 */
+  const vBtn = document.querySelector('#tb-voice');
+  t('V1 前置：工具栏语音按钮与它的标签在 DOM 里', !!vBtn && !!vBtn.querySelector('.mt-label'));
+  t('V2 反向：开关态不再直接决定「朗读中」（全仓库没有 `TTS.enabled ? 朗读中` 这类赋值）',
+    /* ★ 这条要写得够宽：原来只锚定 `querySelector('.mt-label').textContent = TTS.enabled ? ...`
+       这一种写法，而 syncVoiceBtn 里那处是 `if (lb) lb.textContent = ...`（先取变量再赋），
+       改回去时**不会**命中 —— 变异测试实测的缺口。改成断"这种映射关系在源码里根本不存在"。 */
+    !/TTS\.enabled\s*\?\s*'朗读中'/.test(srcNC));
+  if (vBtn) {
+    try { window.localStorage.removeItem('lingxi_tts'); } catch (_) {}
+    window.toggleTTS(true);
+    t('V3 只打开开关、还没发声时，标签不是「朗读中」',
+      vBtn.querySelector('.mt-label').textContent !== '朗读中',
+      '实际=' + vBtn.querySelector('.mt-label').textContent);
+    window.setSpeakingUI(true);
+    t('V4 真实开始发声 → 标签变「朗读中」',
+      vBtn.querySelector('.mt-label').textContent === '朗读中',
+      '实际=' + vBtn.querySelector('.mt-label').textContent);
+    window.setSpeakingUI(false);
+    t('V5 发声结束 → 标签回到「语音」',
+      vBtn.querySelector('.mt-label').textContent === '语音',
+      '实际=' + vBtn.querySelector('.mt-label').textContent);
+    window.setSpeakingUI(true);
+    window.toggleTTS(false);
+    t('V6 关闭朗读后不残留「朗读中」（否则又变成误导）',
+      vBtn.querySelector('.mt-label').textContent === '语音',
+      '实际=' + vBtn.querySelector('.mt-label').textContent);
+    t('V7 开关态仍由图标表示（开着 🔊 / 关着 🔈），没有把状态一起弄丢', (() => {
+      const ico = vBtn.querySelector('.mt-ico');
+      return !!ico && ico.textContent === '🔈';   // 上一步刚 toggleTTS(false)
+    })(), '实际=' + (vBtn.querySelector('.mt-ico') || {}).textContent);
+  }
+
+  /* ── 项 8：登录弹窗的「（老师不会记住你）」不能变成孤儿文案 ──
+     原缺陷：括注是 <a> 之后的**裸文本节点**，而 setGateBypassesHidden(true) 只给 <a> 加 hidden，
+     文本节点不受影响 → 门禁态下弹窗里只剩一句孤立的「（老师不会记住你）」。 */
+  const skipA = document.querySelector('#au-skip');
+  t('N1 前置：访客入口 anchor 存在', !!skipA);
+  t('N2 括注在 anchor 内部（隐藏 anchor 时会一起消失）',
+    !!skipA && /老师不会记住你/.test(skipA.textContent),
+    'anchor 文本=' + (skipA ? JSON.stringify(skipA.textContent) : 'null'));
+  t('N3 段落的**裸文本节点**里不再有括注（这正是原缺陷的形态）', (() => {
+    if (!skipA) return false;
+    const p = skipA.closest('p');
+    if (!p) return false;
+    let bare = '';
+    p.childNodes.forEach((n) => { if (n.nodeType === 3) bare += n.nodeValue; });
+    return !/老师不会记住你/.test(bare);
+  })());
+
+  /* ── 项 9：`silent` 不能被"音色列表异步就绪"误报 ──
+     原缺陷：ensureVoiceReady 的 1.8s 兜底把 `h2.reason === 'ok'` 映射成
+     notifyTTSProblem('silent')，而 silent 的文案是「朗读指令发出去了，但语音引擎没有出声」——
+     这条路径**从未发出任何朗读指令**。设备其实是好的，不该报。 */
+  t('S1 源码里不再把 ok 映射成 silent（注释已剥离，避免断言打在自己的说明文字上）',
+    !/notifyTTSProblem\([^)]*'ok'[^)]*'silent'/.test(srcNC));
+  t('S2 ensureVoiceReady 的 ok 分支是"静默恢复语音"，而不是报问题', (() => {
+    const m = srcNC.match(/function ensureVoiceReady\(\)\s*\{[\s\S]*?\n\}/);
+    if (!m) return false;
+    const body = m[0];
+    const i = body.indexOf("if (h2.reason === 'ok')");
+    if (i < 0) return false;
+    /* ★ 必须把切片**精确到那个分支的花括号**，不能拍一个固定宽度：
+       先写成 slice(i, i+320)，结果把分支后面那句 `notifyTTSProblem(h2.reason);`
+       也包了进去，"分支里没有 notifyTTSProblem" 于是恒假 —— 断言自己写错了。
+       花括号配平在这个分支里是安全的（没有字符串/模板串含花括号）。 */
+    const open = body.indexOf('{', i);
+    if (open < 0) return false;
+    let depth = 0, j = open;
+    for (; j < body.length; j++) {
+      if (body[j] === '{') depth++;
+      else if (body[j] === '}') { depth--; if (depth === 0) break; }
+    }
+    const seg = body.slice(i, j + 1);
+    return /TTS\.enabled = true/.test(seg) && !/notifyTTSProblem/.test(seg);
+  })(), '分支切片=' + JSON.stringify((() => {
+    const m = srcNC.match(/function ensureVoiceReady\(\)\s*\{[\s\S]*?\n\}/);
+    if (!m) return '函数未匹配';
+    const body = m[0];
+    const i = body.indexOf("if (h2.reason === 'ok')");
+    if (i < 0) return 'ok 分支未找到';
+    const open = body.indexOf('{', i);
+    let depth = 0, j = open;
+    for (; j < body.length; j++) {
+      if (body[j] === '{') depth++;
+      else if (body[j] === '}') { depth--; if (depth === 0) break; }
+    }
+    return body.slice(i, j + 1);
+  })()));
+  t('S3 反向：speakOne 里那个看门狗报的 silent 必须**保留**（那里确实调过 speak()）',
+    /if \(started \|\| settled\) return;[\s\S]{0,200}?notifyTTSProblem\('silent'\)/.test(srcNC));
+
+  /* ── 附加（非施工单 9 项，本次顺手加的防御）：课堂计时器对 state.live 置空要有防护 ──
+     起因：本文件有几处直接 `window.state.live = {...}` 覆盖对象，把 timerInt 句柄丢掉，
+     于是计时器变成孤儿，离场后每秒抛一次 `Cannot read properties of null`。
+     产品里只有 startLive 建 / endLiveSilent 清一条路径，不会泄漏 —— 属防御性加固。 */
+  t('LT1 课堂计时器对 state.live 被置空有防护（避免孤儿定时器每秒抛错）',
+    /state\.live\.timerInt = setInterval\(\(\) => \{[\s\S]{0,500}?if \(!state\.live\) return;/.test(srcNC));
+
+  /* 行为验证：先让 getVoices 返回空（走 no_voice 分支），在 1.8s 兜底触发前把音色补上。
+     此时设备其实是好的 → 不该弹出任何"没出声"的提示。
+
+     ★★ 这段第一版是**假绿**，被变异测试抓到（把 ok→silent 的错误映射改回去，它照样 PASS）。
+        连修两轮才修对，两个原因都值得记：
+         ① 我查的字面量是 `朗读指令发出去了` —— 那是 `ttsNoticeTip()`（常驻提示正文）的文案；
+            而 `notifyTTSProblem('silent')` 弹出的 **toast** 文案是
+            「老师的声音没能出来：**点一下屏幕任意处**就会重新试一次…」。查错字符串 ⇒ 恒真。
+         ② 第二轮我改成查 toast 文案，**又没咬住** —— 因为 `notifyTTSProblem` 里有
+            `if (ttsNotified === reason) return;` 的**去重**：前序测试已经把 ttsNotified 置成
+            'silent' 了，于是本次根本不发 toast，而"没有坏 toast"自然恒真。
+            ⇒ 教训：**"不存在某坏东西"型断言一定要配一个正向对照**，否则被断言的东西
+              只要"根本没发生"，断言就永远通过。
+        所以现在：断言打在 `#tts-notice`（`showTTSNotice` 在去重**之前**调用，只要报了就一定动它），
+        用一个哨兵标题来探测"它有没有被动过"；再加一条**正向对照**（故意报一次，确认这套探测真的有效）。 */
+  const ttsNoticeEl = document.querySelector('#tts-notice');
+  const ttsNoticeTitle = document.querySelector('#tts-notice-title');
+  const SENTINEL = '__SENTINEL_NOT_TOUCHED__';
+  if (ttsNoticeEl) ttsNoticeEl.hidden = true;      // 清干净，只观察本次
+  if (ttsNoticeTitle) ttsNoticeTitle.textContent = SENTINEL;
+
+  const voiceStub = window.speechSynthesis;
+  const origGetVoices = voiceStub.getVoices;
+  voiceStub.getVoices = () => [];
+  try { window.localStorage.removeItem('lingxi_tts'); } catch (_) {}
+  try { window.ensureVoiceReady(); } catch (_) {}
+  /* 前置：确认真的进了 no_voice 分支 —— 否则兜底那段代码根本没执行，
+     后面的"没报错"是空测（ensureVoiceReady 会因为 !TTS.supported 之类直接 return）。 */
+  t('S4a 前置：ensureVoiceReady 确实走了 no_voice 分支（兜底逻辑被触发）',
+    typeof voiceStub.onvoiceschanged === 'function');
+  voiceStub.getVoices = () => [{ name: 'Xiaoxiao', lang: 'zh-CN' }];   // 兜底到点前音色就绪
+  setTimeout(() => {
+    voiceStub.getVoices = origGetVoices;
+    t('S4 行为：音色只是异步就绪时，常驻提示不得被显示（hide 状态不得被改成显示）',
+      !!ttsNoticeEl && ttsNoticeEl.hidden === true,
+      'tts-notice.hidden=' + (ttsNoticeEl ? ttsNoticeEl.hidden : '元素不存在'));
+    t('S5 行为：同上，常驻提示的标题不得被动过（哨兵值应原样保留）',
+      !!ttsNoticeTitle && ttsNoticeTitle.textContent === SENTINEL,
+      '标题=' + JSON.stringify(ttsNoticeTitle ? ttsNoticeTitle.textContent : '元素不存在'));
+    t('S6 行为：设备其实是好的，朗读应当被自动打开（设备好却保持静音等于白等）',
+      /* ttsPrefOff() 为真时不该自动开 —— 本用例刚清过 localStorage，所以这里应看到已开启 */
+      !!document.querySelector('#tb-voice') &&
+      document.querySelector('#tb-voice .mt-ico').textContent === '🔊',
+      '图标=' + document.querySelector('#tb-voice .mt-ico').textContent);
+    /* ★ 正向对照：故意真报一次问题，确认上面那套探测**确实能发现"被报了"**。
+       没有这一条，S4/S5 就可能因为"元素不存在/永远不动"而恒真 —— 这正是上一轮栽的地方。 */
+    try { window.notifyTTSProblem('silent'); } catch (_) {}
+    t('S7 对照：真的报一次问题时，上面那套探测必须能看见（否则 S4/S5 是空测）',
+      !!ttsNoticeEl && ttsNoticeEl.hidden === false && !!ttsNoticeTitle &&
+      ttsNoticeTitle.textContent !== SENTINEL,
+      'hidden=' + (ttsNoticeEl ? ttsNoticeEl.hidden : '?') +
+      ' 标题=' + JSON.stringify(ttsNoticeTitle ? ttsNoticeTitle.textContent : '?'));
+
+    console.log('\n结果: ' + pass + ' 通过 / ' + fail + ' 失败');
+    process.exit(fail ? 1 : 0);
+  }, 1950);
 }, 500);
