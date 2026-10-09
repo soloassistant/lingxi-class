@@ -11,8 +11,8 @@
        开发依赖一起公开托管**（`_quality/` 里是 14 个真实课件 .pptx，平台还开着目录列表）。
 
    用法：
-     node scripts/publish-guard.js prepare   # 发布前：**先自动构建压缩产物**，再把自有开发文件移出并打清单
-     node scripts/publish-guard.js verify    # 发布前：确认发布目录里只剩运行所需文件、且产物在位
+     node scripts/publish-guard.js prepare   # 发布前：**先自动构建压缩产物**，再补齐影子占位，再把自有开发文件移出并打清单
+     node scripts/publish-guard.js verify    # 发布前：确认发布目录里只剩运行所需文件、且产物与影子占位在位
      node scripts/publish-guard.js restore   # 发布后：搬回来，并逐字节校验
      node scripts/publish-guard.js status    # 任何时候：看当前处于哪一态
      node scripts/publish-guard.js build     # 只跑构建（等价 npm run build）
@@ -44,8 +44,38 @@ const { execFileSync } = require('child_process');
 /* 分类清单（MOVE / KEEP / ALLOW_EXTRA / SHADOW / allowedTopLevel）抽在 ./publish-config.js，
    与 tests/publish-surface.test.js 共用同一份数据 —— 避免"护栏放宽了但没人发现"。 */
 const {
-  ROOT, APP, HOLD, MANIFEST, MOVE, KEEP, ALLOW_EXTRA, SHADOW, allowedTopLevel,
+  ROOT, APP, HOLD, MANIFEST, MOVE, KEEP, ALLOW_EXTRA, SHADOW, SHADOW_PLACEHOLDER, allowedTopLevel,
 } = require('./publish-config');
+
+/* 确保每个 SHADOW 目录里都有影子占位页 —— 缺目录就建、缺文件就写。
+   ★ 为什么必须**自动生成**而不是依赖仓库里存着（2026-10-09）：
+     `_quality/` 是 gitignore 的 ⇒ 新克隆里没有这个目录、也没有占位页 ⇒
+     照文档发布时这一条遮蔽是**静默失效**的（线上目录列表照旧）。
+     内容收敛在 publish-config.js 的 SHADOW_PLACEHOLDER，这里只负责落盘。
+   ★ 必须在 moveOut **之前**跑：moveOut 会遍历目录内容，占位要先就位才能被"留下"。 */
+function ensureShadow() {
+  const created = [];
+  for (const dir of Object.keys(SHADOW)) {
+    for (const f of SHADOW[dir]) {
+      const p = path.join(APP, dir, f);
+      if (fs.existsSync(p)) {
+        /* 已存在但内容不符 ⇒ 按权威内容改写。
+           ⚠ 不静默接受旧内容：占位页一旦被人改写成含内部信息的版本就会公开泄露。 */
+        const cur = fs.readFileSync(p, 'utf8');
+        if (cur !== SHADOW_PLACEHOLDER) {
+          fs.writeFileSync(p, SHADOW_PLACEHOLDER);
+          created.push(dir + '/' + f + '（内容不符，已按权威内容改写）');
+        }
+        continue;
+      }
+      fs.mkdirSync(path.dirname(p), { recursive: true });
+      fs.writeFileSync(p, SHADOW_PLACEHOLDER);
+      created.push(dir + '/' + f + '（缺失，已生成）');
+    }
+  }
+  if (created.length) log('· 影子占位已就位：\n    ' + created.join('\n    '));
+  else log('· 影子占位 ' + Object.keys(SHADOW).length + ' 个目录均在位');
+}
 
 /* 把某个 MOVE 项移出发布目录。带 SHADOW 的目录只移走非影子内容，目录本身留下。 */
 function moveOut(entry) {
@@ -176,7 +206,11 @@ if (mode === 'status') {
   for (const [dir, files] of Object.entries(SHADOW)) {
     for (const f of files) {
       const p = path.join(APP, dir, f);
-      log('影子占位 ' + dir + '/' + f + ' : ' + (fs.existsSync(p) ? '在位（随发布上传）' : '★ 缺失'));
+      let s;
+      if (!fs.existsSync(p)) s = '★ 缺失（prepare 会补齐）';
+      else if (fs.readFileSync(p, 'utf8') !== SHADOW_PLACEHOLDER) s = '★ 内容不符（prepare 会校正）';
+      else s = '在位且内容正确（随发布上传）';
+      log('影子占位 ' + dir + '/' + f + ' : ' + s);
     }
   }
   log(inApp.length && !inHold.length
@@ -189,6 +223,7 @@ if (mode === 'status') {
 
 if (mode === 'prepare') {
   runBuild();          // ← 先构建再移出：构建依赖 tools/ 与 node_modules，必须在它们被搬走前跑
+  ensureShadow();      // ← 再补齐影子占位：必须在 moveOut 之前（moveOut 要"留下"它们）
   if (!fs.existsSync(HOLD)) fs.mkdirSync(HOLD, { recursive: true });
   const moved = [];
   for (const f of MOVE) {
@@ -242,13 +277,21 @@ if (mode === 'verify') {
       + '\n  原因：发布目录同时是 git 工作区，任何新增产物默认都会跟着上传（fail-open）。'
       + '\n  处置：二选一 —— 加进 MOVE（开发文件，发布前移出）或 KEEP / ALLOW_EXTRA（运行所需，允许上传）。');
   }
-  /* 影子占位文件必须在位，否则这次发布不会顶掉目录索引页 */
+  /* 影子占位必须**在位且内容正确**，否则这次发布不会顶掉目录索引页 —— 静默失效。
+     ★ 升级为 die()（2026-10-09）：以前只是打一行 ⚠ 就继续，等于"看着已处理、实际漏了"。
+       现在 prepare 会 ensureShadow() 自动补齐，所以走到这里还缺失就是真出了问题。
+     ★ 同时校验**内容**：占位页是公开发布的，被人改写成含内部信息的版本就是一次泄露。 */
+  const shadowBad = [];
   for (const [dir, files] of Object.entries(SHADOW)) {
     for (const f of files) {
-      if (!fs.existsSync(path.join(APP, dir, f))) {
-        log('\n⚠ 影子占位缺失：' + dir + '/' + f + ' —— 这次发布不会遮蔽 /' + dir + '/ 的目录索引页。');
-      }
+      const p = path.join(APP, dir, f);
+      if (!fs.existsSync(p)) { shadowBad.push(dir + '/' + f + ' 缺失（本次发布不会遮蔽 /' + dir + '/）'); continue; }
+      if (fs.readFileSync(p, 'utf8') !== SHADOW_PLACEHOLDER) shadowBad.push(dir + '/' + f + ' 内容与权威占位页不一致');
     }
+  }
+  if (shadowBad.length) {
+    die('影子占位检查未通过：\n    ' + shadowBad.join('\n    ')
+      + '\n  处置：跑一次 prepare（会自动补齐并校正内容），再重跑 verify。');
   }
   assertArtifacts();
   log('\n✓ 发布目录干净：只剩运行所需文件，且 ' + KEEP.join(' / ') + ' 都在。');

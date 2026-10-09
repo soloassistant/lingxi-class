@@ -56,9 +56,57 @@ const ALLOW_EXTRA = ['.gitattributes', 'robots.txt', 'sitemap.xml'];
      把 14 个课件文件名全列出来了（内容已占位为 35B，但**清单**仍暴露，
      还暴露了内部命名不统一）。对象存储下无法"禁止列表"，
      唯一办法是在**原路径**放一个 index.html 把目录页顶掉。
-   ★ 所以 `_quality` 不能再整个移走 —— 移走就传不上去，等于没放。
-     这里的语义是：只移出该目录里**除影子文件以外**的内容。 */
-const SHADOW = { '_quality': ['index.html'] };
+   ★ 所以这些目录不能再整个移走 —— 移走就传不上去，等于没放。
+     这里的语义是：只移出该目录里**除影子文件以外**的内容。
+
+   ★ 2026-10-09 扩到 4 个目录：线上仍残留**历史部署**的目录列表（平台是覆盖式部署，
+     本地删文件不会让线上消失）。实测线上：
+       /sql/          → 200，列出 001_device_ledger.sql / 002_phone_ledger_and_risk_queries.sql
+                        （**最有价值的一条**：暴露表命名与"设备台账 / 手机号台账与风控"业务推断）
+       /tests/        → 200，列出 28 个测试文件名
+       /tools/        → 200，列出 13 个工具脚本名
+     补一个 index.html 顶掉即可 —— 首发之后线上会一直保留（覆盖式部署的"好处"）。
+     ⚠ 占位页本身是**公开发布**的，里面绝不能写内部信息。
+
+   ★★ 为什么**没有** `node_modules`（2026-10-09 实测）：发布工具**按目录名排除**
+      `node_modules` / `.git` / 构建产物，占位文件**永远传不上去**。
+     实证：prepare 后本地 `node_modules/` 只剩 index.html 且 verify 通过，
+     但线上 `GET /node_modules/index.html` → **404**，`GET /node_modules/` → 200 目录列表（1777 B）。
+     ⇒ 把它写进 SHADOW 是个**假承诺**：verify 会打印"影子占位目录（只上传 index.html）"，
+       让人以为已处理，实际什么都没发生。所以它只留在 MOVE 里（整个目录移出）。
+     ⚠ 这条**是已知残留**：线上 `/node_modules/` 的目录列表**经由本发布通道无法消除**
+       （内容仅为依赖名：jsdom / css-tree / decimal.js …，信息量低，
+        不含业务逻辑、表名或凭据）。除非平台换发布形态，否则无解 —— 别再试。 */
+const SHADOW = {
+  '_quality': ['index.html'],
+  'sql': ['index.html'],
+  'tests': ['index.html'],
+  'tools': ['index.html'],
+};
+
+/* ── 影子占位页的**唯一权威内容** ─────────────────────────────────────
+   ★ 为什么放在这里而不是让各目录各存一份（2026-10-09）：
+     占位页必须存在于**发布目录内**才能被上传，但 `_quality/` 是 gitignore 的
+     ⇒ 新克隆根本没有这个目录，也就没有占位页 ⇒ 这条遮蔽对"别人克隆后发布"是失效的。
+     与其去改 .gitignore（易误伤别的 index.html），不如把内容收敛成一个常量，
+     由 publish-guard 的 prepare 阶段**按需生成**（缺目录就建、缺文件就写）。
+     这样：这份清单是内容与位置的双重单一来源，新增 SHADOW 项不必再记得手写文件。
+   ⚠ 本页会**公开发布**，所以它只能是一句毫无信息量的 404 —— 绝不能写内部注释、项目名或路径。 */
+const SHADOW_PLACEHOLDER = [
+  '<!doctype html>',
+  '<html lang="zh-CN">',
+  '<head>',
+  '<meta charset="utf-8">',
+  '<meta name="viewport" content="width=device-width, initial-scale=1">',
+  '<meta name="referrer" content="strict-origin-when-cross-origin">',
+  '<title>404</title>',
+  '</head>',
+  '<body>',
+  '<p>404 — not publicly hosted</p>',
+  '</body>',
+  '</html>',
+  '',
+].join('\n');
 
 /* ── 白名单：verify 阶段允许出现在发布目录**顶层**的集合 ────────────────
    ★ 为什么必须是白名单而不是黑名单：黑名单是 **fail-open** ——
@@ -75,4 +123,6 @@ function allowedTopLevel() {
   return s;
 }
 
-module.exports = { ROOT, APP, HOLD, MANIFEST, MOVE, KEEP, ALLOW_EXTRA, SHADOW, allowedTopLevel };
+module.exports = {
+  ROOT, APP, HOLD, MANIFEST, MOVE, KEEP, ALLOW_EXTRA, SHADOW, SHADOW_PLACEHOLDER, allowedTopLevel,
+};
