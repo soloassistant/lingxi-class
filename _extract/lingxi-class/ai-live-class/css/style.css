@@ -66,26 +66,52 @@ a { text-decoration: none; color: inherit; }
   backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--line);
 }
+/* ★ 宽度预算（2026-10-08 修的折行 bug，数字都是实测的，别再凭手感调）：
+   .nav-inner 的"可用内容宽"被 max-width 死死钉在 **1112px**（1160 − 24×2 padding，
+   且全局 * { box-sizing: border-box }）。而桌面导航的自然宽度需求 ≈ 1211px
+   （品牌 189 + 导航项 582 + 右侧 384 + 两个 28 的间距）——**差 99px**。
+   差值的后果不是换行成两行，而是每个汉字各占一行（因为 .nav-links a 没设
+   white-space: nowrap，CJK 可以在任意字之间断行），7 个导航项全被压成竖排。
+
+   修法分两步，缺一不可：
+     ① 把需求压到可用宽以内（收间距 + 收内边距，下面这些值就是压缩后的预算）；
+     ② 给这些**不该折行**的短文本加 nowrap —— 这样万一将来又装不下，
+        表现是"导航整体溢出可见"，而不是"每个字一行"这种容易被忽略的糊状。
+   配套：导航切换成抽屉的断点从 1000px 提到 1160px（见下方 @media），
+   保证任何宽度下桌面导航都落在装得下的区间里。 */
 .nav-inner {
   max-width: 1160px; margin: 0 auto; padding: 0 24px;
-  height: 62px; display: flex; align-items: center; gap: 28px;
+  height: 62px; display: flex; align-items: center; gap: 8px;
 }
 /* 品牌区（点它回首页）。原来是 189×30 —— 高度差一点。
    用 padding + 负 margin 把命中区抬到 36px，**视觉位置和间距完全不变**。 */
-.brand { display: flex; align-items: center; gap: 9px; padding: 3px 0; margin: -3px 0; }
-.brand-name { font-size: 18px; font-weight: 800; }
+.brand { display: flex; align-items: center; gap: 8px; padding: 3px 0; margin: -3px 0; }
+.brand-name { font-size: 18px; font-weight: 800; white-space: nowrap; }
 .brand-sub {
   font-size: 12px; font-weight: 600; color: var(--primary);
   background: var(--primary-soft); padding: 2px 8px; border-radius: 20px;
+  white-space: nowrap;
 }
-.nav-links { display: flex; gap: 6px; flex: 1; }
+.nav-links { display: flex; gap: 2px; flex: 1; }
 .nav-links a {
-  padding: 7px 14px; border-radius: 10px; font-size: 14px; font-weight: 500;
-  color: var(--muted); transition: all 0.18s;
+  padding: 7px 8px; border-radius: 10px; font-size: 14px; font-weight: 500;
+  color: var(--muted); transition: all 0.18s; white-space: nowrap;
 }
 .nav-links a:hover { color: var(--ink); background: #F0F1F8; }
 .nav-links a.active { color: var(--primary); background: var(--primary-soft); font-weight: 600; }
-.nav-right { display: flex; align-items: center; gap: 14px; }
+/* margin-left: auto 只在一个情况下起作用：宽屏时 .nav-links 有 flex:1 已经吃掉
+   全部余量，auto 拿不到空间、等于没写；而 ≤1200 换成抽屉后 .nav-links 被
+   display:none，没有任何元素再撑中间 —— 不写 auto 的话右侧控件会**紧贴品牌**
+   留在左边，右边空掉一大块（实测 768px 下空了约 130px）。 */
+.nav-right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+/* 右侧这几个是按钮：.btn 是 inline-flex，文字会变成匿名 flex item，
+   被压窄时同样会逐字换行 —— 所以 nowrap 要打在按钮自身上。
+   #ai-status 也是同一类（它是 <i class="dot"> + 文本）：
+   不给 nowrap 的话，被挤时"AI 暂不可用 · 点此重试"会折成两行。
+   内边距比 .btn-sm 的 16px 收窄到 12px —— 这个收窄**只作用于导航里的按钮**，
+   不动全局 .btn-sm（卡片/表单里的按钮不该跟着变）。 */
+#ai-status, #btn-auth, #btn-theme, .btn-try { white-space: nowrap; }
+#btn-auth, #btn-theme, .btn-try { padding-left: 10px; padding-right: 10px; }
 
 /* 移动端导航按钮 + 抽屉（宽屏隐藏，≤1000px 生效） */
 .nav-burger {
@@ -1657,20 +1683,36 @@ main { max-width: 1160px; margin: 0 auto; padding: 0 24px 40px; }
 .av-has { color: #059669 !important; font-weight: 600; margin-top: 10px !important; }
 
 /* ============ 响应式 ============ */
+/* 导航在此之前就换成抽屉。
+   ★ 为什么单独一档、而不并进下面的 1000px：1000px 那档还管着首屏单列、
+   生成页单列等版式，把断点提前到 1160 会连带改掉 1000~1160 的整页版式。
+   这里只切导航。阈值取得比 .nav-inner 的 max-width(1160) 再宽 40px，
+   是为了留出 Windows 经典滚动条(~15px)吃掉布局宽的那部分余量。 */
+@media (max-width: 1200px) {
+  .nav-links { display: none; }
+  .nav-burger { display: flex; }
+}
 @media (max-width: 1000px) {
   .hero { grid-template-columns: 1fr; padding-top: 36px; }
   .hero-art { max-width: 520px; margin: 0 auto; }
   .hero h1 { font-size: 34px; }
   .gen-layout { grid-template-columns: 1fr; }
   .steps-grid { grid-template-columns: 1fr; }
-  .nav-links { display: none; }
-  .nav-burger { display: flex; }
+}
+/* 621~820：右侧"免费体验 + 护眼 + 登录 + 汉堡"已经装不下（实测需 655 > 可用 573）。
+   让 CTA 先让位 —— 首屏里还有一个同样入口的"立即生成我的课程"。 */
+@media (max-width: 820px) {
+  .btn-try { display: none; }
+}
+/* 621~700：再摘掉品牌上的 "AI 一对一" 胶囊（它只是品牌副标，不是功能入口）。
+   摘掉后该区间余量从 10px 提到 87px —— 10px 太薄，字体渲染差一点就会溢出。 */
+@media (max-width: 700px) {
+  .brand-sub { display: none; }
 }
 @media (max-width: 620px) {
   .hero h1 { font-size: 27px; }
   .hero-stats { gap: 20px; }
   .ai-status { display: none; }
-  .btn-try { display: none; }        /* 窄屏让位给导航按钮，避免换行挤压 */
   .nav-inner { gap: 12px; padding: 0 16px; }
   .nav-right { gap: 9px; }
   .field-row { grid-template-columns: 1fr; }
@@ -1682,6 +1724,14 @@ main { max-width: 1160px; margin: 0 auto; padding: 0 24px 40px; }
   .meet-title { max-width: 100%; }
   .mt-btn { min-width: 54px; padding: 6px 9px; }
   .mt-label { display: none; }
+}
+/* 320~400：导航位子已经到极限（品牌名 72 + 登录/注册 + 护眼 + 汉堡 44(触屏) ，
+   实测 320px 下需 310 > 可用 288，会横向溢出 22px）。
+   摘掉导航里的护眼按钮 —— 抽屉里有一个**功能完全相同**的入口
+   （#btn-theme-m「🍵 护眼模式」，applyTheme/bindThemeEvents 两个都同步），
+   所以这里不是砍功能，是把重复入口收掉。 */
+@media (max-width: 400px) {
+  #btn-theme { display: none; }
 }
 
 /* ============================================================
@@ -1891,6 +1941,11 @@ html[data-theme="eye"] .pr-fix { color: #2F6B4F; }
 .paper-code {
   font-size: 12px; font-weight: 600; color: var(--primary);
   background: var(--primary-soft); border-radius: 6px; padding: 2px 7px;
+  /* 这是"代号"胶囊（9709 / 教育部教育考试院…）。不给 nowrap 的话，
+     当科目名很长时（如「全国统考（政策与信息）」+「教育部教育考试院」）
+     文字会在**胶囊内部**断行 —— 背景被撑成两行高、圆角变形。
+     加了 nowrap 之后的表现是：胶囊整体落到第二行，仍然是一个完整胶囊。 */
+  white-space: nowrap;
 }
 .paper-board { margin-top: 4px; font-size: 12px; color: var(--muted); }
 .paper-access {

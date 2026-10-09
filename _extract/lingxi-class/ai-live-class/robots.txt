@@ -1,0 +1,10 @@
+# 灵犀课堂 · AI 一对一直播课
+# 单页应用：所有视图都在 / 之下（hash 路由不产生独立 URL）。
+# 本站没有需要屏蔽的路径 —— 发布护栏保证开发文件（tests/ tools/ sql/ _quality/）不会上线。
+# ⚠ 切勿 Disallow 根目录的 {key}.txt：那是 IndexNow 的所有权校验文件，
+#   一旦被屏蔽，IndexNow 的所有权验证会失败并回 403。
+
+User-agent: *
+Allow: /
+
+Sitemap: https://bb6ae4d03fbd4b109cbbe6dbbc84502d.app.workbuddy.host/sitemap.xml

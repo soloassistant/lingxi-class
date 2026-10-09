@@ -128,9 +128,10 @@ function encodeBody(key, buf, enc) {
 }
 
 /* ── 缓存策略 ──────────────────────────────────────────────────────────
-   ★ 关键前提：index.html 引用的是**裸路径**（css/style.css、js/app.js），没有内容指纹。
+   ★ 关键前提：index.html 引用的是**裸路径**（css/style.min.css、js/app.min.js），
+     靠 tools/build.js 重新生成、并由 tools/build-stamp.json 记录新鲜度，**没有内容指纹文件名**。
      所以静态资源**绝不能设 immutable** —— 那会让改了文件之后用户永远拿到旧版。
-     正确顺序是：先 max-age=3600 观察 → 上构建指纹 → 再改 immutable, max-age=31536000。
+     正确顺序是：先 max-age=3600 观察 → 上构建指纹（app.<hash>.js）→ 再改 immutable, max-age=31536000。
      （这一步对应施工单里标红的那条坑。） */
 const CACHE_HTML = 'no-cache, must-revalidate';
 const CACHE_ASSET = 'public, max-age=3600, must-revalidate';
@@ -143,10 +144,17 @@ const CACHE_ASSET = 'public, max-age=3600, must-revalidate';
    ⚠️ frame-ancestors 的取值是一个**产品决定**，不是纯技术问题：
      · 'self' —— 允许同源 iframe，挡掉所有第三方站点嵌套（点劫持没了）。
      · 'none' —— 连同源也不允许。更严，但如果将来要把页面嵌进 www.workbuddy.cn 就会直接白屏。
-   这里取 'self'，与平台自己的 API 响应头一致（实测 /.cloud/** 返回的就是
-   `Content-Security-Policy: frame-ancestors 'self'` + `X-Frame-Options: SAMEORIGIN`）。
-   若确认要允许 workbuddy.cn 内嵌，改这一行即可 —— 但**必须先解决施工单第 4 项**
-   （X-Conversation-ID 不在预检白名单里，一旦跨源/被嵌，老师的请求会整节课发不出去）。
+   这里取 'self'：本项目确实有同源 iframe 用法，需要放行同源、挡掉第三方嵌套。
+
+   ★ 更正（2026-10-08）：本注释原先写的是「与平台自己的 API 响应头一致（实测 /.cloud/**
+     返回的就是 `Content-Security-Policy: frame-ancestors 'self'` + `X-Frame-Options: SAMEORIGIN`）」。
+     **那段实测今天复现不出来**：对 `/.cloud/auth/v1/user/me`、`/.cloud/auth/v1/settings`、
+     `/.cloud/auth/v1/providers`、`/.cloud/database/rest/v1/`、`/.cloud/llm/v1/models` 逐个打，
+     全部 401，且 CSP / X-Frame-Options 命中数**均为 0**，只看到
+     `X-Content-Type-Options: nosniff` + `Vary: Origin` + `Access-Control-Expose-Headers`。
+     结论：取值 'self' 本身仍然合理，但它**不再有「与平台一致」这个依据** —— 别再引用那句话。
+     若确认要允许 workbuddy.cn 内嵌，改这一行即可 —— 但**必须先解决施工单第 4 项**
+     （X-Conversation-ID 不在预检白名单里，一旦跨源/被嵌，老师的请求会整节课发不出去）。
    ★ 别为了省事直接放开成 '*' 或去掉本行。 */
 const FRAME_ANCESTORS = "'self'";
 const SECURITY_HEADERS = {

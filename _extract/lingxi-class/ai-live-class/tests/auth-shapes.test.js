@@ -203,7 +203,26 @@ const profileShape = (id, email, phone) => ({ id, email, phone, isAnonymous: fal
     t(defined.has(v), 'H' + (i + 2) + ' 已定义语义别名 ' + v);
   });
   t((css.match(/\[hidden\]\s*\{\s*display:\s*none\s*!important;?\s*\}/g) || []).length === 1, 'H7 [hidden] 规则没有重复定义');
-  t(/\.nav-burger\s*\{[^}]*display:\s*none/.test(css) && /@media\s*\(max-width:\s*1000px\)[\s\S]{0,400}\.nav-burger\s*\{\s*display:\s*flex/.test(css), 'H8 导航按钮宽屏隐藏、窄屏显示');
+  /* H8 导航按钮宽屏隐藏、窄屏显示。
+     ★ 这条断言原来把断点写死成 `max-width: 1000px`。2026-10-08 把导航断点提到
+       1200px（桌面导航在 1160px 以下装不下，见 nav-layout.test.js）之后它就红了。
+       该改的是断言本身 —— 它锚定了一个会合理变动的数值。
+       现在断言的是**行为 + 下限**：汉堡默认 display:none；存在某个媒体查询
+       把 .nav-burger 打开；且该阈值 ≥ 1160（= .nav-inner 的 max-width，
+       低于它桌面导航的 7 个标签就装不下、会被压到逐字竖排）。 */
+  const burgerBlk = (() => {
+    const re = /@media\s*\(([^)]*max-width[^)]*)\)\s*\{/g;
+    let m;
+    while ((m = re.exec(css))) {
+      let depth = 1, i = re.lastIndex;
+      while (i < css.length && depth > 0) { if (css[i] === '{') depth++; else if (css[i] === '}') depth--; i++; }
+      if (/\.nav-burger\s*\{\s*display:\s*flex/.test(css.slice(re.lastIndex, i - 1))) return m[1];
+    }
+    return null;
+  })();
+  const burgerBp = burgerBlk ? Number((burgerBlk.match(/max-width\s*:\s*(\d+)px/) || [])[1]) : NaN;
+  t(/\.nav-burger\s*\{[^}]*display:\s*none/.test(css) && !!burgerBlk && burgerBp >= 1160,
+    'H8 导航按钮宽屏隐藏、窄屏显示（断点 ' + burgerBp + 'px ≥ 1160）');
 
   /* ===== I. 关键文案与实际规则一致 ===== */
   sec('I. 文案一致性');

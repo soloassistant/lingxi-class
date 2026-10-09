@@ -27,6 +27,18 @@ const tests = [
   /* R17：课堂小结的"已掌握"必须有作答证据 —— 端到端跑一节真实课堂，抓真实发出的提示词 */
   'summary-evidence.test.js',
   'feynman.test.js',
+  /* R18：顶部导航的宽度预算 —— 线上出现过"7 个导航项全被折成每字一行"，
+     根因是 .nav-inner 被 max-width 钉死在 1112px 而需求 ≈1160px。
+     这个文件守 nowrap / 容量预算 / 断点顺序三件事。 */
+  'nav-layout.test.js',
+  /* R19：源码与压缩产物的新鲜度 —— 改了 js/app.js 却忘了 npm run build，
+     发布出去的会是旧逻辑，而且**不会有任何报错**，用户静默拿到旧行为。
+     这个文件比对 tools/build-stamp.json 里的 sha256，把"忘记构建"变成一次测试失败。
+     同时断言 index.html 引用的是 .min 产物（防止把 683KB 源码直接发上网）。 */
+  'build-freshness.test.js',
+  /* R20：IndexNow 的 key 文件完整性 —— 根目录 {key}.txt 被误删/改坏时本地不会报错，
+     直到提交收到 403 才发现。本文件把"文件名/内容/作用域/端点"钉成断言（不联网）。 */
+  'indexnow.test.js',
 ];
 
 let failed = 0;

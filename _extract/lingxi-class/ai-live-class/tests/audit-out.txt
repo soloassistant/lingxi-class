@@ -5,10 +5,10 @@
   NOTE #p-me-mic 静态占位 + JS 动态同名（渲染需整体替换容器，勿改成 append）
   NOTE #p-teacher-mic 静态占位 + JS 动态同名（渲染需整体替换容器，勿改成 append）
   NOTE #p-teacher-state 静态占位 + JS 动态同名（渲染需整体替换容器，勿改成 append）
-  index.html 静态 id=311，JS 模板 id=22
+  index.html 静态 id=320，JS 模板 id=23
 == 2. JS 引用但 HTML 与模板里都不存在的 id（真 bug）==
   (无)
-  JS 引用 id 数=287
+  JS 引用 id 数=297
 == 3. HTML 里定义、JS 里完全未出现（疑似死代码；CSS/无障碍专用 id 属正常）==
   DEAD? #auth-pane-otp
   DEAD? #auth-pane-password
@@ -48,13 +48,13 @@
   nav=memory -> OK
 == 6. 重复的 function 声明 ==
   (无)
-  function 声明总数=426
+  function 声明总数=444
 == 7. 规模 ==
-  app.js 499616 字符 / 12469 行
-  index.html 53662 字符 / 1164 行
-  style.css 124007 字符 / 2711 行
+  app.js 519937 字符 / 12967 行
+  index.html 55790 字符 / 1209 行
+  style.css 127782 字符 / 2795 行
 == 8. 可疑模式（需人工判断，非自动判定失败）==
   console.log 残留: 0
   TODO/FIXME: 0
-  innerHTML 赋值（逐个核对 esc()）: 103
-  空 catch: 173
+  innerHTML 赋值（逐个核对 esc()）: 106
+  空 catch: 175

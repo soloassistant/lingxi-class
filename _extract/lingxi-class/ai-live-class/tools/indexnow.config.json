@@ -1,0 +1,11 @@
+{
+  "host": "bb6ae4d03fbd4b109cbbe6dbbc84502d.app.workbuddy.host",
+  "origin": "https://bb6ae4d03fbd4b109cbbe6dbbc84502d.app.workbuddy.host",
+  "key": "d9d9baa19d7412be70bbcbc4b48ad150",
+  "keyFile": "d9d9baa19d7412be70bbcbc4b48ad150.txt",
+  "endpoint": "https://api.indexnow.org/indexnow",
+  "urls": [
+    "https://bb6ae4d03fbd4b109cbbe6dbbc84502d.app.workbuddy.host/"
+  ],
+  "note": "key 是公开的所有权验证值（线上 {key}.txt 就是它的明文），不是密钥。改 key 后引擎最长缓存 24h。"
+}

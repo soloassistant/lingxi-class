@@ -55,7 +55,10 @@ function isClean(el) {
 }
 
 const X = '<img src=x onerror=window.__xss=1><script>window.__xss=2</script>';
-const X_HTMLENT = '&lt;img src=x onerror=window.__xss=1&gt;';
+/* ★ 期望值必须**照指标体系写死**，不能由另一个"本地概念"Heptan说说生效：
+   如果这里写成 escapedHTML(X)，就是在拿实现对实现，两边一起错也能通过。 */
+const X_HTMLENT = '&lt;img src=x onerror=window.__xss=1&gt;&lt;script&gt;window.__xss=2&lt;/script&gt;';
+const SCRIPT_TAG = /<script[\s>]/i;   // 真实 script 标签（不是被转义后的文本）
 
 setTimeout(async () => {
   console.log('=== 1. 保存课程到「我的课程」：不能引用不存在的变量 ===');
@@ -78,6 +81,13 @@ setTimeout(async () => {
       { type: 'content', title: X, bullets: [X, '<b>粗体正常</b>'] }, 0, 1, 'indigo');
     t('slideHTML 不产生可执行节点', isClean(stage));
     t('slideHTML 标题被转义', stage.innerHTML.indexOf(X_HTMLENT) >= 0);
+    // 2026-10-08 收紧：原来只核对"某一处转义成功"，
+    // 而 AI 输出流水线被投诉的现象是**分字段部分转义** —— 
+    // 只要有任何一个字段漏掉转义，`<script>` 就会以标签形式留在 innerHTML 里。
+    t('slideHTML 输出中不存在未转义的 <script> 标签', !SCRIPT_TAG.test(stage.innerHTML));
+    t('注入串没有真的执行（window.__xss 未被赋值）', window.__xss === undefined,
+      window.__xss === undefined ? '' : '__xss=' + window.__xss);
+    window.__xss = undefined;
     stage.innerHTML = window.slideHTML(
       { type: 'quiz', title: X, question: X, options: [X + ' 选项', 'B. 正常'], answer: X, analysis: X }, 0, 1, 'indigo');
     t('slideHTML 练习页不产生可执行节点', isClean(stage));
@@ -91,7 +101,9 @@ setTimeout(async () => {
       slides: [{ type: 'content', title: X, bullets: [X] }],
     };
     window.renderGenCourse(course);
-    t('renderGenCourse 不产生可执行节点', isClean(document.getElementById('gen-course')));
+    const gcNode = document.getElementById('gen-course');
+    t('renderGenCourse 不产生可执行节点', isClean(gcNode));
+    t('renderGenCourse 输出中不存在未转义的 <script> 标签', !SCRIPT_TAG.test(gcNode.innerHTML));
   }
 
   // 2c. 聊天气泡（appendMessage）
@@ -102,6 +114,7 @@ setTimeout(async () => {
     window.appendMessage('ai', X);
     t('appendMessage 用户气泡无注入', wrap.querySelector('.msg.me .msg-bubble') && isClean(wrap.querySelector('.msg.me .msg-bubble')));
     t('appendMessage 老师气泡无注入', wrap.querySelector('.msg.ai .msg-bubble') && isClean(wrap.querySelector('.msg.ai .msg-bubble')));
+    t('appendMessage 输出中不存在未转义的 <script> 标签', !SCRIPT_TAG.test(wrap.innerHTML));
   }
 
   // 2d. 课堂小结（renderSummary）
@@ -113,6 +126,7 @@ setTimeout(async () => {
       errorCauses: [{ cause: 'careless', topic: X, detail: X, fix: X }],
     }, null, null, {});
     t('renderSummary 不产生可执行节点', isClean(document.getElementById('summary-body')));
+    t('renderSummary 输出中不存在未转义的 <script> 标签', !SCRIPT_TAG.test(document.getElementById('summary-body').innerHTML));
   }
 
   // 2d2. 错因列表（renderCauses）：topic / detail / fix 三个字段都是模型输出
@@ -123,12 +137,14 @@ setTimeout(async () => {
     t('renderCauses 不产生可执行节点', isClean(box));
     t('renderCauses 转义 topic/detail/fix',
       html.indexOf('<img') < 0 && html.indexOf('<script') < 0 && html.indexOf('&lt;img') >= 0);
+    t('renderCauses 输出中不存在未转义的 <script> 标签', !SCRIPT_TAG.test(html));
   }
 
   // 2d3. 错因分布图谱（renderErrorProfile）：知识点/科目来自历史记录，同样要转义
   {
     window.renderErrorProfile([{ subject: X, error_causes: [{ cause: 'careless', topic: X }] }]);
     t('renderErrorProfile 不产生可执行节点', isClean(document.getElementById('mem-causes')));
+    t('renderErrorProfile 输出中不存在未转义的 <script> 标签', !SCRIPT_TAG.test(document.getElementById('mem-causes').innerHTML));
   }
 
   // 2e. 我的课程列表（renderCourses）
@@ -284,9 +300,12 @@ setTimeout(async () => {
     }));
   t('N6 版本号写进注释便于复现', /本地副本版本：workbuddy-cloud-sdk 0\.1\.2-dev\./.test(htmlSrc));
   t('N7 CSP 仍允许本地脚本（未因自托管改坏）', /script-src 'self'/.test(htmlSrc));
-  t('N8 脚本顺序：依赖先于 app.js', (() => {
+  t('N8 脚本顺序：依赖先于 app（源码或压缩产物皆可）', (() => {
     const iVendor = srcOf(scriptTags, 'vendor/workbuddy-cloud-sdk.global.js');
-    const iApp = srcOf(scriptTags, 'js/app.js');
+    const iApp = Math.max(
+      srcOf(scriptTags, 'js/app.js'),
+      srcOf(scriptTags, 'js/app.min.js'),
+    );
     return iVendor >= 0 && iApp >= 0 && iVendor < iApp;
   })(), '排序=' + scriptTags.map((s) => (s.match(/src="([^"]+)"/) || [])[1] || '(inline)').join(' , '));
   t('N9 pptxgen 不在首屏同步加载（466KB 只为导出服务，服务器不压缩）',

@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "builtAt": "2026-10-09T06:21:19.509Z",
+  "note": "源码改动后必须重跑 npm run build；本文件被 tests/build-freshness.test.js 校验",
+  "sources": {
+    "js/app.js": {
+      "bytes": 683238,
+      "sha256": "5974de0a8581fb92040b817a5107fb56453a97030dc65cfa551258427e09612f"
+    },
+    "css/style.css": {
+      "bytes": 144537,
+      "sha256": "46558a77c35ec0424d5d85d0f1f8ddcbaf2d5605f27edff8caf9661697a5e780"
+    }
+  },
+  "outputs": {
+    "js/app.min.js": {
+      "bytes": 380089,
+      "sha256": "43dcf6815427fa39f88ccc2d3fc14f3be7be7a99d894af3dc04644d81a888356"
+    },
+    "css/style.min.css": {
+      "bytes": 99645,
+      "sha256": "164e6461b7155cdc1662b93257b9b4aae593737c8f733a6cc10340915fd2764f"
+    }
+  },
+  "generated": {
+    "sitemap.xml": {
+      "bytes": 268,
+      "sha256": "788ce3f5420b407bce6b0c83fa882c929858a20cf40070705ef32a76e221c395"
+    },
+    "robots.txt": {
+      "bytes": 516,
+      "sha256": "be4f09965a7821cff4700606eef9cbc9fbb4f0c8faa8f59724f3172fc7647a4b"
+    }
+  },
+  "toolVersions": {
+    "terser": "5.51.2",
+    "clean-css": "5.3.3"
+  }
+}

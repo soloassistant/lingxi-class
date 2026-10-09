@@ -7,6 +7,7 @@
 # 若想把变异验证长期留档，更合适的做法是改名放进 tests/ 再提交。
 /_extract/lingxi-class/ai-live-class/_mut-check.js
 /_extract/lingxi-class/ai-live-class/tools/probe-cloud-api.js
+/_extract/lingxi-class/ai-live-class/.minprobe/
 
 # 生成的课件 pptx（约 2.9M）
 /_extract/lingxi-class/ai-live-class/_quality/
