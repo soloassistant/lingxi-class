@@ -213,7 +213,10 @@ async function main() {
 
   const stamp = {
     schema: 1,
-    builtAt: new Date().toISOString(),
+    /* ★ 故意不写 builtAt（构建时间戳）—— 与 sitemap 不写 <lastmod> 同一条原则：
+       构建产物要**可确定复现**，否则每次构建都产生一个字节不同、内容却等价的文件，
+       在 git 里表现为无意义噪声，还会掩盖真正的改动。
+       "什么时候构建的"交给 git 历史去记。 */
     note: '源码改动后必须重跑 npm run build；本文件被 tests/build-freshness.test.js 校验',
     sources: Object.fromEntries(results.map((r) => [r.job.src, r.srcMeta])),
     outputs: Object.fromEntries(results.map((r) => [r.job.out, r.outMeta])),

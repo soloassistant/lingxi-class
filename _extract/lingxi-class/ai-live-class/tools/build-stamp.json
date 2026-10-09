@@ -1,6 +1,5 @@
 {
   "schema": 1,
-  "builtAt": "2026-10-09T06:21:19.509Z",
   "note": "源码改动后必须重跑 npm run build；本文件被 tests/build-freshness.test.js 校验",
   "sources": {
     "js/app.js": {

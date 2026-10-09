@@ -39,6 +39,9 @@ const tests = [
   /* R20：IndexNow 的 key 文件完整性 —— 根目录 {key}.txt 被误删/改坏时本地不会报错，
      直到提交收到 403 才发现。本文件把"文件名/内容/作用域/端点"钉成断言（不联网）。 */
   'indexnow.test.js',
+  /* R21：发布面分类守卫 —— 发布目录同时是 git 工作区，任何**新增**的顶层项默认都会被
+     公开托管（fail-open）。本文件保证每一项都被护栏明确分类过，且白名单没被放宽。 */
+  'publish-surface.test.js',
 ];
 
 let failed = 0;

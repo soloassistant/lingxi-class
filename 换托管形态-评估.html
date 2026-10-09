@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>灵犀课堂 · 「换托管形态」评估</title>
+<style>
+  :root { --ink:#1b1e2b; --muted:#6b7280; --line:#e5e7eb; --bad:#c62828; --good:#1b7f3b; --brand:#4f5bd5; --warn:#b26a00; }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:32px 20px 72px; background:#f7f8fc; color:var(--ink);
+         font:15px/1.75 -apple-system,"Segoe UI","Microsoft YaHei",sans-serif; }
+  .wrap { max-width:1080px; margin:0 auto; }
+  h1 { font-size:25px; margin:0 0 6px; }
+  .sub { color:var(--muted); font-size:13px; margin-bottom:22px; }
+  .sub a { color:var(--brand); }
+  .verdict { background:#fff; border-left:4px solid var(--brand); border-radius:0 10px 10px 0;
+             padding:14px 18px; margin:0 0 26px; box-shadow:0 1px 3px rgba(16,24,40,.06); }
+  .verdict b { color:var(--brand); }
+  h2 { font-size:18px; margin:34px 0 12px; padding-bottom:6px; border-bottom:2px solid var(--line); }
+  h3 { font-size:15px; margin:22px 0 8px; }
+  table { width:100%; border-collapse:collapse; background:#fff; border-radius:12px; overflow:hidden;
+          box-shadow:0 1px 3px rgba(16,24,40,.06); font-size:14px; }
+  th,td { padding:10px 13px; text-align:left; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { background:#f0f1f8; font-weight:600; font-size:13px; }
+  tr:last-child td { border-bottom:0; }
+  td.bad { color:var(--bad); font-weight:600; }
+  td.good { color:var(--good); font-weight:600; }
+  td.warn { color:var(--warn); font-weight:600; }
+  code { background:#eef0f7; padding:1px 5px; border-radius:4px; font-size:12.5px; word-break:break-all; }
+  pre { background:#fff; border:1px solid var(--line); border-radius:10px; padding:12px 14px;
+        overflow-x:auto; font-size:12.5px; line-height:1.6; }
+  .note { background:#fff; border-left:3px solid var(--brand); border-radius:0 8px 8px 0;
+          padding:12px 16px; margin:14px 0; font-size:13.5px; }
+  .note.bad { border-left-color:var(--bad); }
+  .note.good { border-left-color:var(--good); }
+  .note.warn { border-left-color:var(--warn); }
+  ul { margin:8px 0; padding-left:22px; }
+  li { margin:5px 0; }
+  .tag { display:inline-block; font-size:11px; font-weight:700; padding:1px 7px; border-radius:20px;
+         vertical-align:1px; margin-right:6px; }
+  .t-fact { background:#e8f5ec; color:var(--good); }
+  .t-doc { background:#eef0f7; color:var(--brand); }
+  .t-old { background:#fff4e5; color:var(--warn); }
+  @media (max-width:760px){ body{padding:20px 12px 48px;} th,td{padding:8px 9px; font-size:13px;} }
+</style></head><body><div class="wrap">
+
+<h1>灵犀课堂 · 「换托管形态」评估</h1>
+<div class="sub">
+  评估时间 2026-10-08 · 线上 <a href="https://bb6ae4d03fbd4b109cbbe6dbbc84502d.app.workbuddy.host/">bb6ae4d03fbd4b109cbbe6dbbc84502d.app.workbuddy.host</a><br>
+  评估目标：把发布形态从 <b>纯静态托管</b> 换成 <b>http-service（单端口 Node/Python 服务）</b>，以换取第 1/2/6 项（gzip+缓存、安全响应头、Origin 收紧）。
+</div>
+
+<div class="verdict">
+  <b>结论：不建议为了「响应头 + gzip」换形态。</b>
+  阻碍<b>不是工作量</b> —— 仓库里 <code>tools/serve.js</code> 已经把项 1/2/6 实现好、本地实跑通过；
+  阻碍是<b>域名会变，而 web 应用的登录只在「应用注册的发布域名」上生效</b>（官方文档硬约束，前端无解），
+  以及找不到「把新域名重新绑定为该应用 release domain」的入口。
+  次要代价：本地 7 族状态（含未同步的编辑队列）随 origin 丢失，且要把 <code>serve.js</code> 的拒访黑名单升级为白名单。
+  若目标只是首屏体积，有一条<b>不动形态、零风险</b>的等效路径 —— 见第五节。
+  <br><b>⇒ 正确顺序：先拿到「新域名能否注册为 release domain」的答案，再谈换不换。</b>
+</div>
+
+<h2>一、能拿到什么（收益）</h2>
+<table>
+  <tr><th style="width:30%">项</th><th style="width:32%">静态托管现状（实测）</th><th>换成 http-service 后</th></tr>
+  <tr><td>gzip / br 压缩</td>
+      <td class="bad">无。显式发 <code>Accept-Encoding: gzip, br, deflate</code> 仍无 <code>Content-Encoding</code></td>
+      <td class="good">可自行压缩（首屏四件 937 KB → 约 250 KB）</td></tr>
+  <tr><td>安全响应头</td>
+      <td class="bad"><code>X-Frame-Options</code>/<code>X-Content-Type-Options</code>/<code>HSTS</code>/<code>Referrer-Policy</code>/CSP(HTTP 形式) 全缺</td>
+      <td class="good">全部可设，含 meta 形式无效的 <code>frame-ancestors</code></td></tr>
+  <tr><td>缓存策略</td>
+      <td class="warn">无 <code>Cache-Control</code>/<code>ETag</code>；但 <code>If-Modified-Since</code> → 304 实测可用</td>
+      <td class="good">可显式设 <code>Cache-Control</code>（带指纹的静态资源可长缓存）</td></tr>
+  <tr><td>Origin 反射（第 6 项）</td>
+      <td class="bad">401 响应回显任意 Origin（网关行为）</td>
+      <td class="warn">前端服务自己发 CORS 时可收敛；<b>但 <code>/.cloud/*</code> 是平台云网关，仍不受我们控制</b></td></tr>
+</table>
+
+<div class="note">
+  <span class="tag t-fact">实测</span>
+  第 2 项「平台无法设置响应头」应<b>限定范围</b>：静态分发层确实不设；
+  但 <code>/.cloud/*</code> 这个云服务网关<b>是设的</b> —— 它返回
+  <code>X-Content-Type-Options: nosniff</code>、<code>Access-Control-Expose-Headers</code>、
+  <code>Vary: Origin</code>。⇒ 平台有这个能力，只是静态资源路由没启用。
+  这条可以作为对方第 1 个问题的补充证据（不是「完全没有」，是「静态路由没有」）。
+</div>
+
+<h2>二、代价与风险（按严重度）</h2>
+
+<h3>① 域名几乎必然变更 <span class="tag t-old">已有事故记录</span></h3>
+<p>
+  2026-09-28 已踩过：给静态站加 <code>package.json</code> 后平台判成 <code>http-service</code>，
+  <b>域名被换掉、旧链接直接失效</b>（<code>domainPrefix</code> → <code>sandboxId</code>）。
+  本次是要<b>主动</b>换成该形态，所以应按「域名必变」规划。
+</p>
+
+<h3>② 登录会断 —— 这是硬约束，前端无解 <span class="tag t-doc">官方文档条款</span></h3>
+<pre>For a <b>web</b> app, auth is supported only on the application's <b>registered HTTPS release domain</b>.
+WorkBuddy preview and localhost are not supported because they do not have the registered
+Origin/callback binding.</pre>
+<p class="sub" style="margin-top:-4px">
+  出处：本机技能 <code>cloud-service/references/auth/code-generation.md:40</code>
+</p>
+<div class="note bad">
+  <span class="tag t-fact">实测</span>
+  当前域名上的云挂载是<b>真实存在且已注册</b>的：
+  <code>GET /.cloud/auth/v1/user/me → HTTP 401</code>（不是 404，说明该端点存在且要求鉴权）；
+  而 <code>/.cloud/v1/health</code> 这类未挂载路径回 404 + <code>{"error":"invalid_request", ...}</code>。
+  <br>SDK 的路径映射为 <code>auth: /.cloud/auth</code> · <code>database: /.cloud/database/rest</code> ·
+  <code>storage: /.cloud/storage</code> · <code>llm: /.cloud/llm</code>。
+  <br>⇒ 换域名后，<b>新域名不会被自动认成该应用的注册发布域名</b>，
+  登录（含手机号验证码）会失败。必须在平台侧把新域名重新绑定为该应用的 release domain 才能恢复 ——
+  <b>这一步能不能做、怎么做，我没有找到文档入口，是本次评估最大的未知项。</b>
+</div>
+
+<h3>③ 本地状态全部丢失（绑定 origin）</h3>
+<table>
+  <tr><th style="width:34%">键</th><th style="width:22%">内容</th><th>换域名后</th></tr>
+  <tr><td><code>workbuddy-cloud.session.*</code></td><td>登录会话（SDK 写入）</td><td class="bad">丢失 → 全体用户必须重新登录（要真实手机号+验证码）</td></tr>
+  <tr><td><code>lingxi_sync_queue</code></td><td><b>未同步的本地编辑队列</b></td><td class="bad">丢失 → 这些改动永远不会到达云端</td></tr>
+  <tr><td><code>lingxi_theme</code> / <code>lingxi_tts</code> / <code>lingxi_tts_rate</code> / <code>lingxi_teach_lang</code> / <code>lingxi_feynman</code> / <code>lingxi_guide</code> / <code>lingxi_avatar_style</code></td><td>个人偏好</td><td class="warn">重置为默认值（可接受，但用户会感觉"设置丢了"）</td></tr>
+</table>
+
+<h3>④ 云端数据本身是安全的（这条是好消息）</h3>
+<p>
+  题库 / 课程 / 学习档案<b>不在 localStorage 里</b>（实测：本地键只有上面那几族）。
+  业务数据全部走云库 —— <code>app.js</code> 里有 23 处 <code>.from(</code>、14 处 <code>.select(</code>、
+  6 处 <code>.insert(</code>、3 处 <code>.rpc(</code>。
+  而应用实例由 <code>publishableKey</code> 标识
+  （<code>wbpk_Pq3DhJIr74vvC8YpuqkMPA_…</code>，其中 <code>Pq3DhJIr74vvC8YpuqkMPA</code> 即应用 id），
+  <b>不是由域名标识</b>。
+  <br>⇒ 只要新域名能通过认证到同一个应用，<b>历史数据不丢</b>；风险点在「能不能认证到」，不在「数据在不在」。
+</p>
+
+<h3>⑤ 服务端**不用从零写** —— 这条是修正，不是风险</h3>
+<div class="note good">
+  <span class="tag t-fact">实测（读源码 + 本地实跑）</span>
+  仓库里已经有 <code>tools/serve.js</code>（323 行，<code>package.json</code> 的 <code>start</code> 就是它），
+  本地 <code>PORT=3112 node tools/serve.js</code> <b>实跑通过</b>，启动即宣告：
+  <pre>[lingxi] 已启用：br/gzip 压缩、ETag + 条件请求、安全响应头（frame-ancestors 'self'）</pre>
+  它已经实现的正是第 1/2/6 项：
+  <ul style="margin-top:6px">
+    <li><b>压缩</b>：br/gzip，且<b>正确解析 q 值</b>（注释里记着踩过的坑：<code>br;q=0</code> 用正则会被误命中，而 q=0 是明确拒绝）；压缩结果带 mtime/size 缓存；压完变大就不压。</li>
+    <li><b>缓存</b>：<code>ETag</code> + 条件请求 304 + <code>Vary: Accept-Encoding</code>；HTML 用 <code>no-cache</code>、资源用 <code>max-age=3600</code>，并<b>明确写明为什么此时不能用 <code>immutable</code></b>（裸路径无指纹，会被永久缓存成旧版）。</li>
+    <li><b>安全头</b>：<code>frame-ancestors 'self'</code> + <code>X-Frame-Options: SAMEORIGIN</code> + <code>nosniff</code> + <code>Referrer-Policy</code> + <code>HSTS</code> + <code>Permissions-Policy</code>。</li>
+    <li><b>静态托管白送的那些也都有</b>：目录请求 → <code>index.html</code>、SPA 回落、<code>Content-Type</code> 判表、
+        <code>..</code> 与编码变体的目录穿越双层防护、<code>/.cloud</code> 误入静态服务时<b>显式回 502 并写明原因</b>（而不是回落 HTML 让 SDK 拿着 HTML 去 <code>JSON.parse</code>）。</li>
+  </ul>
+  ⇒ 所以换形态的<b>实现工作量很小</b>。真正的阻碍只有第二节的①（域名变更）和②（auth 域名绑定），
+  与「要不要写代码」无关。
+</div>
+
+<h3>⑥ 但它是一份**黑名单**（这条仍是真风险）</h3>
+<p>
+  <code>serve.js</code> 用 <code>DENY_TOP_DIRS = {tests, tools, sql, node_modules, .git, _quality}</code>
+  + <code>DENY_ROOT_FILES = {package.json, package-lock.json, _mut-check.js, HANDOFF.md}</code> 拒访开发产物。
+  方向是对的（回 404 不回 403、且放在回落 index.html 之前），但<b>它是穷举式的黑名单 —— fail-open</b>：
+  以后新增任何一个不该公开的目录/文件（新的 SQL 目录、日志、导出、密钥文件），
+  <b>不写进这个集合就会自动被公开托管</b>。
+</p>
+<div class="note warn">
+  <b>换形态时必须同时把这份黑名单升级成白名单</b>（只服务 <code>index.html</code>/<code>css</code>/<code>js</code>/<code>assets</code>/<code>vendor</code>，
+  其余一律 404），并加「集合相等」漂移守卫与两个方向的变异验证。
+  这是把「平台替我挡」换成「我自己挡」时唯一必须补的功课 —— 其余部分 <code>serve.js</code> 已经做好了。
+</div>
+<p>另外 <code>serve.js</code> 的注释里有一条<b>今天复现不出来</b>的实测依据（说 <code>/.cloud/**</code> 返回
+  <code>frame-ancestors</code> + <code>X-Frame-Options</code>）。我已在源码里更正：
+  今天对 <code>/.cloud/</code> 下 5 个路径逐个打，全部 401，这两个头命中数均为 0，只有 <code>nosniff</code>。
+  取值本身仍合理，但那句话不能再当依据。</p>
+
+<h2>三、唯一「零风险试水」路径</h2>
+<p>
+  有一个办法能<b>不动现有线上链接</b>就把它试出来：<b>把项目复制到另一个目录发布</b> ——
+  平台按 <code>directory</code> 认应用，新目录 = 新应用 = 新链接（现有 <code>bb6ae4d0…</code> 不受影响）。
+</p>
+<div class="note warn">
+  但这条试水路径本身有个必须先验证的关键未知项：
+  <b>新应用能不能拿到 <code>/.cloud</code> 云挂载与 auth 域名绑定？</b>
+  按第①②条，大概率<b>拿不到</b>（auth 只在注册的 release domain 上生效）——
+  那么试出来的「http-service 站点」会是一个<b>能开页面但登不上、用不了云能力</b>的空壳，
+  这恰恰是对方报告里第 4 项重新表述过的残余风险。
+  <br>⇒ 试水前，应先向平台确认两件事：<b>(a)</b> 新域名能否被注册为该应用的 release domain；
+  <b>(b)</b> 换形态后原应用 id 与新域名如何对应。
+</div>
+
+<h2>四、如果仍决定换：迁移清单</h2>
+<ul>
+  <li><b>先备份</b>：导出云库（14 个课件、题库、档案、课程）与当前 <code>index.html</code>/<code>css</code>/<code>js</code> 的 SHA。</li>
+  <li><b>公告 + 预案</b>：用户需重新登录；旧链接会失效。若已有真实付费用户，这步不能省。</li>
+  <li><b>把 <code>serve.js</code> 的黑名单升级为白名单</b>：只服务 <code>index.html</code>/<code>css</code>/<code>js</code>/<code>assets</code>/<code>vendor</code>，其余 404；
+      加「集合相等」漂移守卫 + 两个方向的变异验证（该漏的漏、该挡的挡）。</li>
+  <li><b>确认 BaaS 无外部依赖</b>：<code>serve.js</code> 已对 <code>/.cloud</code> 误入回 502 —— 这条正好是本次最大的未知项的探针，
+      发布后必须先打 <code>/.cloud/auth/v1/settings</code> 看是 401（网关接管 ✓）还是 502（没接管 ✗）。</li>
+  <li><b>逐项验收</b>：gzip/br 生效、六个安全头齐全、<code>Cache-Control</code> 与 304 生效、
+      <code>/.cloud/auth</code> 可达<b>且能真正登录成功</b>、本地 7 族键在新域名下的表现符合预期。</li>
+  <li><b>保留回滚</b>：静态托管那份随时能重新发布回去；域名若已变更，回滚也要一并回退域名。</li>
+</ul>
+
+<h2>五、更划算的替代：不动形态，把首屏体积砍掉</h2>
+<p>如果换形态的真实动机是「首屏慢 / 冷启动约 50s」，那么有一条零风险的等效路径 —— <b>构建期压缩产物</b>：</p>
+<table>
+  <tr><th style="width:26%">文件</th><th style="width:16%">当前</th><th style="width:22%">是否已压缩</th><th>可省</th></tr>
+  <tr><td><code>js/app.js</code></td><td>683,238 B</td>
+      <td class="bad">否（12,966 行，平均行长 39 字符，含 1,000 行注释）</td><td>去注释+空白+短化标识符，预计省 35~45%</td></tr>
+  <tr><td><code>css/style.css</code></td><td>144,537 B</td>
+      <td class="bad">否（2,849 行，181 行注释）</td><td>预计省 20~25%</td></tr>
+  <tr><td><code>vendor/workbuddy-cloud-sdk.global.js</code></td><td>62,057 B</td>
+      <td class="good">是（6 行，平均行长 8,864）</td><td>—</td></tr>
+  <tr><td><code>index.html</code></td><td>69,111 B</td><td class="warn">否</td><td>较小</td></tr>
+</table>
+<div class="note good">
+  <span class="tag t-fact">实测</span>
+  首屏四件资源合计 <b>958,943 B（≈937 KB）</b>，其中 <code>app.js</code> 占 71%。
+  在静态托管下<b>压缩产物是唯一能自己做的事</b>：预计可从 ~937 KB 降到 <b>约 500~550 KB</b>，
+  不需要换域名、不需要重新登录、不影响任何已有功能。
+  <br>（补充：<code>If-Modified-Since</code> → 304 已实测可用，所以<b>重复访问</b>本就不会重下这些字节 ——
+  真正受影响的是<b>首次/冷启动</b>。压缩产物只对首次有效，正好打在痛点上。）
+</div>
+
+<h2>六、建议</h2>
+<ol>
+  <li><b>不做形态切换</b>（至少现在不做）。理由<b>不是工作量</b>（<code>tools/serve.js</code> 已把项 1/2/6 实现好、本地实跑通过），
+      而是第二节①②这两条<b>前端无解的硬约束</b>：域名会变、而 web 应用的 auth 只在「应用注册的发布域名」上生效，
+      换域名意味着<b>全体用户登不上</b>，且我找不到重新绑定的入口。
+      <br><b>⇒ 决策的正确顺序是：先拿到「新域名能否注册为该应用 release domain」的答案，再谈换不换。</b>
+      拿到肯定答案后，这次切换的成本会低得多（服务端已就绪，只需补一份白名单）。</li>
+  <li><b>做</b>：<code>app.js</code>/<code>style.css</code> 的构建期压缩 —— 零风险拿到首屏体积的主要收益。</li>
+  <li><b>已落地</b>：<code>meta referrer</code>（第 2 项在静态托管下唯一可行的一条）。
+      加上已存在的 CSP meta（10 条指令，原有资产），<code>connect-src</code>/<code>script-src</code> 层面已有约束。</li>
+  <li><b>向平台确认</b>（对方第 1 个问题的正式回答）：
+      已确认<b>没有</b>「自定义响应头 / edge 规则」配置入口（证据：本机 <code>sites</code> 技能全文零命中；
+      发布工具入参只有 <code>directory/language/port/installCmd/startCmd/entryHtml/appName/domainPrefix</code>）。
+      待确认的是<b>静态路由能否支持响应头</b>——因为 <code>/.cloud/*</code> 证明平台具备该能力（至少设了 <code>nosniff</code>）。</li>
+  <li><b>clickjacking（残余风险 1）</b>：在静态托管下无解，先按业务判断接受；
+      若哪天站点开始处理敏感操作，再把它作为换形态的<b>唯一理由</b>重新评估 —— 那时 <code>serve.js</code> 直接可用。</li>
+</ol>
+
+</div></body></html>

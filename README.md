@@ -8,12 +8,16 @@
 
 | 路径 | 说明 |
 |---|---|
-| `_extract/lingxi-class/ai-live-class/` | **网页版**（纯静态，无构建步骤）。已发布在 lingxi-class.app.workbuddy.host |
+| `_extract/lingxi-class/ai-live-class/` | **网页版**（静态站 + 构建期压缩）。线上：https://bb6ae4d03fbd4b109cbbe6dbbc84502d.app.workbuddy.host/ |
 | `AI网课老师-整合版/ai-course-teacher/` | **微信小程序**（含 `miniprogram/` 与云函数） |
 | `AI网课老师-PRD.md` | 产品需求 |
 | `灵犀课堂-试用验证清单.md` | 试用与验收清单 |
 | `灵犀课堂-vs-学而思-质量对比与用户视角差距.md` | 竞品对比与差距分析 |
 | `上线前代码接线审计报告.md` | 上线前审计 |
+| `scripts/publish-guard.js` · `publish-config.js` | **发布护栏**：发布前必须跑（见「网页版」一节） |
+| `换托管形态-评估.html` | 换托管形态评估（**结论：不建议**，含域名绑定与数据位置的证据） |
+| `导航折行修复-对照.html` | 导航折行修复的视觉对照 |
+| `小程序联动交付/` | 小程序联动的规格书 / 接口契约 / 核验文档（2026-10-05） |
 
 ## 网页版
 
@@ -24,11 +28,11 @@ npm start                      # 用仓库自带的零依赖静态服务器（to
 python3 -m http.server 8080
 ```
 
-- 入口：`index.html`
-- 源码：`js/app.js`（单文件，约 1.2 万行）、`css/style.css`
-- 测试：`tests/run-all.js`（**1809 项断言**，覆盖课堂流程 / 语音 / 记忆 / 合规 / 题库 / 进度备份等）
+- 入口：`index.html`（引用的是**压缩产物** `js/app.min.js` 与 `css/style.min.css`）
+- 源码：`js/app.js`（单文件，约 1.3 万行）、`css/style.css` —— 保持可读，且是测试的输入
+- 测试：`tests/run-all.js`（**2208 项断言 / 19 个文件**，覆盖课堂流程 / 语音 / 记忆 / 合规 / 题库 / 进度备份 / 发布面等）
 - 后端：WorkBuddy 云服务（数据库 / 认证 / 文件存储 / LLM）
-- 运行时依赖：`vendor/` 内自带，**无 npm 运行时依赖**（`package.json` 只为跑测试与 `npm start`）
+- 运行时依赖：`vendor/` 内自带，**无 npm 运行时依赖**（`package.json` 只为跑测试、构建与 `npm start`）
 
 跑测试：
 
@@ -49,6 +53,47 @@ npm ci && npm test            # 需要 Node 20+；唯一开发依赖是 jsdom
 
 **所以每次发布都要显式传 `language: "static"`（并带 `entryHtml: "index.html"`），不要依赖自动探测** ——
 否则域名会被换掉，而旧链接会直接变成「链接已失效」（已经发生过一次，见 git 历史里的说明）。
+
+### ⚠️ 发布前必须跑 `scripts/publish-guard.js`
+
+`_extract/lingxi-class/ai-live-class/` **同时是 git 工作区**，而平台部署是「把目录里的东西全传上去」。
+直接发布 = 把 `tests/`（28 个文件）、`tools/`（13 个，含服务端脚本）、`sql/`（迁移，暴露表命名与风控业务）、
+`_quality/`（14 个**真实课件 .pptx**，平台还开着目录列表）和 `node_modules/` 一起公开托管。
+这几类**都是已跟踪的** —— 克隆下来就在，不需要谁"忘了删"。
+
+```bash
+node scripts/publish-guard.js prepare   # ① 先自动构建，再把开发文件移出并打哈希清单
+node scripts/publish-guard.js verify    # ② 确认目录里只剩运行所需文件
+#   ……此时才发布（language: "static"）……
+node scripts/publish-guard.js restore   # ③ 立刻搬回，并逐字节校验
+```
+
+- 分类清单在 **`scripts/publish-config.js`**（`MOVE` / `KEEP` / `ALLOW_EXTRA` / `SHADOW`）。
+  `verify` 用的是**白名单**：顶层每出现一个未分类项就**拒绝发布** ——
+  因为这里默认是 fail-open 的（新增文件不写一行代码也会被上传）。
+- `tests/publish-surface.test.js` 守着这份清单：新增顶层项没登记会**测试失败**；
+  谁把 `tests/` 之类的目录塞进白名单，测试同样会红。
+- 护栏本身放在 `scripts/`（**发布目录之外**），所以它不会被上传。
+
+### 构建（首屏压缩）
+
+静态托管不发 gzip，因此只能在**文件层**压：
+
+```bash
+cd _extract/lingxi-class/ai-live-class
+npm run build        # 生成 js/app.min.js / css/style.min.css
+npm run build:check  # 只核验产物是否过期，不写文件
+```
+
+- 首屏四件 **936 KB → 597 KB（−36%）**；`app.js` 683 KB → 380 KB、`style.css` 145 KB → 100 KB。
+- 源码 `js/app.js` / `css/style.css` **保持可读**（测试读它们），产物才是线上跑的那份。
+  之所以不就地压：`app.js` 末尾用 `Object.assign(window, {...})` 以简写属性导出约 200 个 API，
+  顶层名一旦被 mangling，导出的键会跟着变 ⇒ 对外 API 整片静默失效。
+- `tools/build-stamp.json` 记录源与产物的 sha256，`tests/build-freshness.test.js` 逐项比对 ——
+  **改了源码忘了 `npm run build` 会让测试失败**，不会静默把旧逻辑发上线
+  （`prepare` 里也会自动构建一次，构建失败即中止发布）。
+- `sitemap.xml` / `robots.txt` 也由构建生成（数据源是 `tools/indexnow.config.json`，
+  避免域名出现两处真相）。IndexNow 推送见 `tools/indexnow.js`（`npm run indexnow`）。
 
 ## 微信小程序
 
