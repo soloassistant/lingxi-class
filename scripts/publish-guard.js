@@ -29,6 +29,17 @@
      index.html  css/  js/  assets/  vendor/
      robots.txt  sitemap.xml（由构建生成）  .gitattributes  根目录 *.txt（IndexNow 的 {key}.txt）
 
+   ★ 三种"处理开发文件"的手段（2026-10-12 定型）：
+     · MOVE    —— 整个移出发布目录。用于 tests/ tools/ sql/ node_modules/ 这类
+                  **不该也不需要在线上存在**的东西。
+     · SHADOW  —— 目录留在原地，只移出「除 index.html 以外」的内容。
+                  用于**线上已经残留了目录列表**的目录：对象存储无法关闭列表，
+                  只能在原路径放 index.html 顶掉它，而它必须随发布上传。
+     · REPLACE —— **单文件**内容级替换。用于 js/app.js、css/style.css：
+                  它们已经被公开在线上（覆盖式部署让历史文件不会消失），
+                  移走这一份并不能把线上那一份摘掉 ⇒ 只能在原路径覆盖成占位。
+                  真实文件在 prepare 时进暂存区、restore 时写回原位。
+
    ★ 本文件为什么放在 scripts/ 而不是 .workbuddy/（2026-10-09 改）：
      `.workbuddy/` 是 gitignore 的 ⇒ 脚本**不在仓库里**。别人克隆后没有这个护栏，
      照着文档直接发布就会把 tests/ tools/ sql/ 连同 14 个课件一起公开托管 ——
@@ -44,7 +55,7 @@ const { execFileSync } = require('child_process');
 /* 分类清单（MOVE / KEEP / ALLOW_EXTRA / SHADOW / allowedTopLevel）抽在 ./publish-config.js，
    与 tests/publish-surface.test.js 共用同一份数据 —— 避免"护栏放宽了但没人发现"。 */
 const {
-  ROOT, APP, HOLD, MANIFEST, MOVE, KEEP, ALLOW_EXTRA, SHADOW, SHADOW_PLACEHOLDER, allowedTopLevel,
+  ROOT, APP, HOLD, MANIFEST, MOVE, KEEP, ALLOW_EXTRA, SHADOW, SHADOW_PLACEHOLDER, REPLACE, allowedTopLevel,
 } = require('./publish-config');
 
 /* 确保每个 SHADOW 目录里都有影子占位页 —— 缺目录就建、缺文件就写。
@@ -77,10 +88,21 @@ function ensureShadow() {
   else log('· 影子占位 ' + Object.keys(SHADOW).length + ' 个目录均在位');
 }
 
-/* 把某个 MOVE 项移出发布目录。带 SHADOW 的目录只移走非影子内容，目录本身留下。 */
+/* 把某个 MOVE 项移出发布目录。带 SHADOW 的目录只移走非影子内容，目录本身留下。
+   带 REPLACE 的单文件只换内容，文件本身留在原位（发布出去的将是占位）。 */
 function moveOut(entry) {
   const src = path.join(APP, entry);
   if (!fs.existsSync(src)) return null;
+  /* ★ 文件级占位：真实文件挪进暂存区，在**原位**写下占位 —— 发布上传的是占位。
+     备份必须真的落盘（rename，不是 copy 后 delete），否则中途失败会丢内容。 */
+  if (REPLACE[entry]) {
+    const dst = path.join(HOLD, entry);
+    if (fs.existsSync(dst)) die('暂存区已有同名项，先跑 restore：' + entry);
+    fs.mkdirSync(path.dirname(dst), { recursive: true });
+    fs.renameSync(src, dst);
+    fs.writeFileSync(src, REPLACE[entry]);
+    return { entry, partial: false, children: [], replaced: true };
+  }
   const keep = SHADOW[entry];
   if (!keep) {
     const dst = path.join(HOLD, entry);
@@ -105,6 +127,15 @@ function moveOut(entry) {
 function moveBack(entry) {
   const src = path.join(HOLD, entry);
   if (!fs.existsSync(src)) return null;
+  /* ★ REPLACE 的逆操作：把真实文件写回原位，**覆盖**占位。
+     ⚠ 这里必须绕过下面那句 die('发布目录已有同名项，拒绝覆盖')——
+       那条检查是为"目录整体搬回"设计的（目录不该凭空出现）；
+       而 REPLACE 的原位**本来就一定有一个占位文件**，覆盖是预期行为。
+       Node 的 rename 在 Windows 上走 MOVEFILE_REPLACE_EXISTING，可以直接覆盖。 */
+  if (REPLACE[entry]) {
+    fs.renameSync(src, path.join(APP, entry));
+    return { entry, partial: false, children: [], replaced: true };
+  }
   const keep = SHADOW[entry];
   if (!keep) {
     const dst = path.join(APP, entry);
@@ -213,6 +244,14 @@ if (mode === 'status') {
       log('影子占位 ' + dir + '/' + f + ' : ' + s);
     }
   }
+  for (const [f, ph] of Object.entries(REPLACE)) {
+    const p = path.join(APP, f);
+    let s;
+    if (!fs.existsSync(p)) s = '★ 缺失（这个文件本该在发布目录里）';
+    else if (fs.readFileSync(p, 'utf8') === ph) s = '◆ 已占位（真实文件在暂存区 → 发完必须 restore）';
+    else s = '真实文件在位（未 prepare）';
+    log('文件级占位 ' + f + ' : ' + s);
+  }
   log(inApp.length && !inHold.length
     ? '\n⇒ 当前是「可发布」态：**不要直接发**，先跑 prepare 把它们移出（否则会公开课件与测试）。'
     : inHold.length
@@ -227,6 +266,12 @@ if (mode === 'prepare') {
   if (!fs.existsSync(HOLD)) fs.mkdirSync(HOLD, { recursive: true });
   const moved = [];
   for (const f of MOVE) {
+    const r = moveOut(f);
+    if (r) moved.push(r);
+  }
+  /* ★ REPLACE 必须排在 runBuild() **之后**：构建的输入正是 js/app.js 这个真实源文件。
+     顺序反了会把占位当源码压进产物里 —— 而且是"顺利路径上不报错"的那种坏法。 */
+  for (const f of Object.keys(REPLACE)) {
     const r = moveOut(f);
     if (r) moved.push(r);
   }
@@ -245,6 +290,10 @@ if (mode === 'prepare') {
   for (const r of moved) if (r.partial) {
     log('  · ' + r.entry + ' 为「影子占位」目录：只移出 ' + r.children.length + ' 项，'
       + SHADOW[r.entry].join(' / ') + ' 留在原地随发布上传（用于顶掉平台自动生成的目录索引页）');
+  }
+  for (const r of moved) if (r.replaced) {
+    log('  · ' + r.entry + ' 为「文件级占位」：真实文件已进暂存区，原位写的占位将随发布上传'
+      + '（' + REPLACE[r.entry].trim() + '）');
   }
   log('清单已写入 ' + MANIFEST + '（' + lines.length + ' 个文件，不含 node_modules）');
   log('\n现在可以先验证再发布：node scripts/publish-guard.js verify');
@@ -293,6 +342,21 @@ if (mode === 'verify') {
     die('影子占位检查未通过：\n    ' + shadowBad.join('\n    ')
       + '\n  处置：跑一次 prepare（会自动补齐并校正内容），再重跑 verify。');
   }
+  /* 文件级占位必须在位 —— 否则这次发布又会把两份未压缩源码原样传上去，
+     而且**不会有任何报错**（只是"多公开了两个文件"），正是最难发现的那类失效。 */
+  const repBad = [];
+  for (const [f, ph] of Object.entries(REPLACE)) {
+    const p = path.join(APP, f);
+    if (!fs.existsSync(p)) { repBad.push(f + ' 缺失'); continue; }
+    if (fs.readFileSync(p, 'utf8') !== ph) repBad.push(f + ' 未被占位（内容仍是真实文件，发布即公开源码）');
+    if (!fs.existsSync(path.join(HOLD, f))) repBad.push(f + ' 的真实文件不在暂存区（restore 会丢失内容）');
+  }
+  if (repBad.length) {
+    die('文件级占位检查未通过：\n    ' + repBad.join('\n    ')
+      + '\n  处置：跑一次 prepare（会把真实文件挪进暂存区、原位写占位），再重跑 verify。');
+  }
+  log('✓ 文件级占位在位（' + Object.keys(REPLACE).join(' / ') + ' 将在线上被顶成占位）');
+
   assertArtifacts();
   log('\n✓ 发布目录干净：只剩运行所需文件，且 ' + KEEP.join(' / ') + ' 都在。');
   process.exit(0);
@@ -302,6 +366,10 @@ if (mode === 'restore') {
   if (!fs.existsSync(MANIFEST)) die('找不到清单 ' + MANIFEST + '，拒绝盲目还原');
   const moved = [];
   for (const f of MOVE) {
+    const r = moveBack(f);
+    if (r) moved.push(r);
+  }
+  for (const f of Object.keys(REPLACE)) {
     const r = moveBack(f);
     if (r) moved.push(r);
   }
@@ -324,6 +392,9 @@ if (mode === 'restore') {
   for (const r of moved) if (r.partial) {
     log('  · ' + r.entry + ' 为「影子占位」目录：搬回 ' + r.children.length + ' 项，'
       + SHADOW[r.entry].join(' / ') + ' 原地未动');
+  }
+  for (const r of moved) if (r.replaced) {
+    log('  · ' + r.entry + ' 为「文件级占位」：真实文件已写回原位（覆盖占位）');
   }
   log('逐字节校验 ' + n + ' 个文件：' + (bad.length ? '✗ ' + bad.length + ' 个不一致' : '✓ 全部一致'));
   if (bad.length) { log(bad.slice(0, 10).join('\n')); die('还原校验未通过，请人工检查'); }

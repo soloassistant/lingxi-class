@@ -19,6 +19,8 @@
      · 开发目录（tests / tools / sql / _quality）**只能**以
        "仅含 index.html 的影子占位" 形式出现在白名单里（见 R21-d 的说明）
      · node_modules **不得**进 SHADOW —— 发布端按目录名排除它，占位传不上去（假承诺）
+     · REPLACE（文件级占位）里的路径**绝不能**是 index.html 真正加载的文件，
+       否则发布出去就是白屏（见 R21-g）
 
    ★ R21-d 的语义在 2026-10-09 变过一次，极容易写错：
      平台是**覆盖式部署**，线上残留着历史部署的目录列表（/sql/ 会列出迁移文件名），
@@ -163,6 +165,67 @@ t('在位的影子占位页与权威内容逐字符一致', drift.length === 0,
 /* 反向确认：至少有一个真实在位，否则上一条是空转 */
 const shadowOnDisk = Object.keys(cfg.SHADOW || {}).filter((d) => fs.existsSync(path.join(dir, d, 'index.html')));
 t('至少有一个影子占位在位（断言不是空转）', shadowOnDisk.length >= 1, shadowOnDisk.join(', '));
+
+console.log('\n=== R21-g. 文件级占位（REPLACE）不得误伤页面真正加载的文件 ===');
+/* REPLACE 会把已公开的单文件在**发布期**换成占位（线上覆盖式部署下，这是唯一能摘掉
+   历史公开文件的办法）。它最大的风险是"把页面真正加载的文件也换掉 ⇒ 线上白屏"，
+   所以下面第 ② 条是本节的核心断言。 */
+const R = cfg.REPLACE || {};
+const rKeys = Object.keys(R);
+t('publish-config 导出了 REPLACE', rKeys.length > 0, rKeys.join(', '));
+/* ① 反向确认：这些文件确实存在于发布目录，否则下面几条会空转 */
+const rPresent = rKeys.filter((f) => fs.existsSync(path.join(dir, f)));
+t('REPLACE 里的文件真实存在于发布目录', rKeys.length > 0 && rPresent.length === rKeys.length,
+  `实测存在 ${rPresent.length}/${rKeys.length}`);
+/* ② ★ 安全底线：被真正加载的文件绝不能被替换 —— 换了就是线上白屏。
+      ⚠ 判据必须是「src/href **赋值**」，不能是"包含这个子串"：
+        index.html 第 1197 行那段注释里就明明白白写着 `js/app.js` 四个字
+        （解释 CDN 兜底逻辑放在哪个文件里），但它并没有加载这个文件。
+        用 `includes()` 会把注释误判成加载 ⇒ 假红。 */
+const rHtml = fs.readFileSync(path.join(dir, 'index.html'), 'utf8');
+const rTargets = [['index.html', rHtml]];
+for (const f of ['js/app.min.js', 'css/style.min.css']) {
+  const p = path.join(dir, f);
+  if (fs.existsSync(p)) rTargets.push([f, fs.readFileSync(p, 'utf8')]);
+}
+const rUsed = [];
+for (const [file, txt] of rTargets) {
+  for (const f of rKeys) {
+    const esc = f.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (new RegExp('(?:src|href|\\.src)\\s*=\\s*[\'"]' + esc + '[\'"]').test(txt)) {
+      rUsed.push(f + ' ← ' + file);
+    }
+  }
+}
+t('★ 没有 REPLACE 路径被 src/href 赋值引用（引用即白屏）', rUsed.length === 0,
+  rUsed.length ? '★ 被加载：' + rUsed.join(', ') : `扫了 ${rTargets.length} 个文件，index.html 只引用 .min 产物`);
+/* ③ 占位内容必须短、且不含任何内部信息（它是公开发布的） */
+const rLeak = rKeys.filter((f) => {
+  const c = R[f];
+  return typeof c !== 'string' || c.length > 200
+    || /灵犀|lingxi|workbuddy|课程|题库|台账|\.\.\//i.test(c);
+});
+t('占位内容短且不含内部信息', rLeak.length === 0, rLeak.join(', '));
+/* ④ 占位得是合法注释，别把 .js 写成裸文本、把 .css 写坏 */
+const rSyn = rKeys.filter((f) => {
+  const c = R[f];
+  if (typeof c !== 'string') return true;
+  if (f.endsWith('.js')) return !/^\s*(\/\/|\/\*)/.test(c);
+  if (f.endsWith('.css')) return !/^\s*\/\*/.test(c);
+  return false;
+});
+t('占位内容是合法注释（.js 用 // 或 /*，.css 用 /*）', rSyn.length === 0, rSyn.join(', '));
+/* ⑤ 灾难兜底：真实源文件不能被"占位"永久顶掉。
+      要么当前等于占位（说明正处在发布窗口内），要么它必须是一份完整源码。
+      这条挡的是"在 prepare 状态下 git commit，把占位提交进了仓库"。 */
+const rTiny = rKeys.filter((f) => {
+  const p = path.join(dir, f);
+  if (!fs.existsSync(p)) return false;
+  const c = fs.readFileSync(p, 'utf8');
+  return c !== R[f] && c.length < 5000;
+});
+t('真实源文件没有被占位永久顶掉（要么在发布窗口内，要么是完整源码）', rTiny.length === 0,
+  rTiny.length ? '★ 可疑：' + rTiny.join(', ') : '');
 
 console.log(`\n结果：${pass} 通过 / ${fail} 失败`);
 console.log(`_RESULT pass=${pass} fail=${fail}`);

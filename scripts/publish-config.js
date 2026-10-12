@@ -108,6 +108,31 @@ const SHADOW_PLACEHOLDER = [
   '',
 ].join('\n');
 
+/* ── REPLACE：发布期把**已公开的单文件**内容换成占位 ────────────────────
+   ★ 为什么需要它（2026-10-12）：`js/app.js`（683 KB 未压缩源码，含全部注释）
+     与 `css/style.css`（145 KB）一直都躺在发布目录里 ⇒ **一直对外可直接下载**。
+     上了首屏压缩之后，线上同时存在「源码版 + 压缩版」，
+     对"想读源码的人"来说暴露面反而比压缩前**更大**（多了一份 min 版可对照）。
+   ★ 为什么不能像 tests/ 那样简单移走：平台是**覆盖式部署**，把文件移出发布目录，
+     线上那一份**不会消失** —— 和 /tests/ 的目录列表是同一个道理。
+     唯一办法是在**原路径**覆盖成占位。
+   ★ 为什么又是"发布期替换 + 发布后还原"而不是永久改掉：
+     本地开发与 `npm run build` 都要读这两个源文件（`js/app.js` 是构建输入）。
+   ⇒ 语义：prepare 把真实文件挪进暂存区、在原位写占位；restore 再挪回来。
+
+   ⚠ 加任何一条进来之前，**必须先确认页面不加载它**：
+     index.html 只引用 `js/app.min.js` / `css/style.min.css`（已核实）。
+     这条由 tests/publish-surface.test.js 的 R21-g 守住 —— 一旦有人把
+     页面真正加载的文件写进 REPLACE，线上会直接白屏。
+   ⚠ 占位内容必须**短**、且**不得含任何内部信息**（它是公开发布的）。
+   ⚠ 安全性兜底：这两个文件**都在 git 里**，所以即使 restore 没跑成，
+     `git restore <路径>` 就能取回真实内容 —— 这不是不可逆操作。
+   ⚠ 不加日期：占位内容每次发布都会重新上传，掺进"今天几号"只会制造无意义的字节变化。*/
+const REPLACE = {
+  'js/app.js': '// not publicly hosted\n',
+  'css/style.css': '/* not publicly hosted */\n',
+};
+
 /* ── 白名单：verify 阶段允许出现在发布目录**顶层**的集合 ────────────────
    ★ 为什么必须是白名单而不是黑名单：黑名单是 **fail-open** ——
      新增一个目录而没人记得登记，它就会跟着发布被公开托管。
@@ -124,5 +149,5 @@ function allowedTopLevel() {
 }
 
 module.exports = {
-  ROOT, APP, HOLD, MANIFEST, MOVE, KEEP, ALLOW_EXTRA, SHADOW, SHADOW_PLACEHOLDER, allowedTopLevel,
+  ROOT, APP, HOLD, MANIFEST, MOVE, KEEP, ALLOW_EXTRA, SHADOW, SHADOW_PLACEHOLDER, REPLACE, allowedTopLevel,
 };
