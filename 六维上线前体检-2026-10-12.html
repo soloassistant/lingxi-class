@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>灵犀课堂 · 上线前六维体检报告（2026-10-12）</title>
+<style>
+  :root{--bg:#f7f8fa;--card:#fff;--ink:#1f2328;--dim:#59636e;--line:#e3e6ea;
+        --ok:#1a7f37;--bad:#cf222e;--warn:#9a6700;--accent:#0969da;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:32px 20px 56px;background:var(--bg);color:var(--ink);
+       font:15px/1.65 -apple-system,"Segoe UI","Microsoft YaHei",system-ui,sans-serif}
+  .wrap{max-width:1080px;margin:0 auto}
+  h1{font-size:25px;margin:0 0 6px}
+  .sub{color:var(--dim);font-size:14px;margin-bottom:24px}
+  .sub code{background:#eef1f4;padding:1px 6px;border-radius:4px;font-size:13px}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:26px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+  .card .n{font-size:26px;font-weight:650;letter-spacing:-.5px}
+  .card .l{font-size:13px;color:var(--dim);margin-top:2px}
+  .n.ok{color:var(--ok)} .n.bad{color:var(--bad)} .n.warn{color:var(--warn)}
+  h2{font-size:17px;margin:30px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+  table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);
+        border-radius:10px;overflow:hidden;font-size:13.5px;margin-top:10px}
+  th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:#f1f3f6;font-weight:600;font-size:12.5px;color:var(--dim);white-space:nowrap}
+  tr:last-child td{border-bottom:none}
+  td.p{font-family:ui-monospace,Consolas,monospace;font-size:12.5px}
+  td.ok{color:var(--ok)} td.bad{color:var(--bad);font-weight:600} td.warn{color:var(--warn)}
+  .note{background:#fff8e6;border:1px solid #f0d9a0;border-left:4px solid #d4a72c;
+        border-radius:8px;padding:13px 16px;margin-top:16px;font-size:14px}
+  .note b{color:#7a5c00}
+  .good{background:#eaf7ec;border:1px solid #b7e0bf;border-left:4px solid var(--ok);
+        border-radius:8px;padding:13px 16px;margin-top:16px;font-size:14px}
+  .bad{background:#fdeeee;border:1px solid #f3c1c1;border-left:4px solid var(--bad);
+        border-radius:8px;padding:13px 16px;margin-top:16px;font-size:14px}
+  .bad b{color:#a40e26}
+  ul{margin:8px 0 0;padding-left:22px} li{margin:4px 0}
+  .verdict{display:inline-block;padding:2px 9px;border-radius:20px;font-size:12.5px;font-weight:600}
+  .v-ok{background:#eaf7ec;color:var(--ok)} .v-bad{background:#fdeeee;color:var(--bad)}
+  .v-warn{background:#fff8e6;color:var(--warn)}
+  footer{margin-top:34px;color:var(--dim);font-size:12.5px;border-top:1px solid var(--line);padding-top:14px}
+</style>
+</head>
+<body><div class="wrap">
+<h1>上线前六维体检 · 灵犀课堂（网页版）</h1>
+<div class="sub">
+  目标 <code>bb6ae4d03fbd4b109cbbe6dbbc84502d.app.workbuddy.host</code> · 时间 2026-10-12 ·
+  维度：UI 视觉 / 软件安全 / 页面设计 / 法律风险 / 吸引力 / 内容缺陷<br>
+  取证方式：UI 视觉由 CDP 驱动真实 Chrome 打<b>线上域名</b>逐屏截图；安全 / 法律 / 内容三路各一个专项 agent，
+  每条结论都回到源码行号复核。<b>不靠"读代码觉得没问题"下结论。</b>
+</div>
+
+<div class="cards">
+  <div class="card"><div class="n">6</div><div class="l">体检维度</div></div>
+  <div class="card"><div class="n ok">3</div><div class="l">干净通过</div></div>
+  <div class="card"><div class="n warn">3</div><div class="l">有问题</div></div>
+  <div class="card"><div class="n bad">4</div><div class="l">法律 P0 待决策</div></div>
+  <div class="card"><div class="n ok">9</div><div class="l">内容缺陷已修</div></div>
+  <div class="card"><div class="n">2254</div><div class="l">回归断言通过</div></div>
+</div>
+
+<h2>一、UI 视觉 <span class="verdict v-ok">通过</span></h2>
+<div class="good">
+  Chrome 154 真实加载线上域名：<b>0 console error · 0 page error · 0 个 4xx/5xx</b>。
+  20 张截图无重复指纹（证明测量没有被遮罩污染）。开屏 + 登录门禁、首页 hero/统计/课程体系卡、
+  护眼主题换肤、隐私政策弹窗八节结构、课堂页（幻灯片/讲师头像/LIVE 标识/聊天/控制条/REC/右侧栏）均正常渲染。
+</div>
+<table>
+  <tr><th>检查项</th><th>结果</th></tr>
+  <tr><td>控制台 / 页面错误</td><td class="ok">0 / 0</td></tr>
+  <tr><td>网络 4xx/5xx</td><td class="ok">0（唯一 <code>ERR_ABORTED Fetch</code> 一条，无伴随报错，判良性）</td></tr>
+  <tr><td>截图指纹去重</td><td class="ok">20/20 无重复 ⇒ 遮罩已点掉，测量有效</td></tr>
+  <tr><td>桌面 / 平板 / 移动三档视口</td><td class="ok">均正常；移动端 <code>scrollWidth === clientWidth === 390</code>，无页面级横向溢出</td></tr>
+  <tr><td>课堂页进入与渲染</td><td class="ok"><code>#live-room</code> rect <code>[148,85,1112,619]</code>，4 张幻灯片就位</td></tr>
+  <tr><td>导航折行</td><td class="ok">几何自检只报 313px 窄栏的小节标题两行折行，属正常文本行为</td></tr>
+</table>
+<div class="note">
+  <b>⚠ 一个差点误判成产品缺陷的探针 bug。</b>课堂页截图一开始截到的是首页，我以为是产品把视图踢了回去。
+  给 <code>switchView</code> 插桩后，trace 里<b>一次调用都没有</b>。读代码发现真正的入口是
+  <code>enterLive(course)</code>（app.js:8476：先 <code>switchView('live')</code> 再 <code>await startLive(course)</code>）——
+  <b>我的探针直接调 <code>startLive</code>，绕过了视图切换</b>。改正后一切正常。
+  教训：探针必须走产品的真实入口，否则测的是自己写的 bug。
+</div>
+<div class="note">
+  <b>移动端课堂工具栏看着"溢出"，其实是设计。</b>390px 视口下 <code>#tb-gallery</code> 等按钮 right 边到 722px，
+  但父容器 <code>.meet-toolbar</code> 是 <code>overflow-x:auto</code> 的横向滚动条（14 个按钮只露得下 5 个半）。
+  判据是页面本身不溢出：<code>documentElement.scrollWidth === clientWidth === 390</code> ⇒ 不是缺陷。
+  14 个按钮全部带 <code>aria-label</code>。
+</div>
+
+<h2>二、软件安全 <span class="verdict v-warn">P0 无，P1×2 / P2×4</span></h2>
+<table>
+  <tr><th>级别</th><th>问题</th><th>位置</th></tr>
+  <tr><td class="bad">P1</td><td>jsdelivr CDN 兜底脚本注入<b>无 SRI / integrity</b> —— 兜底路径可被中间人篡改</td><td class="p">app.js:10596,10598 · index.html:11</td></tr>
+  <tr><td class="bad">P1</td><td>SDK 把 <code>accessToken</code> + <code>refreshToken</code> 存 localStorage —— XSS 即可取走会话</td><td class="p">vendor/workbuddy-cloud-sdk.global.js</td></tr>
+  <tr><td class="warn">P2</td><td><code>style-src 'unsafe-inline'</code>；无 <code>frame-ancestors</code>；<code>connect-src https://*.workbuddy.host</code> 通配过宽</td><td class="p">index.html:11</td></tr>
+  <tr><td class="warn">P2</td><td><code>keep.outerHTML</code> 读回写 —— 把 DOM 当数据源用，易被注入</td><td class="p">app.js:12574,12596</td></tr>
+  <tr><td class="warn">P2</td><td>CDN 兜底资源无 <code>integrity</code> 属性</td><td class="p">app.js:10596</td></tr>
+</table>
+<div class="good">
+  <b>做得好的部分（不是客套，是实测）：</b>手机号<b>不落 localStorage</b>；无明文密码；无假账号；
+  <code>esc()</code> 覆盖完整（<code>&amp; &lt; &gt; " '</code> 五字符全转）；登录态生命周期处理
+  （过期清理、登出即清）明显好于同类产品。<b>没有发现可被直接利用的安全漏洞。</b>
+</div>
+
+<h2>三、页面设计 <span class="verdict v-ok">通过</span></h2>
+<div class="good">
+  三档视口（1440 / 768 / 390）布局均无塌陷；护眼主题换肤真实生效（不是只换个 logo）；
+  信息层级清楚（hero → 三步 → 课程体系 → CTA → footer）；空状态、异常态、死链、假数据未发现问题。
+  视觉第一印象自评 <b>8/10</b>。
+</div>
+
+<h2>四、法律风险 <span class="verdict v-bad">4 项 P0 未解决（需产品决策）</span></h2>
+<div class="good">
+  <b>先纠正一个此前的误判：</b>隐私政策（app.js:868-916）与用户协议（app.js:919-954）
+  <b>实际存在且完整度不低</b> —— V1.4 / 2026-10-07，footer 常驻入口（index.html:752-758），
+  登录强制勾选（index.html:982-986）。README 里写的"交付缺口"其实指的是 RLS 迁移不在仓库，不是文档缺失。
+  AI 内容标识也很完整：footer、登录页、家长报告页、练习页脚都有"由 AI 生成"提示。
+</div>
+<div class="bad">
+  <b>真正的硬缺口在未成年人保护 —— 一个 K12 产品的监管必答题。</b>
+  当前状态：不满 14 周岁的孩子可以自己用邮箱注册、自己勾选同意、<b>没有任何时长限制地一直用</b>，
+  而全站找不到一处监护人同意机制。监管或家长打开页面 3 分钟内问的一定是这一句。
+  <ul>
+    <li><b>P0-1</b> 无监护人同意机制（注册流程不问年龄，无家长确认步骤）</li>
+    <li><b>P0-2</b> 无独立的儿童个人信息保护规则（隐私政策第六节只有一句"建议在监护人陪同下使用"）</li>
+    <li><b>P0-3</b> 无适龄提示 / 防沉迷 / 时长限制</li>
+    <li><b>P0-4</b> <code>supportEmail</code>（app.js:47）为空 ⇒ <b>全站没有任何人工联系渠道</b>，
+        而隐私政策第八节与注销流程都写着"可通过联系我们提出"</li>
+  </ul>
+</div>
+<table>
+  <tr><th>级别</th><th>问题</th><th>状态</th></tr>
+  <tr><td class="bad">P0</td><td>上述 4 项未成年人 / 联系渠道缺口</td><td class="bad">待产品决策</td></tr>
+  <tr><td class="warn">P1</td><td>用户协议把 AI 出错责任全推给用户（app.js:935），无责任分层</td><td class="warn">未处理</td></tr>
+  <tr><td class="warn">P1</td><td>未区分学生 / 家长角色；未披露数据存储地与第三方清单</td><td class="warn">未处理</td></tr>
+  <tr><td class="warn">P1</td><td>AI 内容权属未约定</td><td class="warn">未处理</td></tr>
+  <tr><td class="warn">P2</td><td>「提分」「响应最快」广告法绝对化用语</td><td class="ok">已修</td></tr>
+  <tr><td class="warn">P2</td><td>无 ICP 备案号、无 Cookie 告知、无侵权投诉渠道</td><td class="warn">未处理</td></tr>
+</table>
+
+<h2>五、吸引力 <span class="verdict v-ok">通过</span></h2>
+<div class="good">
+  Hero 主张清楚（"为每一个学生量身定制"）；社交证明有具体数字；免费体验入口在首屏与 CTA 两处；
+  "先测一下这台设备能不能出声"这个细节做得好 —— 它预判了用户最可能遇到的失败并给了自救路径。
+  <b>原先没有 Open Graph 标签，分享到微信/Telegram/X 只有一串裸 URL，这一项已修。</b>
+</div>
+
+<h2>六、内容缺陷 <span class="verdict v-ok">9 项已修 + 30 项守卫</span></h2>
+<table>
+  <tr><th>#</th><th>用户会看到什么</th><th>修法</th></tr>
+  <tr><td class="p">1</td><td><b>语音自检失败时显示 <code>**这台设备一个语音都没有**</code></b> —— 裸 markdown 原样吐给用户。
+      共 10 处，集中在语音自检失败与 AI 出题结果这两个<b>最伤信任</b>的时刻</td>
+      <td class="ok"><code>textContent</code> 路径改用「」；<code>innerHTML</code> 路径改用 <code>&lt;b&gt;</code></td></tr>
+  <tr><td class="p">2</td><td>首屏写"22+ 覆盖科目"，实际已经是 29 个 —— 用户能数出来</td>
+      <td class="ok"><code>syncHeroSubjectCount()</code> 从 <code>SUBJECTS.length</code> 动态取，HTML 留兜底</td></tr>
+  <tr><td class="p">3</td><td>用户协议写"需完成<b>真实身份验证</b>"，而实现只做验证码控制权核验 + 设备指纹</td>
+      <td class="ok">改为"核验控制权，不等同于线下的实名身份核验"</td></tr>
+  <tr><td class="p">4</td><td>无手机号用户被指引去「学习档案 → 联系我们」—— <b>这个入口不存在</b>，supportEmail 也是空的</td>
+      <td class="ok">改为真能走通的路：「账号与个人信息」登记，并说明可用监护人号码</td></tr>
+  <tr><td class="p">5</td><td>「响应最快」「按考点提分」—— 广告法绝对化 / 效果承诺用语</td>
+      <td class="ok">→「速度与效果均衡」「按考点突破」</td></tr>
+  <tr><td class="p">6</td><td>11 个关闭按钮只有一个 <code>✕</code>，读屏用户只听到"按钮"</td>
+      <td class="ok">全部补 <code>aria-label</code>（按各弹窗实际标题命名）</td></tr>
+  <tr><td class="p">7</td><td>没有 og 标签，分享出去只有裸 URL</td>
+      <td class="ok">补 <code>og:*</code> + <code>twitter:*</code>；og:image 用线上已有的 <code>assets/teacher-avatar.jpg</code></td></tr>
+  <tr><td class="p">8</td><td>CTA 横幅「雅思托福SAT」中英文紧贴，排版发糊</td><td class="ok">→「雅思 / 托福 / SAT」</td></tr>
+  <tr><td class="p">9</td><td>隐私政策"核验该号码<b>确为你本人所有</b>" —— 验证码只能证明控制权</td>
+      <td class="ok">→"核验你对该号码的控制权"</td></tr>
+</table>
+<div class="note">
+  <b>判据上踩过的坑：不能扫"源码里没有 <code>**</code>"。</b>
+  prompt 里的 <code>**</code> 是<b>合法</b>的（发给模型，markdown 强调有效，例如 <code>你**不能复制任何真题**</code>），
+  改了反而让模型收不到强调。正确判据是"<b>用户可见的渲染路径</b>上没有 <code>**</code>"：
+  <code>toast()</code> 与诊断面板走 <code>textContent</code>，练习页脚走 <code>esc()</code> 后进 <code>innerHTML</code> ——
+  这两条路都不解析 markdown。
+</div>
+<div class="good">
+  <b>新增守卫 <code>tests/content-copy.test.js</code>（R22，30 项）</b>，把以上全部钉成断言并注册进 <code>run-all.js</code>。
+  <b>变异验证：把 4 处缺陷加回去 ⇒ 5 条断言同时变红</b>（不是"写了断言图个心安"）。
+  同步修正 <code>tests/legal-phone.test.js</code> 两条停在旧文案上的断言。
+</div>
+
+<h2>验证结果</h2>
+<table>
+  <tr><th>项</th><th>修前</th><th>修后</th></tr>
+  <tr><td>全量回归</td><td class="bad">2218 通过 / 2 失败 / 19 文件</td><td class="ok">2254 通过 / 0 失败 / 20 文件</td></tr>
+  <tr><td>构建产物新鲜度</td><td>—</td><td class="ok">通过（app.min.js 380,347 B）</td></tr>
+  <tr><td>视觉复核（本地静态服务 + CDP）</td><td>—</td><td class="ok">hero 29+ / CTA 间距 / 无手机号新文案 / og 卡片 / 14 个 aria-label 全部在位</td></tr>
+  <tr><td>科目数是否真动态</td><td>—</td><td class="ok">清空节点再调 <code>syncHeroSubjectCount()</code> 仍得 29+ ⇒ 读的是数据不是写死</td></tr>
+</table>
+
+<h2>遗留：两件必须你拍板的事</h2>
+<div class="bad">
+  <b>① 未成年人保护（法律 P0）。</b>这不是"补段文案"能解决的，它改变产品形态：
+  注册时问年龄？不满 14 岁走监护人同意流程（要收集监护人身份/联系方式）？
+  加每日时长上限与休息提醒？要不要做学生/家长双角色？
+  <b>每一条都会改动注册主流程，我不能替你决定。</b><br><br>
+  <b>② 人工联系渠道。</b><code>supportEmail</code>（app.js:47）现在是空的。
+  隐私政策第八节、注销确认、无手机号提示三处都指向"联系我们"，但没有任何渠道。
+  <b>给我一个邮箱（或明确决定"不做人工渠道，只保留自助"），我把三处文案一次性改一致。</b>
+</div>
+
+<footer>
+  报告生成于 2026-10-12 · 代码改动已提交为本地 commit <code>f885327</code>（<b>尚未推送、尚未发布</b>）<br>
+  UI 视觉取证：<code>.workbuddy/probe/cdp-visual.mjs</code>（线上域名）+
+  <code>.workbuddy/probe/localfix/</code>（本地产物）· 课堂页复捕：<code>live-room-retry.mjs</code> /
+  <code>live-mobile-retry.mjs</code> · 守卫：<code>tests/content-copy.test.js</code>
+</footer>
+</div></body></html>
