@@ -6,6 +6,18 @@
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>灵犀课堂 · AI 一对一直播课</title>
 <meta name="description" content="灵犀课堂：面向国内课程与 IB / A-Level / HKDSE / AP 的 AI 一对一直播课。AI 老师实时讲课、随时可打断提问，并跨课程记住每一位学生。">
+<!-- 社交分享卡片：没有这些标签时，微信/Telegram/X 分享出去只有一串裸 URL。
+     og:image 用线上已有的 assets/teacher-avatar.jpg（实测 200 / 50,832 B），不新增发布文件。 -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="灵犀课堂">
+<meta property="og:title" content="灵犀课堂 · AI 一对一直播课">
+<meta property="og:description" content="AI 老师实时讲课、随时可打断提问，并跨课程记住每一位学生。覆盖国内课程与 IB / A-Level / HKDSE / AP，29 门科目。">
+<meta property="og:image" content="https://bb6ae4d03fbd4b109cbbe6dbbc84502d.app.workbuddy.host/assets/teacher-avatar.jpg">
+<meta property="og:url" content="https://bb6ae4d03fbd4b109cbbe6dbbc84502d.app.workbuddy.host/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="灵犀课堂 · AI 一对一直播课">
+<meta name="twitter:description" content="AI 老师实时讲课、随时可打断提问，并跨课程记住每一位学生。">
+<meta name="twitter:image" content="https://bb6ae4d03fbd4b109cbbe6dbbc84502d.app.workbuddy.host/assets/teacher-avatar.jpg">
 <meta name="theme-color" content="#5B5CE6">
 <meta name="color-scheme" content="light">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' https://*.workbuddy.host https://www.workbuddy.cn https://cdn.jsdelivr.net; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'">
@@ -121,7 +133,7 @@
           🔈 先测一下这台设备能不能出声
         </button>
         <div class="hero-stats">
-          <div class="stat"><b>22+</b><span>覆盖科目</span></div>
+          <div class="stat"><b id="hero-subject-count">29+</b><span>覆盖科目</span></div>
           <div class="stat"><b>2</b><span>课程体系</span></div>
           <div class="stat"><b>1v1</b><span>专属陪伴</span></div>
           <div class="stat"><b>24h</b><span>随时开课</span></div>
@@ -249,7 +261,7 @@
 
     <div class="cta-banner">
       <h2>现在，让 AI 老师认识你</h2>
-      <p>国内同步 / 中高考 / IB / A-Level / HKDSE / AP / 雅思托福SAT，第一次上课免费体验</p>
+      <p>国内同步 / 中高考 / IB / A-Level / HKDSE / AP / 雅思 / 托福 / SAT，第一次上课免费体验</p>
       <button class="btn btn-light btn-lg" data-nav="generate">免费生成第一节课</button>
     </div>
   </section>
@@ -313,7 +325,7 @@
         <div class="field" id="model-field" hidden>
           <label for="model-select">AI 模型</label>
           <select id="model-select" aria-describedby="model-hint"></select>
-          <p class="form-hint" id="model-hint">换个模型即可切换速度与效果。默认已选响应最快的通用模型。</p>
+          <p class="form-hint" id="model-hint">换个模型即可切换速度与效果。默认已选速度与效果均衡的通用模型。</p>
         </div>
         <div class="diag-cta">
           <button id="btn-diag-gen" class="btn btn-ghost btn-block">📝 先做课前诊断（可选）</button>
@@ -479,7 +491,7 @@
             <!-- 大纲抽屉 -->
             <div class="meet-board" id="meet-board" hidden>
               <div class="mb-head">📜 课程大纲 <span class="board-hint">点击环节切换讲解</span>
-                <button class="mb-close" id="mb-close">✕</button>
+                <button class="mb-close" id="mb-close" aria-label="关闭课程大纲抽屉">✕</button>
               </div>
               <ol class="stage-list" id="stage-list"></ol>
               <div class="board-tip" id="board-tip">大纲同步自你的专属课程方案</div>
@@ -763,7 +775,7 @@
   <div class="modal modal-auth">
     <div class="modal-head">
       <h3>🧠 登录后，老师会一直记得你</h3>
-      <button class="modal-close" id="btn-auth-close">✕</button>
+      <button class="modal-close" id="btn-auth-close" aria-label="关闭登录弹窗">✕</button>
     </div>
     <div class="modal-body">
       <p class="auth-lead">登录后灵犀老师会跨课程记住你的薄弱点、偏好和进度。
@@ -837,7 +849,7 @@
             <input type="tel" id="au-su-phone" placeholder="请输入 11 位手机号" inputmode="numeric" autocomplete="tel" maxlength="11"></label>
           <button class="btn btn-primary btn-block" id="btn-su-phone-save">保存并开始学习</button>
           <button class="btn btn-ghost btn-block" id="btn-su-phone-skip">我没有手机号</button>
-          <p class="auth-tip" id="au-su-no-phone" hidden>没有手机号也能用，但需要人工核对：请在「学习档案 → 联系我们」说明情况（例如海外学生、家长代管）。<br>在你补充之前，<b>生成课程和进课堂会被拦住</b>，浏览课程与回放不受影响。</p>
+          <p class="auth-tip" id="au-su-no-phone" hidden>没有手机号也能用，但需要先登记一个能联系到你的号码 —— 可以用家长或监护人的号码，一个号码代管多个账号是允许的。请点右上角头像进入「账号与个人信息」登记。<br>在你补充之前，<b>生成课程和进课堂会被拦住</b>，浏览课程与回放不受影响。</p>
           <div class="auth-msg" id="au-su-phone-msg" hidden></div>
         </div>
       </div>
@@ -887,7 +899,7 @@
   <div class="modal modal-auth">
     <div class="modal-head">
       <h3>🔑 重置密码</h3>
-      <button class="modal-close" id="btn-reset-close">✕</button>
+      <button class="modal-close" id="btn-reset-close" aria-label="关闭重置密码弹窗">✕</button>
     </div>
     <div class="modal-body">
       <label class="auth-field"><span>邮箱</span>
@@ -910,7 +922,7 @@
   <div class="modal modal-doc">
     <div class="modal-head">
       <h3 id="doc-title">用户协议</h3>
-      <button class="modal-close" id="btn-doc-close">✕</button>
+      <button class="modal-close" id="btn-doc-close" aria-label="关闭协议与政策弹窗">✕</button>
     </div>
     <div class="modal-body doc-body" id="doc-body"></div>
     <div class="modal-foot" id="doc-foot" hidden>
@@ -925,7 +937,7 @@
   <div class="modal modal-auth">
     <div class="modal-head">
       <h3>账号与个人信息</h3>
-      <button class="modal-close" id="btn-acct-close">✕</button>
+      <button class="modal-close" id="btn-acct-close" aria-label="关闭账号与个人信息弹窗">✕</button>
     </div>
     <div class="modal-body">
       <div class="acct-row"><span>登录账号</span><b id="acct-ident">—</b></div>
@@ -955,7 +967,7 @@
   <div class="modal">
     <div class="modal-head">
       <h3>📋 课堂小结</h3>
-      <button class="modal-close" id="btn-summary-close">✕</button>
+      <button class="modal-close" id="btn-summary-close" aria-label="关闭课堂小结">✕</button>
     </div>
     <div class="modal-body" id="summary-body"></div>
     <div class="modal-foot">
@@ -1070,7 +1082,7 @@
   <div class="modal modal-guide">
     <div class="modal-head">
       <h3>🪜 老师该怎么带你？</h3>
-      <button class="modal-close" id="btn-guide-close">✕</button>
+      <button class="modal-close" id="btn-guide-close" aria-label="关闭引导强度设置">✕</button>
     </div>
     <div class="modal-body">
       <p class="guide-intro">灵犀老师默认不会直接报答案，而是用问题引导你自己想出来。
@@ -1096,7 +1108,7 @@
   <div class="modal modal-feyntalk">
     <div class="modal-head">
       <h3 id="feyntalk-title">讲给我听</h3>
-      <button class="modal-close" id="btn-feyntalk-close">✕</button>
+      <button class="modal-close" id="btn-feyntalk-close" aria-label="关闭讲给我听弹窗">✕</button>
     </div>
     <div class="modal-body">
       <p class="ft-intro">对面这位同学<b>完全没学过这门课</b>。请你合上课件，用自己的话把那节课讲给他听 ——
@@ -1119,7 +1131,7 @@
   <div class="modal modal-slide">
     <div class="modal-head">
       <h3 id="slide-modal-title">课件预览</h3>
-      <button class="modal-close" id="btn-slide-close">✕</button>
+      <button class="modal-close" id="btn-slide-close" aria-label="关闭课件预览">✕</button>
     </div>
     <div class="slide-viewer">
       <div class="slide-stage" id="slide-stage"></div>
@@ -1140,7 +1152,7 @@
   <div class="modal modal-replay">
     <div class="modal-head">
       <h3 id="replay-title">⏺ 课堂回放</h3>
-      <button class="modal-close" id="btn-replay-close">✕</button>
+      <button class="modal-close" id="btn-replay-close" aria-label="关闭课堂回放">✕</button>
     </div>
     <div class="replay-body">
       <div class="replay-screen" id="replay-screen">
@@ -1176,7 +1188,7 @@
   <div class="modal">
     <div class="modal-head">
       <h3>🎬 老师形象视频</h3>
-      <button class="modal-close" id="btn-avatar-close">✕</button>
+      <button class="modal-close" id="btn-avatar-close" aria-label="关闭老师形象视频">✕</button>
     </div>
     <div class="modal-body" id="avatar-body"></div>
     <div class="modal-foot">
