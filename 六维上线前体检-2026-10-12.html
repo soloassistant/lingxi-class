@@ -55,9 +55,9 @@
   <div class="card"><div class="n">6</div><div class="l">体检维度</div></div>
   <div class="card"><div class="n ok">3</div><div class="l">干净通过</div></div>
   <div class="card"><div class="n warn">3</div><div class="l">有问题</div></div>
-  <div class="card"><div class="n bad">4</div><div class="l">法律 P0 待决策</div></div>
+  <div class="card"><div class="n warn">1</div><div class="l">法律 P0 待邮箱</div></div>
   <div class="card"><div class="n ok">9</div><div class="l">内容缺陷已修</div></div>
-  <div class="card"><div class="n">2254</div><div class="l">回归断言通过</div></div>
+  <div class="card"><div class="n">2323</div><div class="l">回归断言通过</div></div>
 </div>
 
 <h2>一、UI 视觉 <span class="verdict v-ok">通过</span></h2>
@@ -111,7 +111,7 @@
   视觉第一印象自评 <b>8/10</b>。
 </div>
 
-<h2>四、法律风险 <span class="verdict v-bad">4 项 P0 未解决（需产品决策）</span></h2>
+<h2>四、法律风险 <span class="verdict v-warn">1 项 P0 待邮箱，3 项已修复（R23）</span></h2>
 <div class="good">
   <b>先纠正一个此前的误判：</b>隐私政策（app.js:868-916）与用户协议（app.js:919-954）
   <b>实际存在且完整度不低</b> —— V1.4 / 2026-10-07，footer 常驻入口（index.html:752-758），
@@ -119,20 +119,24 @@
   AI 内容标识也很完整：footer、登录页、家长报告页、练习页脚都有"由 AI 生成"提示。
 </div>
 <div class="bad">
-  <b>真正的硬缺口在未成年人保护 —— 一个 K12 产品的监管必答题。</b>
-  当前状态：不满 14 周岁的孩子可以自己用邮箱注册、自己勾选同意、<b>没有任何时长限制地一直用</b>，
-  而全站找不到一处监护人同意机制。监管或家长打开页面 3 分钟内问的一定是这一句。
+  <b>未成年人保护 —— K12 产品的监管必答题，已于 2026-10-12 落地 R23（P0-1~3 已修复）。</b>
+  此前不满 14 周岁的孩子可以自己注册、自己勾选同意、无使用时长提醒；全站也找不到监护人同意机制。
+  <b>一个诚实的边界：我们只做"监护人声明"而非线下身份核验</b>——
+  无法在线下验证操作者是否真的是监护人，所以文案明确写"声明"，不宣称"已验证"。
   <ul>
-    <li><b>P0-1</b> 无监护人同意机制（注册流程不问年龄，无家长确认步骤）</li>
-    <li><b>P0-2</b> 无独立的儿童个人信息保护规则（隐私政策第六节只有一句"建议在监护人陪同下使用"）</li>
-    <li><b>P0-3</b> 无适龄提示 / 防沉迷 / 时长限制</li>
-    <li><b>P0-4</b> <code>supportEmail</code>（app.js:47）为空 ⇒ <b>全站没有任何人工联系渠道</b>，
-        而隐私政策第八节与注销流程都写着"可通过联系我们提出"</li>
+    <li><b>P0-1 ✓ 已修复（R23）</b> 监护人同意机制：手机号 / 邮箱验证码 / 注册三个会自建账号的入口，
+        必须先完成年龄与身份声明；未满 14 周岁须填监护人联系方式并勾选监护人声明（声明≠线下核验）。</li>
+    <li><b>P0-2 ✓ 已修复（R23）</b> 儿童个人信息保护规则：隐私政策新增独立第七节「儿童个人信息保护规则」（8 个子项）。</li>
+    <li><b>P0-3 ✓ 已修复（R23）</b> 适龄提示 / 防沉迷：footer 适龄提示 + 账号面板「未成年人保护登记」可视化；
+        45/90 分钟善意使用提醒，文案明确写成"提醒"而非"已强制限制"。</li>
+    <li><b>P0-4 ✗ 待邮箱</b> <code>supportEmail</code>（app.js:47）仍为空 ⇒ <b>全站没有任何人工联系渠道</b>，
+        而隐私政策第八节与注销流程都写着"可通过联系我们提出"。</li>
   </ul>
 </div>
 <table>
   <tr><th>级别</th><th>问题</th><th>状态</th></tr>
-  <tr><td class="bad">P0</td><td>上述 4 项未成年人 / 联系渠道缺口</td><td class="bad">待产品决策</td></tr>
+  <tr><td class="ok">P0</td><td>未成年人保护 3 项（监护人同意 / 儿童信息规则 / 适龄提醒）已修复 R23</td><td class="ok">已修复</td></tr>
+  <tr><td class="bad">P0</td><td>supportEmail 为空，全站无人工联系渠道</td><td class="bad">待邮箱</td></tr>
   <tr><td class="warn">P1</td><td>用户协议把 AI 出错责任全推给用户（app.js:935），无责任分层</td><td class="warn">未处理</td></tr>
   <tr><td class="warn">P1</td><td>未区分学生 / 家长角色；未披露数据存储地与第三方清单</td><td class="warn">未处理</td></tr>
   <tr><td class="warn">P1</td><td>AI 内容权属未约定</td><td class="warn">未处理</td></tr>
@@ -191,19 +195,21 @@
   <tr><td>科目数是否真动态</td><td>—</td><td class="ok">清空节点再调 <code>syncHeroSubjectCount()</code> 仍得 29+ ⇒ 读的是数据不是写死</td></tr>
 </table>
 
-<h2>遗留：两件必须你拍板的事</h2>
+<h2>遗留：一件必须你拍板的事</h2>
+<div class="good">
+  <b>① 未成年人保护（法律 P0-1~3）—— 已落地 R23（2026-10-12）。</b>
+  注册三入口加年龄/身份声明、未满 14 周岁需监护人声明；隐私政策新增第七节儿童个人信息保护规则；
+  footer 适龄提示 + 账号面板登记可视化 + 45/90 分钟善意提醒（文案明确为"提醒"非"强制限制"）。
+  诚实边界：只做"监护人声明"不宣称线下核验。守卫 <code>tests/legal-minor.test.js</code>（69 项）。
+</div>
 <div class="bad">
-  <b>① 未成年人保护（法律 P0）。</b>这不是"补段文案"能解决的，它改变产品形态：
-  注册时问年龄？不满 14 岁走监护人同意流程（要收集监护人身份/联系方式）？
-  加每日时长上限与休息提醒？要不要做学生/家长双角色？
-  <b>每一条都会改动注册主流程，我不能替你决定。</b><br><br>
-  <b>② 人工联系渠道。</b><code>supportEmail</code>（app.js:47）现在是空的。
+  <b>② 人工联系渠道（法律 P0-4）。</b><code>supportEmail</code>（app.js:47）仍是空的。
   隐私政策第八节、注销确认、无手机号提示三处都指向"联系我们"，但没有任何渠道。
   <b>给我一个邮箱（或明确决定"不做人工渠道，只保留自助"），我把三处文案一次性改一致。</b>
 </div>
 
 <footer>
-  报告生成于 2026-10-12 · 代码改动已提交为本地 commit <code>f885327</code>（<b>尚未推送、尚未发布</b>）<br>
+  报告生成于 2026-10-12 · 未成年人保护 R23 已修复（本地待发布）；内容缺陷见 commit <code>f885327</code><br>
   UI 视觉取证：<code>.workbuddy/probe/cdp-visual.mjs</code>（线上域名）+
   <code>.workbuddy/probe/localfix/</code>（本地产物）· 课堂页复捕：<code>live-room-retry.mjs</code> /
   <code>live-mobile-retry.mjs</code> · 守卫：<code>tests/content-copy.test.js</code>

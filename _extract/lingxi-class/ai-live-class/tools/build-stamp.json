@@ -3,22 +3,22 @@
   "note": "源码改动后必须重跑 npm run build；本文件被 tests/build-freshness.test.js 校验",
   "sources": {
     "js/app.js": {
-      "bytes": 683913,
-      "sha256": "4a0f1b4f500c9ff6f37b8126128c60968aa083461fdaade2d62bec42634d5c5d"
+      "bytes": 698448,
+      "sha256": "fa04b92028dcfaedcd0af3f280d3f76f65de1ada39a7fca98cab94816301afdf"
     },
     "css/style.css": {
-      "bytes": 144537,
-      "sha256": "46558a77c35ec0424d5d85d0f1f8ddcbaf2d5605f27edff8caf9661697a5e780"
+      "bytes": 146434,
+      "sha256": "6b933ac6a70310c2860f6eb058711553d059d53a16f15526933b13e1ea595e66"
     }
   },
   "outputs": {
     "js/app.min.js": {
-      "bytes": 380347,
-      "sha256": "494d0e2ec39e8ba65112ad47d8e34f141f506daddd98ebddbb2dc24bf2c91846"
+      "bytes": 388926,
+      "sha256": "6e2187e94e4bba9f0702d4558d6173df501f1df21f0a56e797a74ae653271bc5"
     },
     "css/style.min.css": {
-      "bytes": 99645,
-      "sha256": "164e6461b7155cdc1662b93257b9b4aae593737c8f733a6cc10340915fd2764f"
+      "bytes": 100952,
+      "sha256": "dbc4ce4c62ecdec224ed6b35ab163c4ba08c70384c560b891468770b7a958dd8"
     }
   },
   "generated": {

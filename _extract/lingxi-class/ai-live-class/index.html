@@ -766,7 +766,9 @@
     <span>·</span>
     <a href="#" data-doc="privacy">隐私政策</a>
     <span>·</span>
-    <span>内容由 AI 生成，请注意甄别；未成年人请在监护人指导下使用</span>
+    <span>适龄提示：面向 K12 及国际课程学习者；未满 14 周岁的未成年人请在监护人同意并陪同下使用</span>
+    <span>·</span>
+    <span>内容由 AI 生成，请注意甄别</span>
   </div>
 </footer>
 
@@ -854,6 +856,34 @@
         </div>
       </div>
 
+      <!-- ★ 未成年人保护（2026-10-12）：年龄与身份声明 + 监护人确认。
+           为什么三个页签共用一块：「手机号登录」页签明写"未注册的手机号将自动创建账号」，
+           邮箱验证码登录走 signInWithOtp 同样可能建号 —— 只在「注册」页签问一句的话，
+           未成年人从另外两条路进来就完全绕过了。所以这块由 switchAuthTab 按页签显隐，
+           三个可能建号的页签都问，「密码登录」（纯已有账号）不问。
+           已声明过就记住（localStorage），不反复追问；面板里也看得见自己声明了什么。 -->
+      <div class="auth-age" id="au-age-gate" hidden>
+        <p class="auth-age-tip">开始之前先确认两件事 —— 用来做适龄提示与未成年人保护：</p>
+        <div class="auth-age-row" role="radiogroup" aria-label="你的身份">
+          <label class="auth-age-opt"><input type="radio" name="au-role" value="student" checked><span>我是学生</span></label>
+          <label class="auth-age-opt"><input type="radio" name="au-role" value="guardian"><span>我是家长 / 老师</span></label>
+        </div>
+        <div class="auth-age-row" id="au-age-minor-row" role="radiogroup" aria-label="是否未满 14 周岁">
+          <label class="auth-age-opt"><input type="radio" name="au-minor" value="no" checked><span>已满 14 周岁</span></label>
+          <label class="auth-age-opt"><input type="radio" name="au-minor" value="yes"><span>未满 14 周岁</span></label>
+        </div>
+        <div id="au-guardian-box" hidden>
+          <label class="auth-field"><span>监护人手机号或邮箱</span>
+            <input type="text" id="au-guardian-contact" placeholder="用于课后联系与你找回账号" maxlength="60" autocomplete="off"></label>
+          <label class="auth-consent" id="au-guardian-consent-wrap">
+            <input type="checkbox" id="au-guardian-consent">
+            <span>我是这位未成年学生的监护人，已阅读并同意<a href="#" data-doc="privacy">《隐私政策》</a>中的「儿童个人信息保护规则」</span>
+          </label>
+          <p class="auth-age-tip" id="au-guardian-note">这一步是<b>监护人声明</b>，我们不做线下的身份核验；如所填号码无法联系到监护人，我们可能暂停该账号的课程生成。</p>
+        </div>
+        <p class="auth-age-declared" id="au-age-declared" hidden></p>
+      </div>
+
       <div class="auth-msg" id="auth-msg" hidden></div>
 
       <label class="auth-consent" id="au-consent-wrap">
@@ -863,6 +893,14 @@
           <a href="#" data-doc="privacy">《隐私政策》</a>，
           并同意按政策处理我的个人信息</span>
       </label>
+
+      <!-- ★ 适龄提示（2026-10-12）。为什么单独一行而不并进同意勾选：
+           勾选框是"我同意"，适龄提示是"这个产品适合谁、未成年人该怎么用"，
+           两件事混在一句里，用户会以为勾了就等于知晓了全部规则。 -->
+      <p class="auth-age-tip" id="au-age-notice">
+        适龄提示：本产品面向 K12 及国际课程学习者。未满 14 周岁的儿童请在监护人同意并陪同下使用；
+        监护人可随时查阅、更正或删除其被监护儿童的个人信息，见《隐私政策》第七节「儿童个人信息保护规则」。
+      </p>
 
       <!-- ★ 2026-10-05 修：括注必须放进 <a> 里。
            门禁态下 setGateBypassesHidden(true) 给 #au-skip 加 hidden，
@@ -941,6 +979,7 @@
     </div>
     <div class="modal-body">
       <div class="acct-row"><span>登录账号</span><b id="acct-ident">—</b></div>
+      <div class="acct-row" id="acct-age-row" hidden><span>未成年人保护登记</span><b id="acct-age-val">未登记</b></div>
       <div class="acct-row"><span>手机号</span><b id="acct-phone-val">未登记</b></div>
       <div id="acct-phone-form" hidden>
         <label class="auth-field"><span>手机号</span>

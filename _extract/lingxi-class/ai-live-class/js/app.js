@@ -860,9 +860,9 @@ const MEMORY_USE_RULE =
                          否则已同意的用户不会被要求重新阅读（hasConsent 就是比它）
    · LEGAL_EFFECTIVE  —— 展示给人看的生效日期
    · LEGAL_REVISION   —— 展示给人看的版本号 */
-const LEGAL_VERSION = '2026-10-07.1';       // 本次变更：明确「自带真题」处理会把材料原文发送给模型；修正题库"不上传"的错误表述
-const LEGAL_EFFECTIVE = '2026-10-07';
-const LEGAL_REVISION = 'V1.4';
+const LEGAL_VERSION = '2026-10-12.1';       // 本次变更：新增「儿童个人信息保护规则」独立章节与用户协议未成年人专条；用户协议改为明示仅做验证码控制权核验
+const LEGAL_EFFECTIVE = '2026-10-12';
+const LEGAL_REVISION = 'V1.5';
 
 /* 隐私政策：说明我们收集什么、为什么、存多久、你的权利怎么行使 */
 const PRIVACY_DOC = [
@@ -901,11 +901,25 @@ const PRIVACY_DOC = [
     '若你未满 14 周岁，请在父母或其他监护人的陪同下阅读本政策，并在取得监护人同意后使用本服务。',
     '我们建议未成年人在监护人指导下使用，且我们会以最小必要原则处理未成年人信息。监护人若需查询、更正或删除未成年人的信息，可通过下方方式联系我们。',
   ]},
-  { h: '七、信息安全', p: [
+  /* ★ 2026-10-12 新增独立章节：原来只有上面第六节一句"建议在监护人陪同下使用"，
+     而《儿童个人信息网络保护规定》要求的是**可执行的规则** —— 收集什么、怎么征得同意、
+     监护人有什么权利、出事找谁。空泛的"建议"不构成规则。 */
+  { h: '七、儿童个人信息保护规则', p: [
+    '本规则适用于未满 14 周岁儿童的个人信息，是《隐私政策》的组成部分；与前述条款不一致的，以本规则为准。',
+    '1）收集范围：我们仅收集为提供 AI 一对一直播课所必需的信息 —— 账号邮箱或手机号、监护人联系方式、所选课程体系/学科/学段、课堂中的提问与作答、AI 老师对学习情况的评估结论、课堂逐字记录与小结、设备特征标识。不收集身份证号、生物识别信息、精确地理位置、通讯录、相册。',
+    '2）监护人同意：注册时我们会询问使用者身份与年龄。若选择「未满 14 周岁」，须由监护人填写监护人联系方式并勾选确认，才能继续注册。这一步是<b>监护人声明</b>，我们不做线下的身份核验，因此无法确认操作者确实是监护人本人 —— 如所填方式无法联系到监护人，我们可能暂停该账号的课程生成。',
+    '3）使用目的：上述信息仅用于生成与讲授课程、跨课程记住学习者、生成学习档案与课堂回放、以及在异常时联系监护人或找回账号。不用于广告推送，不出售给任何第三方。',
+    '4）存储与安全：保存在为你提供服务的云端环境中，按用户隔离，仅账号本人可读写；保存至主动删除或注销账号为止。注销时会删除儿童画像、全部记忆条目与课堂记录，且不可恢复。',
+    '5）监护人权利：监护人可随时要求我们查阅、复制、更正或删除其监护的儿童的个人信息，也可要求注销账号。行使方式：登录后进入「账号与个人信息」面板自助完成，或通过本政策第九节的方式联系我们。',
+    '6）向外提供：我们不会向第三方转移儿童个人信息，法律法规另有规定或取得监护人同意的除外。',
+    '7）适龄与使用提醒：本产品面向 K12 及国际课程学习者。我们会在连续使用约 45 分钟与 90 分钟时给出休息提醒。该提醒是<b>提示性质</b>，不构成强制断线；我们建议未成年人每次连续使用不超过 40 分钟，每日累计不超过 2 小时，并由监护人协助安排。',
+    '8）发现与投诉：如你认为我们处理儿童个人信息的方式不当，可通过本政策第九节的方式联系我们，我们会在核实后及时处理。',
+  ]},
+  { h: '八、信息安全', p: [
     '我们采用按用户隔离的访问控制机制：每位用户的云端数据仅能由该用户本人读取和写入，其他用户无法访问你的学习档案。',
     '请你妥善保管账号与验证码，不要将其提供给他人。',
   ]},
-  { h: '八、联系我们', p: [
+  { h: '九、联系我们', p: [
     '如你对本政策有任何疑问，或需要行使上述个人权利（包括删除用于登录的邮箱或手机号本身），可通过以下方式联系我们：',
     '1）应用内「账号与个人信息」面板：可自助完成查阅、导出、更正、删除与注销，这是本服务的数据权利受理入口。',
     '2）' + (PUBLIC_CONFIG.supportEmail
@@ -946,7 +960,15 @@ const TERMS_DOC = [
     '因不可抗力、网络故障、第三方服务（含模型服务、验证码送达）异常等非我们可控的原因导致的服务中断或数据延迟，我们在法律允许范围内不承担责任。',
     '请勿将本服务用于考试作弊等违反学术诚信的用途。',
   ]},
-  { h: '八、适用法律与争议解决', p: [
+  /* ★ 2026-10-12 新增：原来全文没有一条针对未成年人的实体条款，
+     只在隐私政策里有一句"建议在监护人陪同下使用" —— 那是政策，不是协议义务。 */
+  { h: '八、未成年人使用', p: [
+    '本服务面向 K12 及国际课程学习者。未满 14 周岁的儿童使用本服务，应由其监护人代为阅读本协议与《隐私政策》中的「儿童个人信息保护规则」，并在监护人同意后进行注册。',
+    '注册时我们会询问使用者身份与年龄。若选择「未满 14 周岁」，须由监护人填写监护人联系方式并勾选确认后才能完成注册；该步骤为监护人声明，我们不做线下的身份核验。',
+    '监护人应自行判断本服务是否适合被监护的儿童，并合理安排使用时间。我们会在连续使用约 45 分钟与 90 分钟时给出休息提醒，但该提醒为提示性质，不构成强制断线，也不能替代监护人的监督。',
+    '监护人可随时要求查阅、更正、删除被监护儿童的个人信息，或注销其账号；行使方式见《隐私政策》第九节。',
+  ]},
+  { h: '九、适用法律与争议解决', p: [
     '本协议的订立、效力、解释、履行及争议解决均适用中华人民共和国法律。',
     '如发生争议，双方应先友好协商；协商不成的，可向有管辖权的人民法院提起诉讼。',
     '本协议自 ' + LEGAL_VERSION + ' 起生效。',
@@ -983,6 +1005,195 @@ function requireConsent() {
   if (consentChecked()) return true;
   authMsg('请先阅读并勾选同意《用户协议》和《隐私政策》');
   return false;
+}
+
+/* ============================================================
+   未成年人保护：年龄与身份声明 + 监护人确认（2026-10-12）
+
+   ===== 为什么放在这里 =====
+   一个 K12 产品此前让不满 14 周岁的孩子能自己注册、自己勾选同意、无限制使用，
+   全站找不到一处监护人同意机制。这不是"补段文案"能糊过去的。
+
+   ===== 设计取舍（都是有意为之，别当成漏做）=====
+   ① 三个可能建号的页签都问，不只「注册」页签。
+      「手机号登录」明写"未注册的手机号将自动创建账号」，邮箱验证码走 signInWithOtp
+      同样可能建号 —— 只在注册页问一句，另外两条路就完全绕过了。
+      「密码登录」是纯已有账号，不问。
+   ② 声明结果持久化，不反复追问。但面板里看得见自己声明了什么（不是静默记住）。
+   ③ 监护人这一步**如实写成"声明"**，不写成"验证" —— 我们确实无法核实操作者就是监护人。
+      把它写成验证，就是刚修掉的那类"宣称自己没做到的事"。
+   ④ 不采集监护人身份证号、不做人脸识别。最小必要：一个能联系到监护人的方式。
+   ============================================================ */
+const AGE_KEY = 'lingxi_age_declaration_v1';
+
+function readAgeDeclaration() {
+  try {
+    const o = JSON.parse(localStorage.getItem(AGE_KEY) || 'null');
+    if (!o || o.version !== LEGAL_VERSION) return null;
+    return o;
+  } catch (_) { return null; }
+}
+function saveAgeDeclaration(d) {
+  try { localStorage.setItem(AGE_KEY, JSON.stringify(Object.assign({ version: LEGAL_VERSION, at: Date.now() }, d))); } catch (_) {}
+}
+function clearAgeDeclaration() {
+  try { localStorage.removeItem(AGE_KEY); } catch (_) {}
+}
+/* 当前表单里选的是不是"学生且未满 14 周岁" */
+function ageFormIsMinor() {
+  const role = (document.querySelector('input[name="au-role"]:checked') || {}).value;
+  const minor = (document.querySelector('input[name="au-minor"]:checked') || {}).value;
+  return role === 'student' && minor === 'yes';
+}
+function ageFormRole() {
+  return (document.querySelector('input[name="au-role"]:checked') || {}).value || 'student';
+}
+function ageFormMinor() {
+  return (document.querySelector('input[name="au-minor"]:checked') || {}).value || 'no';
+}
+/* 把已存的声明回填进表单（用户回来时看到自己上次选了什么） */
+function fillAgeForm(d) {
+  if (!d) return;
+  const r = document.querySelector('input[name="au-role"][value="' + (d.role || 'student') + '"]');
+  if (r) r.checked = true;
+  const m = document.querySelector('input[name="au-minor"][value="' + (d.isMinor ? 'yes' : 'no') + '"]');
+  if (m) m.checked = true;
+  const c = $('#au-guardian-contact');
+  if (c && d.guardianContact) c.value = d.guardianContact;
+}
+function syncAgeGateUI() {
+  const gate = $('#au-age-gate');
+  if (!gate) return;
+  const minor = ageFormIsMinor();
+  const box = $('#au-guardian-box');
+  if (box) box.hidden = !minor;
+  const row = $('#au-age-minor-row');
+  if (row) row.hidden = ageFormRole() === 'guardian';
+  /* 已声明过：不再要人重填，但要把"你之前声明过什么"明出来 —— 不能静默记住 */
+  const saved = readAgeDeclaration();
+  const line = $('#au-age-declared');
+  if (line) {
+    if (saved) {
+      line.hidden = false;
+      line.textContent = '本设备已登记：' + (saved.role === 'guardian' ? '家长 / 老师' : '学生')
+        + (saved.isMinor ? '，未满 14 周岁，监护人 ' + (saved.guardianContact || '未填') : '，已满 14 周岁')
+        + '。信息有变化请重新选择。';
+    } else { line.hidden = true; line.textContent = ''; }
+  }
+}
+/* 页签显隐：只有可能建号的页签才问 */
+function syncAgeGateForTab(name) {
+  const gate = $('#au-age-gate');
+  if (!gate) return;
+  const need = (name === 'signup' || name === 'phone' || name === 'otp');
+  gate.hidden = !need;
+  if (need) { fillAgeForm(readAgeDeclaration()); syncAgeGateUI(); }
+}
+/* 发验证码之前的统一闸门。返回 true 才允许继续。
+   ★ 这一处收口：三条建号路径都在这里拦，不在各自处理器里各写一遍判断。
+   ★ 与已存声明逐项比对，而不是"存过就放行" —— 否则用户把选项从"已满 14 周岁"
+     改成"未满 14 周岁"时闸门毫无反应，监护人确认被静默跳过。 */
+function requireAgeDeclaration() {
+  const saved = readAgeDeclaration();
+  const role = ageFormRole();
+  const minor = ageFormIsMinor();
+  const contact = (($('#au-guardian-contact') || {}).value || '').trim();
+  if (saved && saved.role === role && !!saved.isMinor === minor &&
+      (!minor || contact === (saved.guardianContact || ''))) {
+    return true;
+  }
+  if (role === 'guardian') {
+    saveAgeDeclaration({ role: 'guardian', isMinor: false });
+    return true;
+  }
+  if (!minor) {
+    saveAgeDeclaration({ role: 'student', isMinor: false });
+    return true;
+  }
+  /* 学生且未满 14 周岁：必须走监护人确认 */
+  if (!contact) {
+    authMsg('未满 14 周岁需要监护人确认：请填写监护人手机号或邮箱');
+    const c = $('#au-guardian-contact'); if (c) c.focus();
+    return false;
+  }
+  if (contact.length < 5) {
+    authMsg('监护人联系方式看起来不完整，请填写完整的手机号或邮箱');
+    return false;
+  }
+  if (!$('#au-guardian-consent') || !$('#au-guardian-consent').checked) {
+    authMsg('请由监护人勾选同意《隐私政策》中的「儿童个人信息保护规则」');
+    return false;
+  }
+  saveAgeDeclaration({ role: 'student', isMinor: true, guardianContact: contact.slice(0, 60) });
+  track('guardian_consent', { contact: contact.indexOf('@') >= 0 ? 'email' : 'phone' });
+  return true;
+}
+/* 账号面板里展示/修改声明（不能只存在于注册那一刻） */
+function renderAgeDeclaration() {
+  const row = $('#acct-age-row');
+  if (!row) return;
+  const d = readAgeDeclaration();
+  const val = $('#acct-age-val');
+  if (!val) return;
+  if (!d) { row.hidden = true; val.textContent = '未登记'; return; }
+  row.hidden = false;
+  val.textContent = (d.role === 'guardian' ? '家长 / 老师' : '学生')
+    + (d.isMinor ? ' · 未满 14 周岁 · 监护人 ' + (d.guardianContact || '未填') : ' · 已满 14 周岁');
+}
+
+/* ============================================================
+   使用时长提醒（2026-10-12）
+
+   ===== 为什么只做"提醒"不做"强制断线" =====
+   纯前端实现的时长限制**必然可绕过**（清 localStorage 就归零）。
+   如果界面写"已限制你使用 2 小时"，那是在宣称一件我们做不到的事 ——
+   正是这次体检刚修掉的那类问题。所以这里如实做成提醒，
+   并在《儿童个人信息保护规则》第七节写明"提示性质，不构成强制断线"。
+
+   计的是"登录状态下的累计使用秒数"（按天重置），不是课堂内时长：
+   政策文案写的是"连续使用约 45 分钟"，对得上。
+   ============================================================ */
+const USAGE_KEY = 'lingxi_usage_v1';
+const USAGE_TICK_MS = 30000;              // 30 秒一记，够了；1 秒一记纯浪费
+const USAGE_MARKS = [
+  { sec: 45 * 60, text: '已经学习 45 分钟了。起来活动一下、看看远处，回来接着上会更有效率。' },
+  { sec: 90 * 60, text: '今天累计使用已超过 90 分钟。建议先停一停 —— 未成年人每次连续使用不宜超过 40 分钟，可由监护人帮忙安排时间。' },
+];
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function readUsage() {
+  try {
+    const o = JSON.parse(localStorage.getItem(USAGE_KEY) || 'null');
+    if (!o || o.date !== todayStr()) return { date: todayStr(), seconds: 0, marks: [] };
+    return { marks: [], seconds: 0, ...o };
+  } catch (_) { return { date: todayStr(), seconds: 0, marks: [] }; }
+}
+function writeUsage(u) {
+  try { localStorage.setItem(USAGE_KEY, JSON.stringify(u)); } catch (_) {}
+}
+function startUsageReminder() {
+  if (window.__usageTimer) return;
+  window.__usageTimer = setInterval(() => {
+    try {
+      if (!state.user) return;                       // 未登录不记
+      if (document.visibilityState === 'hidden') return;   // 标签页在后台不算"在使用"
+      const u = readUsage();
+      u.seconds += USAGE_TICK_MS / 1000;
+      let changed = false;
+      for (const m of USAGE_MARKS) {
+        if (u.seconds >= m.sec && u.marks.indexOf(m.sec) < 0) {
+          u.marks.push(m.sec);
+          changed = true;
+          toast(m.text, 'err');
+          try { track('usage_reminder', { at: m.sec }); } catch (_) {}
+        }
+      }
+      writeUsage(u);
+      if (changed) { /* marks 已随 u 一并落盘 */ }
+    } catch (_) {}
+  }, USAGE_TICK_MS);
 }
 
 /* 渲染并打开协议 / 政策弹窗 */
@@ -1350,6 +1561,8 @@ function switchAuthTab(name) {
     const s3 = $('#au-su-step3'); if (s3) s3.hidden = true;
     suPhoneMsg('');
   }
+  // 未成年人保护：年龄与身份声明按页签显隐（见 requireAgeDeclaration 的说明）
+  syncAgeGateForTab(name);
 }
 
 /* ============================================================
@@ -1569,6 +1782,7 @@ function bindAuthEvents() {
   const phSend = $('#au-ph-send');
   if (phSend) phSend.addEventListener('click', async () => {
     if (!requireConsent()) return;
+    if (!requireAgeDeclaration()) return;   // 未注册手机号会自动建号 ⇒ 先问年龄
     const raw = ($('#au-ph-phone').value || '').trim();
     const phone = normalizeCNPhone(raw);
     if (!phone) return authMsg('请输入正确的 11 位中国大陆手机号');
@@ -1597,6 +1811,7 @@ function bindAuthEvents() {
   const phSubmit = $('#au-ph-submit');
   if (phSubmit) phSubmit.addEventListener('click', async () => {
     if (!requireConsent()) return;
+    if (!requireAgeDeclaration()) return;
     const phone = normalizeCNPhone(($('#au-ph-phone').value || '').trim());
     const token = ($('#au-ph-code').value || '').trim();
     if (!phone) return authMsg('请输入正确的手机号');
@@ -1635,6 +1850,7 @@ function bindAuthEvents() {
   const otpSend = $('#au-otp-send');
   if (otpSend) otpSend.addEventListener('click', async () => {
     if (!requireConsent()) return;
+    if (!requireAgeDeclaration()) return;
     const email = ($('#au-otp-email').value || '').trim();
     if (!email) return authMsg('请填写邮箱');
     if (!A()) return authMsg('云服务未连接，请刷新页面重试');
@@ -1666,6 +1882,7 @@ function bindAuthEvents() {
   const suSend = $('#au-su-send');
   if (suSend) suSend.addEventListener('click', async () => {
     if (!requireConsent()) return;
+    if (!requireAgeDeclaration()) return;
     const email = ($('#au-su-email').value || '').trim();
     if (!email) return authMsg('请填写邮箱');
     if (!A()) return authMsg('云服务未连接，请刷新页面重试');
@@ -1919,6 +2136,10 @@ async function deleteMyAccount() {
   const typed = window.prompt('请输入「确认注销」四个字以最终确认：');
   if (typed !== '确认注销') { acctMsg('输入不匹配，已取消注销'); return; }
 
+  /* 未成年人保护登记随账号一起清掉：注销后同一设备再注册时，
+     必须重新做年龄声明与监护人确认，不能继承上一个账号的登记。 */
+  clearAgeDeclaration();
+
   acctMsg('正在删除你的数据…', 'ok');
   const db = state.cloud && state.cloud.database;
   const owner = state.user.id;
@@ -2100,6 +2321,7 @@ function renderAcctPhone() {
   el.textContent = p ? phoneMask(p) : '未登记';
   const edit = $('#btn-acct-phone-edit');
   if (edit) edit.textContent = p ? '修改手机号' : '登记手机号';
+  renderAgeDeclaration();
 }
 
 /* ============================================================
@@ -2212,6 +2434,13 @@ function bindPhoneEvents() {
     // 第二次点击＝确认已知悉，允许关闭（但核心动作仍会被门禁拦下）
     track('phone_gate', { path: 'no_phone' });
     closeAuthModal();
+  });
+
+  /* —— 未成年人保护：年龄/身份单选与监护人勾选就地联动 ——
+     用原生 radio + change 事件（不用 click 委托）：键盘方向键切换选项时
+     change 一样会触发，click 不会 —— 键盘用户改选项时守卫框不展开就是可达性缺陷。 */
+  $$('#au-age-gate input[name="au-role"], #au-age-gate input[name="au-minor"]').forEach((r) => {
+    r.addEventListener('change', syncAgeGateUI);
   });
 
   // 手机号门禁
@@ -4934,6 +5163,8 @@ const TRACK_EVENTS = [
   'progress_export',      // 导出学习进度备份
   'progress_import',      // 导入学习进度（mode=merge|replace）
   'signout_server_failed', // 登出请求失败（本地已清、服务端可能没清）—— 用来衡量"看着登出了其实没有"的发生率
+  'guardian_consent',     // 未满 14 周岁完成监护人确认（contact=email|phone）—— 衡量未成年人保护流程的真实触发率
+  'usage_reminder',       // 使用时长提醒已弹出（at=2700|5400 秒）—— 衡量提醒真的到达了用户
 ];
 /* 注册环节的埋点发生在**登录之前**，而 track() 要求已登录（否则 RLS 写不进去）。
    所以先落到本地队列，登录成功后补报一次 —— 否则"被拦的一次性邮箱"这类
@@ -12775,6 +13006,7 @@ function init() {
   // ★ 事件绑定优先：只要绑定成功，页面就不会"点不动"
   safeInit('renderHome', renderHome);
   safeInit('syncHeroSubjectCount', syncHeroSubjectCount);
+  safeInit('startUsageReminder', startUsageReminder);
   safeInit('renderGenChips', renderGenChips);
   safeInit('renderGradeOptions', renderGradeOptions);
   safeInit('loadCourses', loadCourses);
@@ -12894,6 +13126,9 @@ try {
     allMasks, openMasks, enhanceModalA11y, watchModalFocus, bindModalA11yKeys, syncBodyScrollLock,
     /* 法律合规 */
     LEGAL_VERSION, LEGAL_EFFECTIVE, LEGAL_REVISION, PRIVACY_DOC, TERMS_DOC, DOCS, hasConsent, setConsent, consentChecked, requireConsent,
+    readAgeDeclaration, saveAgeDeclaration, clearAgeDeclaration, requireAgeDeclaration,
+    syncAgeGateUI, syncAgeGateForTab, renderAgeDeclaration, ageFormIsMinor, ageFormRole, ageFormMinor,
+    startUsageReminder, readUsage,
     openDoc, closeDoc, agreeDoc, normalizeCNPhone, phoneMask, smsErr, signInFromPhone,
     openAccountModal, closeAccountModal, exportMyData, deleteMyAccount, acctMsg, bindLegalEvents, CONSENT_KEY,
     /* 内容存储的归属隔离（R01/R04）：测试要能直接驱动"切账号"这件事 */
