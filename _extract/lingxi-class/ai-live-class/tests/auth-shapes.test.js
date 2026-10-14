@@ -235,7 +235,7 @@ const profileShape = (id, email, phone) => ({ id, email, phone, isAnonymous: fal
   const dlg = appJs.match(/window\.confirm\(\s*'⚠️ 注销[\s\S]{0,700}?\n  \);/);
   t(!!dlg && !/· 你的账号与登录方式/.test(dlg[0]), 'I5 注销确认不再承诺"删除登录方式"（SDK 无此能力）');
   t(!!dlg && /空白账号/.test(dlg[0]), 'I6 注销确认如实说明登录方式会保留为空白账号');
-  t(/supportEmail:\s*''/.test(appJs), 'I7 联系邮箱为可配置项，默认不留死链接');
+  t(/supportEmail:\s*'[^']*@[^']*\.[a-z]+'/.test(appJs), 'I7 联系邮箱已配置为真实可联系地址（含 @ 与域名）');
 
   /* ===== J. DOM 中不得出现重复 id ===== */
   sec('J. DOM 唯一性');

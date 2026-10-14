@@ -2903,6 +2903,10 @@ html[data-theme="eye"] .feyntalk-input textarea { background: #FFFDF9; }
 }
 .modal-auth .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
+/* P0-4：页脚联系入口（由 PUBLIC_CONFIG.supportEmail 注入，单一数据源） */
+.footer-contact { margin-top: 6px; font-size: 13px; color: var(--muted, #8a8f9c); }
+.footer-contact a { color: inherit; text-decoration: underline; }
+
 /* P2-8：超窄屏（≤380px）首屏数据条 2×2 排布，避免数字挤成一行溢出 */
 @media (max-width: 380px) {
   .hero-stats {

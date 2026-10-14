@@ -42,9 +42,9 @@ const CLOUD_ENDPOINT = resolveCloudEndpoint(_origin);
 const PUBLIC_CONFIG = {
   endpoint: CLOUD_ENDPOINT,
   publishableKey: 'wbpk_Pq3DhJIr74vvC8YpuqkMPA_lgoEQ7iPSjSnnQx9ZsLOpjoB6dFoKCSh',
-  /* 运营方联系邮箱：填写后会出现在《隐私政策》「联系我们」与注销确认里。
-     留空时，界面只展示可自助的数据权利入口，不会出现死链接。 */
-  supportEmail: '',
+  /* 运营方联系邮箱：非空时出现在《隐私政策》「联系我们」一节（第九节），作为用户可联系的人工渠道；
+     留空则不展示。2026-10-15 填入真实支持邮箱以关闭 P0-4（此前全站无任何人工联系渠道）。 */
+  supportEmail: 'geraldnelsonfung@gmail.com',
 };
 
 /* ---------- 全局状态 ---------- */
@@ -13053,6 +13053,16 @@ function initCloud() {
   }
 }
 
+/* P0-4：把运营方联系邮箱注入页脚（单一数据源 = PUBLIC_CONFIG.supportEmail；
+   隐私政策「联系我们」一节也已复用同一字段）。留空则不渲染，避免死链接。 */
+function renderFooterContact() {
+  const el = document.getElementById('footer-contact');
+  if (!el) return;
+  el.textContent = PUBLIC_CONFIG.supportEmail
+    ? '联系我们：' + PUBLIC_CONFIG.supportEmail
+    : '';
+}
+
 function init() {
   if (!window.WorkBuddyCloud) {
     $('#ai-status').innerHTML = '<i class="dot dot-bad"></i>云服务未连接';
@@ -13070,6 +13080,7 @@ function init() {
 
   // ★ 事件绑定优先：只要绑定成功，页面就不会"点不动"
   safeInit('renderHome', renderHome);
+  safeInit('renderFooterContact', renderFooterContact);
   safeInit('syncHeroSubjectCount', syncHeroSubjectCount);
   safeInit('startUsageReminder', startUsageReminder);
   safeInit('renderGenChips', renderGenChips);
