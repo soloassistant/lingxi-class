@@ -92,7 +92,9 @@ const profileShape = (id, email, phone) => ({ id, email, phone, isAnonymous: fal
   stub.user = profileShape('pw1', 'stu@example.com', null);
   W.state.user = null;
   W.openAuthModal();
-  W.document.getElementById('au-consent').checked = true;
+  const cb = W.document.getElementById('au-consent');
+  cb.checked = true;
+  cb.dispatchEvent(new W.Event('change'));
   W.document.getElementById('au-pw-email').value = 'stu@example.com';
   W.document.getElementById('au-pw-pass').value = 'abcd1234';
   W.document.getElementById('au-pw-submit').click();

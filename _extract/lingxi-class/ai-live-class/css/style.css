@@ -2876,3 +2876,40 @@ html[data-theme="eye"] .feyntalk-log { background: #FBF9FD; }
 html[data-theme="eye"] .ft-msg.ai { background: #EFEAF7; }
 html[data-theme="eye"] .ft-comment,
 html[data-theme="eye"] .feyntalk-input textarea { background: #FFFDF9; }
+
+/* ===== 2026-10-14 审计修复样式 ===== */
+
+/* P2-9：无 JS 兜底提示 */
+.noscript-banner {
+  margin: 0; padding: 14px 18px; background: #FFF4E5; color: #8a4b00;
+  font-size: 15px; text-align: center; border-bottom: 1px solid #f0d9b5;
+}
+@media (prefers-color-scheme: dark) {
+  .noscript-banner { background: #3a2c12; color: #ffd79a; border-bottom-color: #5a4421; }
+}
+
+/* P0-2：课堂演示弹窗（无需登录即可观看） */
+.modal-demo { max-width: 560px; }
+.modal-demo .demo-video { width: 100%; border-radius: 12px; background: #000; margin-top: 8px; max-height: 70vh; }
+.modal-demo .auth-tip { margin: 0; }
+
+/* P1-5：同意勾选未打勾时，主按钮置灰（与 JS 的 disabled 同步）；
+   同意框吸底，滚动时始终可见，避免用户看不到"先勾选同意" */
+.modal-auth .auth-consent {
+  position: sticky; bottom: 0; z-index: 2;
+  margin: 6px -22px -18px; padding: 12px 22px 14px;
+  background: var(--surface, #fff);
+  border-top: 1px solid var(--line, #E7E9F2);
+}
+.modal-auth .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* P2-8：超窄屏（≤380px）首屏数据条 2×2 排布，避免数字挤成一行溢出 */
+@media (max-width: 380px) {
+  .hero-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px 12px;
+    text-align: center;
+  }
+  .hero-stats .stat b { font-size: 22px; }
+}

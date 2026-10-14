@@ -56,6 +56,10 @@ const tests = [
      （我们不在线下核验操作者身份，不能宣称已验证）；④ 使用提醒明确写成"提醒"
      而非"已强制限制"。 */
   'legal-minor.test.js',
+  /* R24：2026-10-14 审计修复守卫 —— 守这一轮「已下载源码审计」提出的 P0/P1/P2 修复：
+     课堂演示弹窗、probeVideo 改 GET+Range、同意未勾选时主按钮置灰、
+     模型下拉过滤内部模型、文案口径、超窄屏 2×2、og/twitter/canonical/noscript。 */
+  'audit-fixes.test.js',
 ];
 
 let failed = 0;

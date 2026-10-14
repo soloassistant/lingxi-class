@@ -336,7 +336,7 @@ const has = (hay, needle, m) => ok(String(hay).indexOf(needle) >= 0, m);
 
   // 界面必须诚实：不能声称"已通过短信验证"
   const acctHtml = W.document.querySelector('#acct-phone-form').innerHTML;
-  has(acctHtml, '暂不支持短信验证', 'M12 界面明示平台不支持短信验证');
+  has(acctHtml, '不会发送短信验证码', 'M12 界面诚实说明登记手机号不发送验证码');
   has(acctHtml, '老师联系', 'M13 界面说明手机号用途');
   ok(!/已验证|绑定成功/.test(acctHtml), 'M14 不声称已完成验证或绑定');
   const su3 = W.document.querySelector('#au-su-step3');
@@ -356,7 +356,7 @@ const has = (hay, needle, m) => ok(String(hay).indexOf(needle) >= 0, m);
   has(su3.innerHTML, '账号与个人信息', 'M17d 出路指向真实存在的入口（不得指向死链）');
   ok(!/学习档案\s*→\s*联系我们/.test(su3.innerHTML), 'M17d2 不再指向不存在的「学习档案 → 联系我们」');
   has(su3.innerHTML, '家长或监护人', 'M17d3 说明可用监护人号码（代码支持一号代管）');
-  has(su3.innerHTML, '不做验证码校验', 'M17e 仍诚实说明不做短信校验');
+  has(su3.innerHTML, '不会发送验证码', 'M17e 仍诚实说明登记不发送短信验证码');
 
   console.log('\n=== P. 短信通道表述与实际能力一致（消除自相矛盾） ===');
   // 实测证据：POST /.cloud/auth/v1/verification → 200，返回 verificationId + verify 闭包

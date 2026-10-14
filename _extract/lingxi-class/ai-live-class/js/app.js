@@ -1000,6 +1000,17 @@ function consentChecked() {
   const box = $('#au-consent');
   return !!(box && box.checked);
 }
+/* 同意勾选未打勾时，禁用所有会创建 / 登录账号的主按钮（P1-5）。
+   不止在 handler 里拦（requireConsent 仍保留作动作侧兜底），还在 UI 上直接置灰，
+   让用户一眼看到"先勾选同意才能继续"。切换页签 / 打开弹窗时都重新同步一次。 */
+const AUTH_PRIMARY_BTNS = ['#au-ph-send', '#au-ph-submit', '#au-pw-submit', '#au-otp-send', '#au-otp-verify', '#au-su-send', '#au-su-submit'];
+function syncAuthConsentButtons() {
+  const need = !consentChecked();
+  AUTH_PRIMARY_BTNS.forEach((sel) => {
+    const b = $(sel);
+    if (b) b.disabled = need;
+  });
+}
 /* 需要同意才能继续的操作统一走这里 */
 function requireConsent() {
   if (consentChecked()) return true;
@@ -1480,6 +1491,7 @@ function openAuthModal() {
   authMsg('');
   m.hidden = false;
   if (loginGateOn) setGateBypassesHidden(true);
+  syncAuthConsentButtons();   // 开门即按当前同意状态同步主按钮置灰
   const e1 = $('#au-pw-email');
   if (e1) setTimeout(() => { try { e1.focus(); } catch (_) {} }, 60);
 }
@@ -1563,6 +1575,7 @@ function switchAuthTab(name) {
   }
   // 未成年人保护：年龄与身份声明按页签显隐（见 requireAgeDeclaration 的说明）
   syncAgeGateForTab(name);
+  syncAuthConsentButtons();
 }
 
 /* ============================================================
@@ -1738,6 +1751,31 @@ function continueAsGuest() {
   toast('已按访客继续，老师不会跨课程记住你');
 }
 
+/* 课堂演示弹窗（P0-2，无需登录即可观看） */
+function bindDemoModal() {
+  const open = $('#btn-watch-demo');
+  const modal = $('#demo-modal');
+  if (!open || !modal) return;
+  const video = $('#demo-video');
+  const close = () => {
+    modal.hidden = true;
+    if (video) { try { video.pause(); } catch (_) {} }
+  };
+  if (!open._demoBound) {
+    open._demoBound = true;
+    open.addEventListener('click', () => {
+      modal.hidden = false;
+      if (video) { try { video.scrollIntoView({ block: 'nearest' }); } catch (_) {} }
+    });
+  }
+  const c1 = $('#btn-demo-close');
+  if (c1 && !c1._demoBound) { c1._demoBound = true; c1.addEventListener('click', close); }
+  if (!modal._demoBound) {
+    modal._demoBound = true;
+    modal.addEventListener('click', (ev) => { if (ev.target === modal) close(); });
+  }
+}
+
 function bindAuthEvents() {
   const btnAuth = $('#btn-auth');
   if (btnAuth) btnAuth.addEventListener('click', () => {
@@ -1773,6 +1811,13 @@ function bindAuthEvents() {
   if (c2) c2.addEventListener('click', continueAsGuest);
   const am = $('#auth-modal');
   if (am) am.addEventListener('click', (ev) => { if (ev.target === am) closeAuthModal(); });
+  // P1-5：勾选「同意」状态变化时，实时置灰 / 恢复主按钮
+  const auConsent = $('#au-consent');
+  if (auConsent && !auConsent._consentBound) {
+    auConsent._consentBound = true;
+    auConsent.addEventListener('change', syncAuthConsentButtons);
+  }
+  syncAuthConsentButtons();
 
   $$('.auth-tab').forEach((t) => t.addEventListener('click', () => switchAuthTab(t.dataset.authTab)));
 
@@ -4931,19 +4976,35 @@ async function initAvatarVideoEntry() {
    **不支持 Range 请求**（实测响应头没有 Accept-Ranges）—— 于是浏览器没法只取头部，
    会把**整个 4.6MB** 视频拉下来，只为判断"文件在不在"。
    实测这就是首屏 5.3MB 里最大的一块。
-   现在先发 HEAD（实测 0.86s、零正文），拿不到结果才退回原来的 video 探测。 */
+   ★ 2026-10-14 修：原先发 `HEAD`，但浏览器（尤其本托管静态服务）对 HEAD 经常
+   `ERR_ABORTED` 中断（外部请求返回 200、浏览器内却 abort），导致探测永远失败、头像视频按钮被误隐藏。
+   改发 `GET` + `Range: bytes=0-0`（只读 1 字节，几乎零正文），兼容性更好；拿到响应即
+   `body.cancel()` 丢弃正文，避免把整段视频拉下来。任何失败都退回 <video> 兜底探测。 */
 function probeVideo(src) {
   // fetch 在很老的环境/测试环境里可能不存在，或同步抛出 —— 都要能退回原路径
   if (typeof fetch !== 'function') return probeVideoByElement(src);
-  let p;
-  try { p = fetch(src, { method: 'HEAD' }); } catch (_) { return probeVideoByElement(src); }
-  return Promise.resolve(p)
-    .then((r) => {
-      if (r && r.ok) return src;
-      // 405/501 = 服务器不支持 HEAD，或 403 等 → 交给下面的兜底探测
-      return probeVideoByElement(src);
-    })
-    .catch(() => probeVideoByElement(src));   // 跨域/断网 → 兜底
+  let ac = null;
+  const opts = { method: 'GET', headers: { Range: 'bytes=0-0' } };
+  try {
+    if (typeof AbortController === 'function') { ac = new AbortController(); opts.signal = ac.signal; }
+  } catch (_) {}
+  try {
+    const req = fetch(src, opts);
+    const to = ac ? setTimeout(() => { try { ac.abort(); } catch (_) {} }, 4000) : null;
+    return Promise.resolve(req)
+      .then((r) => {
+        if (to) clearTimeout(to);
+        // 206（按范围返回）或 200（服务器忽略 Range）都算"文件在"
+        if (r && (r.ok || r.status === 206)) {
+          try { if (r.body && r.body.cancel) r.body.cancel(); } catch (_) {}
+          return src;
+        }
+        return probeVideoByElement(src);   // 403/404/405 等 → 兜底探测
+      })
+      .catch(() => probeVideoByElement(src));   // 跨域/断网/abort → 兜底
+  } catch (_) {
+    return probeVideoByElement(src);
+  }
 }
 function probeVideoByElement(src) {
   return new Promise((resolve) => {
@@ -5364,6 +5425,10 @@ function errorRequestId(e) {
 /* ---------- 模型 ---------- */
 /* 目录里除了对话模型还混着图像/向量之类的模型，别把它们当成聊天模型选中 */
 const NON_CHAT_MODEL = /(?:^|[-_])(image|embed|embedding|rerank|tts|asr|whisper)(?:$|[-_])/i;
+/* 内部 / 内测模型：这些 id 仅供内部调试或灰度，不该出现在面向用户的模型下拉里、也不该被选中。
+   注意：hy4-preview 是真实可用的公开模型，不要被误伤；要拦的是 hy3-x / hy4-preview-x /
+   *-v-turbo / *-internal / *-staging / *-canary / *-test / *-dev 这类内部变体。 */
+const INTERNAL_MODEL = /[-_]x$|v[-_]turbo|internal|staging|canary|[-_]test(?:$|[-_])|[-_]dev(?:$|[-_])/i;
 
 /* 默认模型白名单（按实测的首字延迟与成功率排序，同一份「生成整节课 JSON」请求实测）：
      deepseek-v4.1-flash  首字 1.1s / 总 8.7s   ✅ 9 页 3 题
@@ -5384,7 +5449,7 @@ const MODEL_KEY = 'lingxi_model_v1';
 const MIN_OUTPUT_TOKENS = 16000;   // 一次要产出 7~10 页课件 JSON，输出空间太小会被截断
 
 function isChatModel(m) {
-  return !!m && !!m.id && m.enabled !== false && m.disabled !== true && !NON_CHAT_MODEL.test(m.id);
+  return !!m && !!m.id && m.enabled !== false && m.disabled !== true && !NON_CHAT_MODEL.test(m.id) && !INTERNAL_MODEL.test(m.id);
 }
 /* 评分只用来排序；白名单命中直接给一个压倒性的分值，
    避免"惩罚项加起来超过偏好差距"导致默认模型又滑回慢模型（这个坑真踩过）。 */
@@ -13032,6 +13097,7 @@ function init() {
   safeInit('watchModalFocus', watchModalFocus);
   safeInit('bindCourseListEvents', bindCourseListEvents);
   safeInit('bindAuthEvents', bindAuthEvents);
+  safeInit('bindDemoModal', bindDemoModal);
   safeInit('bindMemoryEvents', bindMemoryEvents);
   safeInit('bindLegalEvents', bindLegalEvents);
   safeInit('bindPhoneEvents', bindPhoneEvents);

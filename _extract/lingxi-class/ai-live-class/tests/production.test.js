@@ -337,11 +337,11 @@ setTimeout(async () => {
     const i = j.indexOf('function applyAvatarStyle');
     return j.slice(i, i + 700).indexOf('initAvatarVideo()') >= 0;
   })());
-  t('N16 视频探测用 HEAD 优先（服务器不支持 Range，用 video 探测会拉整个 4.6MB）', (() => {
+  t('N16 视频探测用 GET + Range:0-0（只取 1 字节，不拉整个 4.6MB），失败再回落 video 探测', (() => {
     const j = fs.readFileSync(path.join(dir, 'js', 'app.js'), 'utf8');
     const i = j.indexOf('function probeVideo(src)');
     const block = j.slice(i, i + 700);
-    return /method: 'HEAD'/.test(block) && /probeVideoByElement/.test(block);
+    return /method:\s*'GET'/.test(block) && /Range:\s*'bytes=0-0'/.test(block) && /probeVideoByElement/.test(block);
   })());
   t('N17 backdrop-filter 全部带 -webkit- 前缀（iOS 到 Safari 17 都需要）', (() => {
     const css = fs.readFileSync(path.join(dir, 'css', 'style.css'), 'utf8');

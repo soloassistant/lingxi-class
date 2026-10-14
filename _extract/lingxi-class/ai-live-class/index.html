@@ -14,6 +14,7 @@
 <meta property="og:description" content="AI 老师实时讲课、随时可打断提问，并跨课程记住每一位学生。覆盖国内课程与 IB / A-Level / HKDSE / AP，29 门科目。">
 <meta property="og:image" content="https://bb6ae4d03fbd4b109cbbe6dbbc84502d.app.workbuddy.host/assets/teacher-avatar.jpg">
 <meta property="og:url" content="https://bb6ae4d03fbd4b109cbbe6dbbc84502d.app.workbuddy.host/">
+<link rel="canonical" href="https://bb6ae4d03fbd4b109cbbe6dbbc84502d.app.workbuddy.host/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="灵犀课堂 · AI 一对一直播课">
 <meta name="twitter:description" content="AI 老师实时讲课、随时可打断提问，并跨课程记住每一位学生。">
@@ -25,6 +26,8 @@
 <link rel="stylesheet" href="css/style.min.css">
 </head>
 <body>
+
+<noscript><div class="noscript-banner">灵犀课堂需要启用 JavaScript 才能开始上课；请开启 JavaScript 后重新访问本页面。</div></noscript>
 
 <!-- ============================================================
      开屏动画（2026-09-24）
@@ -229,7 +232,7 @@
       <p class="section-sub">国内同步 / 中高考 与 IB · A-Level · HKDSE · AP · 标化考试，一键开课</p>
       <div class="system-tabs" id="system-tabs"></div>
       <div class="subject-head">
-        <span>当前：<b id="subject-sys-name">国内课程</b> · 共 <b id="subject-count">10</b> 个科目</span>
+        <span>当前：<b id="subject-sys-name">国内课程</b> · 共 <b id="subject-count">29</b> 个科目</span>
         <span class="subject-head-tip">点击卡片直接生成课程</span>
       </div>
       <div class="subject-grid" id="subject-grid"></div>
@@ -261,7 +264,7 @@
 
     <div class="cta-banner">
       <h2>现在，让 AI 老师认识你</h2>
-      <p>国内同步 / 中高考 / IB / A-Level / HKDSE / AP / 雅思 / 托福 / SAT，第一次上课免费体验</p>
+      <p>国内同步 / 中高考 / IB / A-Level / HKDSE / AP / 雅思 / 托福 / SAT，注册后免费体验第一节课</p>
       <button class="btn btn-light btn-lg" data-nav="generate">免费生成第一节课</button>
     </div>
   </section>
@@ -365,6 +368,7 @@
         <h2>还没有开始上课</h2>
         <p>先生成一节专属课程，灵犀老师在这里等你</p>
         <button class="btn btn-primary btn-lg" data-nav="generate">去生成课程</button>
+        <button class="btn btn-ghost btn-lg" id="btn-watch-demo" type="button">先看一段课堂演示（无需登录）</button>
       </div>
     </div>
 
@@ -772,6 +776,20 @@
   </div>
 </footer>
 
+<!-- 课堂演示（无需登录） -->
+<div class="modal-mask" id="demo-modal" hidden>
+  <div class="modal modal-demo">
+    <div class="modal-head">
+      <h3>🎬 灵犀老师的一节课堂</h3>
+      <button class="modal-close" id="btn-demo-close" aria-label="关闭演示">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="auth-tip">这是一段真实课堂录屏：AI 老师实时讲解、随时被打断提问。无需登录即可观看。</p>
+      <video id="demo-video" class="demo-video" src="assets/teacher-demo.mp4" controls preload="none" playsinline></video>
+    </div>
+  </div>
+</div>
+
 <!-- 登录 / 注册弹窗 -->
 <div class="modal-mask" id="auth-modal" hidden>
   <div class="modal modal-auth">
@@ -846,7 +864,7 @@
         </div>
         <!-- 注册成功后的收尾一步：登记手机号（可跳过） -->
         <div id="au-su-step3" hidden>
-          <p class="auth-tip">注册成功 🎉 最后一步：登记手机号。<b>这是使用要求</b> —— 平台暂不支持短信验证，这里不做验证码校验，填完即存；老师课后联系你、以及你以后找回账号都靠它。</p>
+          <p class="auth-tip">注册成功 🎉 最后一步：登记手机号。<b>这是使用要求</b> —— 平台只在校验登录时会发送短信验证码；这里登记手机号不会发送验证码（填完即存），仅用于老师课后联系你、以及你以后找回账号。</p>
           <label class="auth-field"><span>手机号</span>
             <input type="tel" id="au-su-phone" placeholder="请输入 11 位手机号" inputmode="numeric" autocomplete="tel" maxlength="11"></label>
           <button class="btn btn-primary btn-block" id="btn-su-phone-save">保存并开始学习</button>
@@ -984,7 +1002,7 @@
       <div id="acct-phone-form" hidden>
         <label class="auth-field"><span>手机号</span>
           <input type="tel" id="acct-phone-input" placeholder="请输入 11 位手机号" inputmode="numeric" autocomplete="tel" maxlength="11"></label>
-        <p class="auth-tip">手机号仅登记在本账号名下，用于老师联系、课程提醒与找回凭证。平台暂不支持短信验证，因此这里不做验证码校验；如不是你本人的号码，请不要填写。</p>
+        <p class="auth-tip">手机号仅登记在本账号名下，用于老师联系、课程提醒与找回凭证。这里登记时平台不会发送短信验证码（与登录时的验证码是两回事），填完即存；如不是你本人的号码，请不要填写。</p>
         <button class="btn btn-primary btn-block" id="btn-acct-phone-save">保存手机号</button>
         <button class="btn btn-ghost btn-block" id="btn-acct-phone-cancel">取消</button>
         <div class="auth-msg" id="acct-phone-msg" hidden></div>
@@ -1104,7 +1122,7 @@
     </div>
     <div class="modal-body">
       <p class="guide-intro">要把<b id="phone-gate-what">继续使用</b>进行下去，需要先登记手机号。</p>
-      <p class="auth-tip">用途只有两个：老师课后联系你 / 你以后找回账号。平台暂不支持短信验证，所以这里<b>不做验证码校验</b>，填完即存，仅你自己可见。
+      <p class="auth-tip">用途只有两个：老师课后联系你 / 你以后找回账号。这里登记手机号时平台不会发送短信验证码（与登录时的验证码是两回事），所以<b>不做验证码校验</b>，填完即存，仅你自己可见。
         <button class="link-btn" id="btn-phone-gate-why" type="button">查看隐私政策</button></p>
       <label class="auth-field"><span>手机号</span>
         <input type="tel" id="phone-gate-input" placeholder="请输入 11 位手机号" inputmode="numeric" autocomplete="tel" maxlength="11"></label>

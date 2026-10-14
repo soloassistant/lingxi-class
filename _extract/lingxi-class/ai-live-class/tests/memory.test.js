@@ -376,16 +376,15 @@ const W = window;
   };
   document.getElementById('au-su-email').value = 'old@example.com';
 
-  // 合规要求：未勾选同意前，注册流程应被拦下（不得收集个人信息）
+  // 合规要求：未勾选同意前，注册主按钮应被置灰（不得收集个人信息）
   W.setConsent(false);
   const cbox = document.getElementById('au-consent');
-  if (cbox) cbox.checked = false;
-  document.getElementById('au-su-send').click();
-  await new Promise((r) => setTimeout(r, 30));
-  t('未同意协议时不发起注册请求', document.getElementById('auth-msg').textContent.includes('同意'));
+  if (cbox) { cbox.checked = false; cbox.dispatchEvent(new (document.defaultView.Event)('change')); }
+  t('未同意协议时注册按钮被置灰', document.getElementById('au-su-send').disabled === true);
 
   // 勾选同意后正常走注册路径
-  if (cbox) cbox.checked = true;
+  if (cbox) { cbox.checked = true; cbox.dispatchEvent(new (document.defaultView.Event)('change')); }
+  t('勾选同意后注册按钮恢复可点', document.getElementById('au-su-send').disabled === false);
   document.getElementById('au-su-send').click();
   await new Promise((r) => setTimeout(r, 30));
   const msg = document.getElementById('auth-msg');
