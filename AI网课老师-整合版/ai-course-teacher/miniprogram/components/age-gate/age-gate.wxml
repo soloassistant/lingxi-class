@@ -1,0 +1,39 @@
+<view class="ag-mask" wx:if="{{visible}}" catchtouchmove="noop">
+  <view class="ag-modal">
+    <view class="ag-title">开始之前，先完成未成年人保护确认</view>
+    <view class="ag-sub">用于适龄提示与监护人同意，一次性完成，之后不再追问</view>
+    <scroll-view scroll-y class="ag-body">
+      <view class="ag-label">你的身份</view>
+      <radio-group class="ag-row" bindchange="onRoleChange">
+        <label class="ag-opt"><radio value="student" checked="{{role === 'student'}}"/><text>我是学生</text></label>
+        <label class="ag-opt"><radio value="guardian" checked="{{role === 'guardian'}}"/><text>我是家长 / 老师</text></label>
+      </radio-group>
+
+      <block wx:if="{{role === 'student'}}">
+        <view class="ag-label">是否未满 14 周岁</view>
+        <radio-group class="ag-row" bindchange="onMinorChange">
+          <label class="ag-opt"><radio value="no" checked="{{minor === 'no'}}"/><text>已满 14 周岁</text></label>
+          <label class="ag-opt"><radio value="yes" checked="{{minor === 'yes'}}"/><text>未满 14 周岁</text></label>
+        </radio-group>
+      </block>
+
+      <view wx:if="{{showGuardian}}" class="ag-guardian">
+        <view class="ag-label">监护人手机号或邮箱</view>
+        <input class="ag-input" value="{{guardianContact}}" bindinput="onContactInput"
+               placeholder="用于课后联系与你找回账号" maxlength="60"/>
+        <label class="ag-consent">
+          <checkbox value="agree" checked="{{guardianConsent}}" bindchange="onConsentChange"/>
+          <text>我是这位未成年学生的监护人，已阅读并同意<text class="ag-link" bindtap="goChildrenRules">《儿童个人信息保护规则》</text></text>
+        </label>
+        <view class="ag-note">这一步是<b>监护人声明</b>，我们不做线下的身份核验；如所填方式无法联系到监护人，我们可能暂停该账号的课程生成。</view>
+      </view>
+
+      <view wx:if="{{declaredLine}}" class="ag-declared">{{declaredLine}}</view>
+      <view class="ag-hint">{{ageHint}}</view>
+    </scroll-view>
+    <view wx:if="{{msg}}" class="ag-msg">{{msg}}</view>
+    <view class="ag-footer">
+      <button class="ag-btn" bindtap="onConfirm">确认并继续</button>
+    </view>
+  </view>
+</view>

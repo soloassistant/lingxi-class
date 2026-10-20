@@ -1,11 +1,14 @@
 const app = getApp();
 const config = require('../../config.js');
+const legal = require('../../utils/legal.js');
 
 Page({
   data: {
     hasLogin: false,
     openid: '',
     loginError: '',
+    ageDecl: '未登记',
+    supportEmail: '',
     stats: {
       days: 0,
       done: 0,
@@ -22,6 +25,43 @@ Page({
       this.setData({ hasLogin: false, loginError: app.globalData.loginError || '' });
       this.loadLocalStats();
     }
+    this.syncAgeAndContact();
+  },
+
+  // 适龄/监护人声明 + 联系邮箱（未成年人保护：面板里看得见自己声明了什么，不是静默记住）
+  syncAgeAndContact() {
+    const d = legal.readAgeDeclaration();
+    this.setData({
+      ageDecl: d
+        ? ((d.role === 'guardian' ? '家长 / 老师' : '学生')
+           + (d.isMinor ? ' · 未满 14 周岁 · 监护人 ' + (d.guardianContact || '未填') : ' · 已满 14 周岁'))
+        : '未登记',
+      supportEmail: legal.SUPPORT_EMAIL
+    });
+  },
+
+  // 清除声明后回首页重新确认（闸门在首屏，见 index.maybeShowAgeGate）
+  editAgeDeclaration() {
+    wx.showModal({
+      title: '修改适龄声明',
+      content: '将清除本设备已登记的年龄/身份声明，返回首页后需重新确认。确定修改？',
+      confirmText: '重新确认',
+      success: (r) => {
+        if (r.confirm) {
+          legal.clearAgeDeclaration();
+          wx.showToast({ title: '已清除，返回首页重新确认', icon: 'none' });
+          wx.switchTab({ url: '/pages/index/index' });
+        }
+      }
+    });
+  },
+
+  copySupportEmail() {
+    if (!this.data.supportEmail) return;
+    wx.setClipboardData({
+      data: this.data.supportEmail,
+      success: () => wx.showToast({ title: '邮箱已复制', icon: 'success' })
+    });
   },
 
   // 手动登录/重试

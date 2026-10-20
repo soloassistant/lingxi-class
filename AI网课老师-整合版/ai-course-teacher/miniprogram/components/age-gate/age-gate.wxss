@@ -1,0 +1,25 @@
+.ag-mask {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.75); z-index: 10000;
+  display: flex; align-items: center; justify-content: center; padding: 40rpx;
+}
+.ag-modal {
+  width: 100%; max-height: 86vh; background: #fff; border-radius: 24rpx;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.ag-title { font-size: 32rpx; font-weight: 700; text-align: center; padding: 40rpx 40rpx 8rpx; color: #1a1d27; }
+.ag-sub { font-size: 22rpx; color: #999; text-align: center; padding: 0 40rpx 20rpx; }
+.ag-body { padding: 0 40rpx; max-height: 62vh; box-sizing: border-box; }
+.ag-label { font-size: 26rpx; font-weight: 600; color: #1a1d27; margin: 24rpx 0 12rpx; }
+.ag-row { display: flex; gap: 32rpx; }
+.ag-opt { display: flex; align-items: center; font-size: 26rpx; color: #333; }
+.ag-guardian { margin-top: 8rpx; }
+.ag-input { border: 1rpx solid #e0e0e0; border-radius: 12rpx; padding: 20rpx; font-size: 26rpx; margin-bottom: 16rpx; }
+.ag-consent { display: flex; align-items: flex-start; font-size: 24rpx; color: #333; line-height: 1.6; }
+.ag-link { color: #4f6ef2; }
+.ag-note { font-size: 22rpx; color: #999; line-height: 1.6; margin-top: 12rpx; }
+.ag-declared { font-size: 22rpx; color: #4f6ef2; margin-top: 20rpx; line-height: 1.6; }
+.ag-hint { font-size: 22rpx; color: #555; line-height: 1.6; margin: 20rpx 0 8rpx; padding: 16rpx; background: #f5f6fa; border-radius: 12rpx; }
+.ag-msg { font-size: 24rpx; color: #ff4d4f; padding: 12rpx 40rpx 0; line-height: 1.5; }
+.ag-footer { padding: 20rpx 40rpx 40rpx; }
+.ag-btn { background: #4f6ef2; color: #fff; border-radius: 44rpx; font-size: 28rpx; }

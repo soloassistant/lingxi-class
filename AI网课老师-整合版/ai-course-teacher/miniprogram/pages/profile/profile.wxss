@@ -63,6 +63,9 @@
 .menu-text { flex: 1; font-size: 30rpx; }
 .menu-text.danger { color: #ff1744; }
 .menu-arrow { color: #7a7f8a; font-size: 32rpx; }
+.menu-text-col { flex: 1; display: flex; flex-direction: column; }
+.menu-sub { font-size: 22rpx; color: #7a7f8a; margin-top: 6rpx; line-height: 1.4; }
+.menu-link { font-size: 26rpx; color: #00e5ff; }
 .version {
   text-align: center;
   color: #7a7f8a;

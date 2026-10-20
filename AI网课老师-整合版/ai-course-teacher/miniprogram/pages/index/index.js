@@ -1,9 +1,11 @@
 const app = getApp();
 const { track } = require('../../utils/track.js');
+const legal = require('../../utils/legal.js');
 
 Page({
   data: {
     showPrivacy: false,
+    showAgeGate: false,
     darkMode: false,
     fontScale: '16px',
     T: {},
@@ -25,6 +27,8 @@ Page({
     const agreed = wx.getStorageSync('privacy_agreed');
     if (!agreed) {
       this.setData({ showPrivacy: true });
+    } else {
+      this.maybeShowAgeGate();
     }
   },
 
@@ -33,6 +37,17 @@ Page({
     this.applyLang();
     this.loadDashboard();
     this.loadCourses();
+    this.maybeShowAgeGate();
+  },
+
+  // 未成年人保护闸门：隐私已同意 + 尚未登记年龄/身份声明时，首屏弹出一次性确认。
+  // 登记过就不再追问（按 LEGAL_VERSION 比对）；"我的"页可清除后重新确认。
+  maybeShowAgeGate() {
+    if (this.data.showPrivacy) return;                     // 先过隐私弹窗
+    if (!wx.getStorageSync('privacy_agreed')) return;
+    if (legal.readAgeDeclaration()) return;                // 已声明过，不反复追问
+    if (this.data.showAgeGate) return;
+    this.setData({ showAgeGate: true });
   },
   applyTheme() {
     // 与 settings 页约定对齐：theme 'dark'|'light'，fontSize 'small'|'medium'|'large'
@@ -124,6 +139,11 @@ Page({
 
   onPrivacyAgree() {
     this.setData({ showPrivacy: false });
+    this.maybeShowAgeGate();   // 隐私同意后，接着问适龄/监护人
+  },
+
+  onAgeGatePass() {
+    this.setData({ showAgeGate: false });
   },
 
   noop() {},

@@ -1,8 +1,10 @@
 const config = require('./config.js');
+const legal = require('./utils/legal.js');
 
 App({
-  globalData: { openid: '', hasLogin: false, isGuest: false, loginError: '' },
+  globalData: { openid: '', hasLogin: false, isGuest: false, loginError: '', _fg: false },
   onLaunch() {
+    this.startUsageReminder();
     if (!wx.cloud) {
       this.globalData.isGuest = true;
       this.globalData.loginError = '当前环境不支持云能力';
@@ -10,6 +12,22 @@ App({
     }
     wx.cloud.init({ env: config.envId, traceUser: true });
     this.cloudLogin();
+  },
+
+  // 小程序前后台：仅供防沉迷计时判断"是否正在使用"
+  onShow() { this.globalData._fg = true; },
+  onHide() { this.globalData._fg = false; },
+
+  // 防沉迷：登录态 + 前台每 30s 记一格，跨过 45/90 分钟弹休息提醒。
+  // 只提醒、不强制断线 —— 纯前端必然可绕过（清缓存归零），写"已限制"是虚假宣称，
+  // 详见 utils/legal.js 顶部的诚实取舍说明。
+  startUsageReminder() {
+    if (this._usageTimer) return;
+    this._usageTimer = setInterval(() => {
+      if (!this.globalData._fg) return;               // 后台不计"在使用"
+      const hits = legal.tickUsage({ loggedIn: this.globalData.hasLogin });
+      hits.forEach(m => wx.showToast({ title: m.toast, icon: 'none', duration: 3500 }));
+    }, legal.USAGE_TICK_MS);
   },
 
   // 登录：成功返回 true；失败记录原因并置游客态

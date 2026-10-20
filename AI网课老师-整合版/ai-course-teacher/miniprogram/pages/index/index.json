@@ -2,6 +2,7 @@
   "navigationBarTitleText": "语桥",
   "usingComponents": {
     "privacy-modal": "/components/privacy-modal/privacy-modal",
+    "age-gate": "/components/age-gate/age-gate",
     "skeleton": "/components/skeleton/skeleton",
     "empty-state": "/components/empty-state/empty-state"
   }

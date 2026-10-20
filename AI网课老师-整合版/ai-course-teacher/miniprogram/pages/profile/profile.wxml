@@ -94,6 +94,26 @@
     </view>
   </view>
 
+  <!-- 未成年人保护：适龄/监护人声明（可见可改）+ 联系邮箱 -->
+  <view class="card">
+    <view class="menu-item">
+      <text class="menu-icon">🛡️</text>
+      <view class="menu-text-col">
+        <text class="menu-text">适龄与监护人声明</text>
+        <text class="menu-sub">{{ageDecl}}</text>
+      </view>
+      <text class="menu-link" bindtap="editAgeDeclaration">修改</text>
+    </view>
+    <view class="menu-item" wx:if="{{supportEmail}}" bindtap="copySupportEmail">
+      <text class="menu-icon">✉️</text>
+      <view class="menu-text-col">
+        <text class="menu-text">联系我们</text>
+        <text class="menu-sub">{{supportEmail}}</text>
+      </view>
+      <text class="menu-arrow">→</text>
+    </view>
+  </view>
+
   <!-- 隐私合规（补丁6） -->
   <view class="card">
     <view class="menu-item" bindtap="goAgreement">

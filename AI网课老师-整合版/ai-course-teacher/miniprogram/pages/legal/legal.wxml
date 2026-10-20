@@ -1,8 +1,17 @@
 <view class="container">
   <view class="card">
     <view class="legal-title">隐私条款</view>
-    <view class="legal-date">更新日期：2026 年 9 月 22 日</view>
-    <view class="legal-version">生效日期：2026 年 9 月 22 日</view>
+    <view class="legal-date">更新日期：2026 年 10 月 20 日</view>
+    <view class="legal-version">生效日期：2026 年 10 月 20 日 · 版本 2026-10-20.1</view>
+  </view>
+
+  <!-- 适龄提示（醒目，置顶） -->
+  <view class="card age-banner">
+    <view class="section-title">适龄提示</view>
+    <view class="section-body">
+      本产品面向 K12 及国际课程学习者。未满 14 周岁的儿童请在监护人同意并陪同下使用；
+      监护人可随时查阅、更正或删除其被监护儿童的个人信息，见下文「儿童个人信息保护规则」。
+    </view>
   </view>
 
   <view class="card">
@@ -36,21 +45,39 @@
   <view class="card">
     <view class="section-title">5. 未成年人保护</view>
     <view class="section-body">
-      若您未满 14 周岁，请在监护人陪同下使用本应用。我们不会主动收集未成年人的个人信息。
+      本产品面向 K12 及国际课程学习者，未成年人（尤其是未满 14 周岁的儿童）应在监护人陪同下使用。首次打开小程序时，我们会询问使用者身份与年龄：若选择「未满 14 周岁」，须由监护人填写监护人联系方式并勾选确认后才能继续使用。该步骤为<b>监护人声明</b>，我们不做线下的身份核验，因此无法确认操作者确实是监护人本人；如所填方式无法联系到监护人，我们可能暂停该账号的课程生成。
+    </view>
+  </view>
+
+  <!-- 儿童个人信息保护规则：独立成节，与前述条款不一致的以本规则为准（对齐 Web 版《隐私政策》第七章） -->
+  <view class="card">
+    <view class="section-title">6. 儿童个人信息保护规则</view>
+    <view class="section-body">
+      本规则适用于未满 14 周岁儿童的个人信息，是本隐私条款的组成部分；与前述条款不一致的，以本规则为准。
+    </view>
+    <view class="section-body">1）收集范围：我们仅收集为提供 AI 学习服务所必需的信息 —— 微信 OpenID、所选课程体系/学科、学习进度、错题记录、作答与提问、AI 对学习情况的评估结论、社区发帖。不收集真实姓名、身份证号、生物识别信息、精确地理位置、通讯录、相册。</view>
+    <view class="section-body">2）监护人同意：首次使用时会询问身份与年龄，未满 14 周岁须由监护人填写联系方式并勾选确认。此为<b>监护人声明</b>，我们不做线下身份核验。</view>
+    <view class="section-body">3）使用目的：上述信息仅用于生成与讲授课程、生成学习档案与报告、跨课时记住学习者、异常时联系监护人。不用于广告推送，不出售给任何第三方。</view>
+    <view class="section-body">4）存储与安全：保存在微信云开发环境中，按用户隔离，仅账号本人可读写；保存至主动删除或注销账号为止。</view>
+    <view class="section-body">5）监护人权利：监护人可随时要求查阅、复制、更正或删除其被监护儿童的个人信息，也可要求注销账号。行使方式：在「我的」页面自助导出/删除，或通过下文方式联系我们。</view>
+    <view class="section-body">6）向外提供：我们不会向第三方转移儿童个人信息，法律法规另有规定或取得监护人同意的除外。</view>
+    <view class="section-body">7）适龄与使用提醒：我们会在连续使用约 45 分钟与 90 分钟时给出休息提醒。该提醒是<b>提示性质</b>，不构成强制断线；我们建议未成年人每次连续使用不超过 40 分钟、每日累计不超过 2 小时，并由监护人协助安排。</view>
+    <view class="section-body">8）发现与投诉：如你认为我们处理儿童个人信息的方式不当，可通过下文方式联系我们，我们会在核实后及时处理。</view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">7. 您的权利</view>
+    <view class="section-body">
+      您有权随时清除本地数据。如需注销云端数据，请通过个人中心"清空本地数据"入口操作，并通过"导出我的数据 / 注销账号"处理云端数据，或联系开发者。数据清除后无法恢复。
     </view>
   </view>
 
   <view class="card">
-    <view class="section-title">6. 您的权利</view>
+    <view class="section-title">8. 联系我们</view>
     <view class="section-body">
-      您有权随时清除本地数据。如需注销云端数据，请通过个人中心“清空本地数据”入口操作，并联系开发者处理云端备份。数据清除后无法恢复。
+      如对本隐私条款有任何疑问，或需行使查阅、更正、删除等权利，可通过以下方式联系：
     </view>
-  </view>
-
-  <view class="card">
-    <view class="section-title">7. 联系我们</view>
-    <view class="section-body">
-      如对本隐私条款有任何疑问，请通过小程序内“学习圈”社区留言联系我们，我们将在 7 个工作日内回复。
-    </view>
+    <view class="section-body" wx:if="{{supportEmail}}">联系邮箱：{{supportEmail}}</view>
+    <view class="section-body">也可通过小程序内"学习圈"社区留言联系我们，我们将在 7 个工作日内回复。</view>
   </view>
 </view>

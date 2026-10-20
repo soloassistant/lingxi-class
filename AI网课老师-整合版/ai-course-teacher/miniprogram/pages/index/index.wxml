@@ -1,4 +1,5 @@
 <privacy-modal visible="{{showPrivacy}}" bind:agree="onPrivacyAgree" bind:disagree="noop"></privacy-modal>
+<age-gate visible="{{showAgeGate}}" bind:pass="onAgeGatePass"></age-gate>
 
 <view class="page {{darkMode ? 'dark' : ''}}" style="font-size: {{fontScale}};">
   <view class="header">
